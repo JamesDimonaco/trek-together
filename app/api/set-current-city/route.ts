@@ -6,17 +6,30 @@ import { api } from "@/convex/_generated/api";
 import { COOKIE_NAMES } from "@/lib/utils/session";
 import { Id } from "@/convex/_generated/dataModel";
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const convex = new ConvexHttpClient(
+  process.env.NEXT_PUBLIC_CONVEX_URL ||
+    (() => {
+      throw new Error(
+        "NEXT_PUBLIC_CONVEX_URL environment variable is required"
+      );
+    })()
+);
 
 export async function POST(request: NextRequest) {
   try {
     const { cityId } = await request.json();
-    
-    if (!cityId || !/^[a-z0-9]{32}$/.test(cityId)) {
-      return NextResponse.json(
-        { error: "Invalid city ID" },
-        { status: 400 }
-      );
+
+    if (!cityId || !/^[0-9a-v]{32}$/i.test(cityId)) {
+      return NextResponse.json({ error: "Invalid city ID" }, { status: 400 });
+    }
+
+    // Verify city exists before proceeding
+    const city = await convex.query(api.cities.getCityById, {
+      cityId: cityId as Id<"cities">,
+    });
+
+    if (!city) {
+      return NextResponse.json({ error: "City not found" }, { status: 404 });
     }
 
     const cookieStore = await cookies();
@@ -36,9 +49,9 @@ export async function POST(request: NextRequest) {
         const convexUser = await convex.query(api.users.getUserByAuthId, {
           authId: user.id,
         });
-        
+
         if (convexUser) {
-          await convex.mutation(api.users.updateCurrentCity, {
+          await convex.mutation(api.users.joinCity, {
             userId: convexUser._id,
             cityId: cityId as Id<"cities">,
           });

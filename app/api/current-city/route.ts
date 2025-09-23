@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { ConvexHttpClient } from "convex/browser";
@@ -44,7 +44,7 @@ export async function GET() {
     if (currentCityId) {
       try {
         // Validate cityId format before querying
-        if (!/^[a-z0-9]{32}$/.test(currentCityId)) {
+        if (!/^[0-9a-v]{32}$/i.test(currentCityId)) {
           return NextResponse.json({
             success: false,
             error: "Invalid city ID format",

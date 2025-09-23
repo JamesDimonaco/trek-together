@@ -146,9 +146,9 @@ export const migrateToAuthenticated = mutation({
     avatarUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    if (!user) {
-      throw new Error("User not found");
+    const anonymousUser = await ctx.db.get(args.userId);
+    if (!anonymousUser) {
+      throw new Error("Anonymous user not found");
     }
     
     // Check if an authenticated user with this authId already exists
@@ -158,17 +158,30 @@ export const migrateToAuthenticated = mutation({
       .first();
     
     if (existingAuthUser) {
-      // If authenticated user already exists, we might need to merge data
-      // For now, just return the existing authenticated user
+      // Merge data from anonymous user to existing authenticated user
+      const mergedCitiesVisited = Array.from(new Set([
+        ...existingAuthUser.citiesVisited,
+        ...anonymousUser.citiesVisited
+      ]));
+      
+      await ctx.db.patch(existingAuthUser._id, {
+        citiesVisited: mergedCitiesVisited,
+        // Update current city if anonymous user had one and auth user doesn't
+        currentCityId: existingAuthUser.currentCityId || anonymousUser.currentCityId,
+      });
+      
+      // Delete the anonymous user record since data has been merged
+      await ctx.db.delete(args.userId);
+      
       return existingAuthUser._id;
     }
     
-    // Convert anonymous user to authenticated
+    // Convert anonymous user to authenticated (no existing auth user)
     await ctx.db.patch(args.userId, {
       authId: args.authId,
       username: args.username,
       avatarUrl: args.avatarUrl,
-      // Keep existing data: citiesVisited, etc.
+      // Keep existing data: citiesVisited, currentCityId, etc.
       // Remove sessionId since user is now authenticated
       sessionId: undefined,
     });
@@ -212,6 +225,97 @@ export const getUserCurrentCity = query({
     }
     
     return await ctx.db.get(user.currentCityId);
+  },
+});
+
+// Join city - atomic operation that adds to visited cities and sets as current
+export const joinCity = mutation({
+  args: {
+    userId: v.id("users"),
+    cityId: v.id("cities"),
+  },
+  handler: async (ctx, args) => {
+    // Verify city exists
+    const city = await ctx.db.get(args.cityId);
+    if (!city) {
+      throw new Error("City not found");
+    }
+    
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    // Atomically update both current city and visited cities
+    const updates: any = {
+      currentCityId: args.cityId,
+    };
+    
+    // Add to visited cities if not already there
+    if (!user.citiesVisited.includes(args.cityId)) {
+      updates.citiesVisited = [...user.citiesVisited, args.cityId];
+    }
+    
+    await ctx.db.patch(args.userId, updates);
+    
+    return city;
+  },
+});
+
+// Anonymize user when account is deleted (GDPR compliant)
+export const anonymizeUser = mutation({
+  args: {
+    authId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_auth_id", (q) => q.eq("authId", args.authId))
+      .first();
+    
+    if (!user) {
+      console.log(`User with authId ${args.authId} not found for anonymization`);
+      return;
+    }
+    
+    // Anonymize user data while preserving message history
+    await ctx.db.patch(user._id, {
+      authId: undefined, // Remove auth link
+      username: `[deleted-user-${user._id.slice(-8)}]`, // Anonymize username
+      avatarUrl: undefined, // Remove avatar
+      bio: undefined, // Remove bio
+      whatsappNumber: undefined, // Remove contact info
+      // Keep citiesVisited and currentCityId for data consistency
+      // Messages will show anonymized username
+    });
+    
+    console.log(`User ${args.authId} anonymized successfully`);
+    return user._id;
+  },
+});
+
+// Hard delete user (alternative approach - removes all data)
+export const deleteUser = mutation({
+  args: {
+    authId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_auth_id", (q) => q.eq("authId", args.authId))
+      .first();
+    
+    if (!user) {
+      console.log(`User with authId ${args.authId} not found for deletion`);
+      return;
+    }
+    
+    // Note: This will cause foreign key issues if user has messages
+    // Consider cascading deletes or anonymization instead
+    await ctx.db.delete(user._id);
+    
+    console.log(`User ${args.authId} hard deleted`);
+    return user._id;
   },
 });
 

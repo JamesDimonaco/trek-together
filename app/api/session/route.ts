@@ -7,7 +7,7 @@ import { generateSessionId, generateAnonymousUsername, COOKIE_NAMES } from "@/li
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const cookieStore = await cookies();
   
   // Check if user is authenticated with Clerk
@@ -21,6 +21,21 @@ export async function GET(request: NextRequest) {
       });
       
       if (convexUser) {
+        // Update cookies to ensure consistency for authenticated users
+        cookieStore.set(COOKIE_NAMES.USER_ID, convexUser._id, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 365,
+        });
+        
+        cookieStore.set(COOKIE_NAMES.USERNAME, convexUser.username || 'anonymous', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production", 
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 365,
+        });
+        
         return NextResponse.json({
           sessionId: convexUser._id, // Use Convex user ID as session ID for auth users
           userId: convexUser._id,
@@ -68,6 +83,21 @@ export async function POST(request: NextRequest) {
         });
         
         if (convexUser) {
+          // Update cookies to ensure consistency
+          cookieStore.set(COOKIE_NAMES.USER_ID, convexUser._id, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 365,
+          });
+          
+          cookieStore.set(COOKIE_NAMES.USERNAME, convexUser.username || 'anonymous', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax", 
+            maxAge: 60 * 60 * 24 * 365,
+          });
+          
           // Return authenticated user data
           return NextResponse.json({
             sessionId: convexUser._id,

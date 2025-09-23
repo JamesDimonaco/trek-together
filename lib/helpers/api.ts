@@ -118,12 +118,18 @@ export async function joinCity(
 
 // Geolocation helper
 // Current city helpers
-export async function getCurrentCity(): Promise<any | null> {
+export async function getCurrentCity(): Promise<{
+  success: boolean;
+  city: string;
+  source?: string;
+} | null> {
   try {
     const response = await fetch("/api/current-city");
     if (response.ok) {
       const data = await response.json();
-      return data.success ? data.city : null;
+      return data.success
+        ? { success: true, city: data.city, source: data.source }
+        : null;
     }
     return null;
   } catch (err) {

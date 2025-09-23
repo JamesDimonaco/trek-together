@@ -64,7 +64,7 @@ export default function LocationConfirmation({
         </div>
 
         <p className="text-xs text-center text-muted-foreground">
-          You'll join the public chat for {locationData.city} where you can connect with other trekkers
+          You&apos;ll join the public chat for {locationData.city} where you can connect with other trekkers
         </p>
       </CardContent>
     </Card>

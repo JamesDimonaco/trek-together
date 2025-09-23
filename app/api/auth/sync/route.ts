@@ -1,39 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { COOKIE_NAMES } from "@/lib/utils/session";
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
+  throw new Error("NEXT_PUBLIC_CONVEX_URL environment variable is not set");
+}
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL);
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Get current authenticated user from Clerk
     const user = await currentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(COOKIE_NAMES.SESSION_ID)?.value;
     const currentUsername = cookieStore.get(COOKIE_NAMES.USERNAME)?.value;
 
-    // Prepare user data for Convex
-    const username = 
-      user.username || 
-      user.firstName || 
+    // Prepare user data for Convex - ensure we always have a non-empty string
+    const username: string =
+      user.username ||
+      user.firstName ||
       currentUsername || // Use existing anonymous username if available
-      `user-${user.id.slice(-8)}`;
+      `user-${user.id.slice(-8)}` ||
+      'anonymous-user';
 
-    console.log("Syncing authenticated user (fallback):", {
-      authId: user.id,
-      username,
-      sessionId,
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.log("Syncing authenticated user (fallback):", {
+        authId: user.id,
+        username,
+        sessionId,
+      });
+    }
 
     // Handle migration if user was anonymous before
     if (sessionId && currentUsername) {

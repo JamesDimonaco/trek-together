@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         params: {
           latlng: { lat, lng },
           key: process.env.GOOGLE_MAPS_API_KEY,
-          result_type: ["locality", "administrative_area_level_3", "administrative_area_level_2"],
+          // Remove result_type restriction to allow all address component types
         },
       });
 
@@ -34,13 +34,14 @@ export async function POST(request: NextRequest) {
         let state = "";
         
         for (const component of result.address_components) {
-          if (component.types.includes("locality")) {
+          const types = component.types as string[];
+          if (types.includes("locality")) {
             city = component.long_name;
           }
-          if (component.types.includes("administrative_area_level_1")) {
+          if (types.includes("administrative_area_level_1")) {
             state = component.short_name;
           }
-          if (component.types.includes("country")) {
+          if (types.includes("country")) {
             country = component.long_name;
           }
         }
@@ -48,8 +49,9 @@ export async function POST(request: NextRequest) {
         // Fallback to broader area if no locality found
         if (!city) {
           for (const component of result.address_components) {
-            if (component.types.includes("administrative_area_level_2") || 
-                component.types.includes("administrative_area_level_3")) {
+            const types = component.types as string[];
+            if (types.includes("administrative_area_level_2") || 
+                types.includes("administrative_area_level_3")) {
               city = component.long_name;
               break;
             }
@@ -92,13 +94,14 @@ export async function POST(request: NextRequest) {
         let state = "";
         
         for (const component of result.address_components) {
-          if (component.types.includes("locality")) {
+          const types = component.types as string[];
+          if (types.includes("locality")) {
             city = component.long_name;
           }
-          if (component.types.includes("administrative_area_level_1")) {
+          if (types.includes("administrative_area_level_1")) {
             state = component.short_name;
           }
-          if (component.types.includes("country")) {
+          if (types.includes("country")) {
             country = component.long_name;
           }
         }

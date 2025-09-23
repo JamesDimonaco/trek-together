@@ -4,10 +4,17 @@ import { Webhook } from "svix";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error("NEXT_PUBLIC_CONVEX_URL environment variable is required");
+}
+const convex = new ConvexHttpClient(convexUrl);
 
 type ClerkWebhookEvent = {
+  object: "event";
   type: string;
+  timestamp: number;
+  instance_id: string;
   data: {
     id: string;
     username?: string;
@@ -16,10 +23,26 @@ type ClerkWebhookEvent = {
     email_addresses?: Array<{
       email_address: string;
       id: string;
+      verification?: {
+        status: string;
+        strategy: string;
+      };
+    }>;
+    phone_numbers?: Array<{
+      phone_number: string;
+      id: string;
     }>;
     image_url?: string;
+    profile_image_url?: string;
+    external_id?: string;
+    primary_email_address_id?: string;
+    last_sign_in_at?: number;
     created_at?: number;
     updated_at?: number;
+    public_metadata?: Record<string, unknown>;
+    private_metadata?: Record<string, unknown>;
+    // Additional fields that might be present
+    [key: string]: unknown;
   };
 };
 
@@ -94,50 +117,53 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleUserCreated(userData: ClerkWebhookEvent["data"]) {
-  const username = 
-    userData.username || 
-    userData.first_name || 
-    `user-${userData.id.slice(-8)}`;
+async function upsertUserData(
+  userData: ClerkWebhookEvent["data"],
+  action: string
+) {
+  const username = generateUsername(userData);
 
-  console.log("Creating authenticated user:", {
+  console.log(`${action} authenticated user:`, {
     authId: userData.id,
     username,
     avatarUrl: userData.image_url,
   });
 
-  // Create or update user in Convex with Clerk data
   await convex.mutation(api.users.upsertUser, {
     authId: userData.id,
     username,
     avatarUrl: userData.image_url,
   });
+}
+
+function generateUsername(userData: ClerkWebhookEvent["data"]): string {
+  return (
+    userData.username || userData.first_name || `user-${userData.id.slice(-8)}`
+  );
+}
+
+async function handleUserCreated(userData: ClerkWebhookEvent["data"]) {
+  await upsertUserData(userData, "Creating");
 }
 
 async function handleUserUpdated(userData: ClerkWebhookEvent["data"]) {
-  const username = 
-    userData.username || 
-    userData.first_name || 
-    `user-${userData.id.slice(-8)}`;
-
-  console.log("Updating authenticated user:", {
-    authId: userData.id,
-    username,
-    avatarUrl: userData.image_url,
-  });
-
-  // Update user in Convex
-  await convex.mutation(api.users.upsertUser, {
-    authId: userData.id,
-    username,
-    avatarUrl: userData.image_url,
-  });
+  await upsertUserData(userData, "Updating");
 }
 
 async function handleUserDeleted(userData: ClerkWebhookEvent["data"]) {
-  console.log("User deleted:", userData.id);
-  
-  // We might want to anonymize the user rather than delete
-  // For now, we'll just log it
-  // Could implement: await convex.mutation(api.users.anonymizeUser, { authId: userData.id });
+  console.log("User deleted from Clerk:", userData.id);
+
+  try {
+    // Anonymize user data (GDPR compliant approach)
+    // This preserves message history while removing personal data
+    await convex.mutation(api.users.anonymizeUser, { 
+      authId: userData.id 
+    });
+    
+    console.log("User data anonymized successfully:", userData.id);
+  } catch (error) {
+    console.error("Failed to anonymize user data:", error);
+    // Don't throw - webhook should still return success to Clerk
+    // Consider implementing a retry mechanism or dead letter queue
+  }
 }

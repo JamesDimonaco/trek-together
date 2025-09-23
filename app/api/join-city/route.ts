@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const body = await request.json();
-    const { city, state, country, lat, lng, username: providedUsername } = body;
+    const { city, country, lat, lng, username: providedUsername } = body;
 
     // Validate required fields
     if (!city || !country || lat == null || lng == null) {
@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Update username if provided
-    if (providedUsername) {
-      username = providedUsername;
-      cookieStore.set(COOKIE_NAMES.USERNAME, username, {
+    if (providedUsername && providedUsername.trim()) {
+      username = providedUsername.trim();
+      cookieStore.set(COOKIE_NAMES.USERNAME, username || "anonymous", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -75,14 +75,8 @@ export async function POST(request: NextRequest) {
       username,
     });
 
-    // Add city to user's visited cities and set as current
-    await convex.mutation(api.users.addVisitedCity, {
-      userId,
-      cityId,
-    });
-
-    // Update user's current city in database
-    await convex.mutation(api.users.updateCurrentCity, {
+    // Join city - atomic operation that adds to visited cities and sets as current
+    await convex.mutation(api.users.joinCity, {
       userId,
       cityId,
     });

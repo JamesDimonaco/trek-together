@@ -12,8 +12,8 @@ const convex = new ConvexHttpClient(convexUrl);
 export async function getCityData(cityId: string) {
   try {
     // Validate that cityId matches Convex ID format
-    // Convex IDs are alphanumeric strings (typically 32 chars)
-    if (!cityId || !/^[a-z0-9]{32}$/.test(cityId)) {
+    // Convex IDs use Crockford base32 (0-9, a-v) - 32 characters
+    if (!cityId || !/^[0-9a-v]{32}$/i.test(cityId)) {
       notFound();
     }
     

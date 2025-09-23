@@ -16,7 +16,7 @@ export default function NotFound() {
             Trail Not Found
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            The page you're looking for doesn't exist or the city chat is no longer available.
+            The page you&apos;re looking for doesn&apos;t exist or the city chat is no longer available.
           </p>
         </div>
 

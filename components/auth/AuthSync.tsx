@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 
 export default function AuthSync() {
   const { user, isSignedIn, isLoaded } = useUser();
-  const clerk = useClerk();
   const [hasSynced, setHasSynced] = useState(false);
 
   // Pre-fill Clerk signup with existing username
@@ -40,7 +39,7 @@ export default function AuthSync() {
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user || hasSynced) return;
 
-    const syncUserData = async () => {
+    const syncUserData = async (retries = 3) => {
       try {
         console.log("Syncing authenticated user data...");
         
@@ -60,15 +59,26 @@ export default function AuthSync() {
           setHasSynced(true);
         } else {
           console.error("User sync failed:", response.status);
+          
+          // Retry if we have retries left and it's a server error
+          if (retries > 0 && response.status >= 500) {
+            console.log(`Retrying sync in 2 seconds... (${retries} retries left)`);
+            setTimeout(() => syncUserData(retries - 1), 2000);
+          }
         }
       } catch (error) {
         console.error("Failed to sync user data:", error);
+        
+        // Retry on network errors
+        if (retries > 0) {
+          console.log(`Retrying sync in 2 seconds... (${retries} retries left)`);
+          setTimeout(() => syncUserData(retries - 1), 2000);
+        }
       }
     };
 
-    // Small delay to ensure auth is fully loaded
-    const timeoutId = setTimeout(syncUserData, 1000);
-    return () => clearTimeout(timeoutId);
+    // Sync immediately when auth is confirmed loaded
+    syncUserData();
   }, [isLoaded, isSignedIn, user, hasSynced]);
 
   // Reset sync status when user signs out
