@@ -1,0 +1,154 @@
+import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+
+// Create or update user (for authenticated users)
+export const upsertUser = mutation({
+  args: {
+    authId: v.string(),
+    username: v.string(),
+    avatarUrl: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    whatsappNumber: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Check if user exists
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_auth_id", (q) => q.eq("authId", args.authId))
+      .first();
+    
+    if (existing) {
+      // Update existing user
+      await ctx.db.patch(existing._id, {
+        username: args.username,
+        avatarUrl: args.avatarUrl,
+        bio: args.bio,
+        whatsappNumber: args.whatsappNumber,
+      });
+      return existing._id;
+    }
+    
+    // Create new user
+    return await ctx.db.insert("users", {
+      authId: args.authId,
+      username: args.username,
+      avatarUrl: args.avatarUrl,
+      bio: args.bio,
+      whatsappNumber: args.whatsappNumber,
+      citiesVisited: [],
+    });
+  },
+});
+
+// Create guest user session
+export const createGuestUser = mutation({
+  args: {
+    sessionId: v.string(),
+    username: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Check if session already exists
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_session_id", (q) => q.eq("sessionId", args.sessionId))
+      .first();
+    
+    if (existing) {
+      return existing._id;
+    }
+    
+    return await ctx.db.insert("users", {
+      sessionId: args.sessionId,
+      username: args.username,
+      citiesVisited: [],
+    });
+  },
+});
+
+// Get user by auth ID
+export const getUserByAuthId = query({
+  args: { authId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_auth_id", (q) => q.eq("authId", args.authId))
+      .first();
+  },
+});
+
+// Get user by session ID
+export const getUserBySessionId = query({
+  args: { sessionId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_session_id", (q) => q.eq("sessionId", args.sessionId))
+      .first();
+  },
+});
+
+// Get user by ID
+export const getUserById = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.userId);
+  },
+});
+
+// Add visited city to user
+export const addVisitedCity = mutation({
+  args: {
+    userId: v.id("users"),
+    cityId: v.id("cities"),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    // Check if city is already in the list
+    if (!user.citiesVisited.includes(args.cityId)) {
+      await ctx.db.patch(args.userId, {
+        citiesVisited: [...user.citiesVisited, args.cityId],
+      });
+    }
+  },
+});
+
+// Update user profile
+export const updateProfile = mutation({
+  args: {
+    userId: v.id("users"),
+    username: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    whatsappNumber: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { userId, ...updates } = args;
+    
+    // Remove undefined values
+    const cleanUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+    
+    await ctx.db.patch(userId, cleanUpdates);
+  },
+});
+
+// Search users by username (for DMs)
+export const searchUsers = query({
+  args: { searchTerm: v.string() },
+  handler: async (ctx, args) => {
+    const users = await ctx.db
+      .query("users")
+      .filter((q) => q.neq(q.field("authId"), undefined)) // Only authenticated users
+      .collect();
+    
+    // Filter by username containing search term
+    return users.filter(user => 
+      user.username.toLowerCase().includes(args.searchTerm.toLowerCase())
+    );
+  },
+});
