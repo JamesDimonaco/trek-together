@@ -69,6 +69,14 @@ export async function POST(request: NextRequest) {
       lng,
     });
 
+    if (process.env.NODE_ENV === "development") {
+      console.log("Join city debug:", {
+        requestedCity: city,
+        requestedCountry: country,
+        returnedCityId: cityId,
+      });
+    }
+
     // Create or update user in Convex
     const userId = await convex.mutation(api.users.createGuestUser, {
       sessionId,

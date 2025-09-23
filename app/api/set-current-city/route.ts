@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     const { cityId } = await request.json();
 
-    if (!cityId || !/^[0-9a-v]{32}$/i.test(cityId)) {
+    if (!cityId || !/^[0-9a-z]{28,34}$/i.test(cityId)) {
       return NextResponse.json({ error: "Invalid city ID" }, { status: 400 });
     }
 

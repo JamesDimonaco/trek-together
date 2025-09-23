@@ -11,9 +11,14 @@ const convex = new ConvexHttpClient(convexUrl);
 
 export async function getCityData(cityId: string) {
   try {
+    if (process.env.NODE_ENV === "development") {
+      console.log("getCityData called with ID:", cityId);
+    }
+
     // Validate that cityId matches Convex ID format
-    // Convex IDs use Crockford base32 (0-9, a-v) - 32 characters
-    if (!cityId || !/^[0-9a-v]{32}$/i.test(cityId)) {
+    // Convex IDs are alphanumeric - typically 28-34 characters
+    if (!cityId || !/^[0-9a-z]{28,34}$/i.test(cityId)) {
+      console.log("Invalid cityId format:", cityId);
       notFound();
     }
     
@@ -22,7 +27,12 @@ export async function getCityData(cityId: string) {
     });
 
     if (!city) {
+      console.log("City not found in database:", cityId);
       notFound();
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("Found city:", city);
     }
 
     return city;

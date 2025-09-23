@@ -44,7 +44,7 @@ export async function GET() {
     if (currentCityId) {
       try {
         // Validate cityId format before querying
-        if (!/^[0-9a-v]{32}$/i.test(currentCityId)) {
+        if (!/^[0-9a-z]{28,34}$/i.test(currentCityId)) {
           return NextResponse.json({
             success: false,
             error: "Invalid city ID format",
