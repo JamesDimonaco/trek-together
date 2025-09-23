@@ -8,7 +8,7 @@ export async function initializeSession(): Promise<SessionData | null> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "initialize" }),
     });
-    
+
     if (response.ok) {
       return await response.json();
     }
@@ -24,9 +24,9 @@ export async function updateUsername(username: string): Promise<boolean> {
     const response = await fetch("/api/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         action: "updateUsername",
-        username 
+        username,
       }),
     });
     return response.ok;
@@ -37,7 +37,10 @@ export async function updateUsername(username: string): Promise<boolean> {
 }
 
 // Geocoding API helpers
-export async function reverseGeocode(lat: number, lng: number): Promise<LocationData | null> {
+export async function reverseGeocode(
+  lat: number,
+  lng: number
+): Promise<LocationData | null> {
   try {
     const response = await fetch("/api/geocode", {
       method: "POST",
@@ -55,7 +58,9 @@ export async function reverseGeocode(lat: number, lng: number): Promise<Location
   }
 }
 
-export async function geocodeAddress(address: string): Promise<LocationData | null> {
+export async function geocodeAddress(
+  address: string
+): Promise<LocationData | null> {
   try {
     const response = await fetch("/api/geocode", {
       method: "POST",
@@ -97,11 +102,47 @@ export async function joinCity(
       return { success: true, redirectUrl: data.redirectUrl };
     } else {
       const errorData = await response.json();
-      return { success: false, error: errorData.error || "Failed to join city chat" };
+      return {
+        success: false,
+        error: errorData.error || "Failed to join city chat",
+      };
     }
   } catch (err) {
     console.error("Join city error:", err);
-    return { success: false, error: "Failed to join city chat. Please try again." };
+    return {
+      success: false,
+      error: "Failed to join city chat. Please try again.",
+    };
+  }
+}
+
+// Geolocation helper
+// Current city helpers
+export async function getCurrentCity(): Promise<any | null> {
+  try {
+    const response = await fetch("/api/current-city");
+    if (response.ok) {
+      const data = await response.json();
+      return data.success ? data.city : null;
+    }
+    return null;
+  } catch (err) {
+    console.error("Failed to get current city:", err);
+    return null;
+  }
+}
+
+export async function setCurrentCity(cityId: string): Promise<boolean> {
+  try {
+    const response = await fetch("/api/set-current-city", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cityId }),
+    });
+    return response.ok;
+  } catch (err) {
+    console.error("Failed to set current city:", err);
+    return false;
   }
 }
 
@@ -111,23 +152,16 @@ export function requestGeolocation(
   onError: (error: GeolocationPositionError) => void
 ) {
   if (!navigator.geolocation) {
-    onError({ 
-      code: 0, 
+    onError({
+      code: 0,
       message: "Geolocation is not supported by your browser",
-      PERMISSION_DENIED: 1,
-      POSITION_UNAVAILABLE: 2,
-      TIMEOUT: 3
     } as GeolocationPositionError);
     return;
   }
 
-  navigator.geolocation.getCurrentPosition(
-    onSuccess,
-    onError,
-    {
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0,
-    }
-  );
+  navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0,
+  });
 }

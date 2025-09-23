@@ -15,6 +15,7 @@ export interface SessionData {
   username?: string;
   currentCity?: string;
   isAnonymous: boolean;
+  isAuthenticated: boolean;
 }
 
 export type LocationStep = "initial" | "requesting" | "manual" | "confirming" | "username";

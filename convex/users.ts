@@ -137,6 +137,84 @@ export const updateProfile = mutation({
   },
 });
 
+// Migrate anonymous user to authenticated user
+export const migrateToAuthenticated = mutation({
+  args: {
+    userId: v.id("users"),
+    authId: v.string(),
+    username: v.string(),
+    avatarUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    // Check if an authenticated user with this authId already exists
+    const existingAuthUser = await ctx.db
+      .query("users")
+      .withIndex("by_auth_id", (q) => q.eq("authId", args.authId))
+      .first();
+    
+    if (existingAuthUser) {
+      // If authenticated user already exists, we might need to merge data
+      // For now, just return the existing authenticated user
+      return existingAuthUser._id;
+    }
+    
+    // Convert anonymous user to authenticated
+    await ctx.db.patch(args.userId, {
+      authId: args.authId,
+      username: args.username,
+      avatarUrl: args.avatarUrl,
+      // Keep existing data: citiesVisited, etc.
+      // Remove sessionId since user is now authenticated
+      sessionId: undefined,
+    });
+    
+    return args.userId;
+  },
+});
+
+// Update user's current city
+export const updateCurrentCity = mutation({
+  args: {
+    userId: v.id("users"),
+    cityId: v.id("cities"),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    await ctx.db.patch(args.userId, {
+      currentCityId: args.cityId,
+    });
+    
+    // Also add to visited cities if not already there
+    if (!user.citiesVisited.includes(args.cityId)) {
+      await ctx.db.patch(args.userId, {
+        citiesVisited: [...user.citiesVisited, args.cityId],
+      });
+    }
+  },
+});
+
+// Get user's current city with details
+export const getUserCurrentCity = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user || !user.currentCityId) {
+      return null;
+    }
+    
+    return await ctx.db.get(user.currentCityId);
+  },
+});
+
 // Search users by username (for DMs)
 export const searchUsers = query({
   args: { searchTerm: v.string() },

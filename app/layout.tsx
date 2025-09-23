@@ -1,7 +1,10 @@
 import { type Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
+import AuthHeader from "@/components/layout/AuthHeader";
+import AuthSync from "@/components/auth/AuthSync";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,14 +27,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ConvexClientProvider>
-          {children}
-        </ConvexClientProvider>
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#059669", // green-600
+        },
+        elements: {
+          formButtonPrimary: "bg-green-600 hover:bg-green-700",
+          card: "shadow-lg",
+        },
+      }}
+    >
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <ConvexClientProvider>
+            <AuthHeader />
+            <AuthSync />
+            {children}
+          </ConvexClientProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

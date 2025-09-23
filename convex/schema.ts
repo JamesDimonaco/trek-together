@@ -10,9 +10,11 @@ export default defineSchema({
     bio: v.optional(v.string()),
     whatsappNumber: v.optional(v.string()),
     citiesVisited: v.array(v.id("cities")), // list of city_ids
+    currentCityId: v.optional(v.id("cities")), // current/last active city
   })
     .index("by_auth_id", ["authId"])
-    .index("by_session_id", ["sessionId"]),
+    .index("by_session_id", ["sessionId"])
+    .index("by_current_city", ["currentCityId"]),
 
   cities: defineTable({
     name: v.string(),

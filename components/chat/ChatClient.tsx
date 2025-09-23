@@ -31,6 +31,23 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
       .catch(console.error);
   }, []);
 
+  // Set current city when component mounts
+  useEffect(() => {
+    const setCurrentCity = async () => {
+      try {
+        await fetch("/api/set-current-city", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cityId }),
+        });
+      } catch (error) {
+        console.error("Failed to set current city:", error);
+      }
+    };
+
+    setCurrentCity();
+  }, [cityId]);
+
   const handleSendMessage = async (content: string) => {
     if (!session || !content.trim()) return;
 
