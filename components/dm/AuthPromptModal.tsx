@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton } from "@clerk/nextjs";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -44,11 +44,9 @@ export default function AuthPromptModal({
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <SignInButton mode="modal">
-            <Button className="w-full bg-green-600 hover:bg-green-700">
-              Sign In to Continue
-            </Button>
-          </SignInButton>
+          <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
+            <Link href="/sign-in">Sign In to Continue</Link>
+          </Button>
           <Button variant="outline" onClick={onClose} className="w-full">
             Go Back
           </Button>

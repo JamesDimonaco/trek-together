@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  SignInButton,
-  SignUpButton,
   SignedIn,
   SignedOut,
   UserButton,
@@ -83,17 +81,15 @@ export default function AuthHeader() {
           {/* Auth Buttons */}
           <div className="flex items-center space-x-2">
             <SignedOut>
-              <SignInButton mode="modal">
-                <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/sign-in">
                   <User className="h-4 w-4 mr-1" />
                   Sign In
-                </Button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                  Sign Up
-                </Button>
-              </SignUpButton>
+                </Link>
+              </Button>
+              <Button size="sm" className="bg-green-600 hover:bg-green-700" asChild>
+                <Link href="/sign-up">Sign Up</Link>
+              </Button>
             </SignedOut>
 
             <SignedIn>
