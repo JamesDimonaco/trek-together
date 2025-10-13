@@ -380,3 +380,26 @@ export const getTotalActiveUsers = query({
     return users.length;
   },
 });
+
+// Get user profile with visited cities populated
+export const getUserProfile = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      return null;
+    }
+
+    // Fetch all visited cities
+    const citiesPromises = user.citiesVisited.map((cityId) => ctx.db.get(cityId));
+    const cities = await Promise.all(citiesPromises);
+
+    // Filter out any null cities (in case of deleted cities)
+    const validCities = cities.filter((city) => city !== null);
+
+    return {
+      ...user,
+      cities: validCities,
+    };
+  },
+});

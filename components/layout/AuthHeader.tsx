@@ -6,11 +6,14 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
+  useAuth,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Mountain, User, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface CurrentCity {
   _id: string;
@@ -19,8 +22,15 @@ interface CurrentCity {
 }
 
 export default function AuthHeader() {
+  const { userId: authUserId } = useAuth();
   const [currentCity, setCurrentCity] = useState<CurrentCity | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Get current user's Convex ID
+  const currentUser = useQuery(
+    api.users.getUserByAuthId,
+    authUserId ? { authId: authUserId } : "skip"
+  );
 
   useEffect(() => {
     const fetchCurrentCity = async () => {
@@ -87,6 +97,14 @@ export default function AuthHeader() {
             </SignedOut>
 
             <SignedIn>
+              {currentUser && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/profile/${currentUser._id}`}>
+                    <User className="h-4 w-4 mr-1" />
+                    Profile
+                  </Link>
+                </Button>
+              )}
               <UserButton
                 appearance={{
                   elements: {
