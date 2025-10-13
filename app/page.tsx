@@ -106,10 +106,13 @@ export default function Home() {
     if (locationData) {
       console.log("Confirmed location:", locationData);
 
-      // Check if user already has a username
-      if (session?.username && !session.isAnonymous) {
+      // Check if user is authenticated - skip username prompt for auth users
+      if (session?.isAuthenticated) {
+        console.log("User is authenticated, skipping username prompt");
         handleJoinCity();
       } else {
+        // Anonymous user - show username prompt
+        console.log("Anonymous user, showing username prompt");
         setLocationStep("username");
       }
     }
