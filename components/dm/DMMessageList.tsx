@@ -1,0 +1,88 @@
+import { useEffect, useRef } from "react";
+import { Id } from "@/convex/_generated/dataModel";
+
+interface Message {
+  _id: Id<"dms">;
+  _creationTime: number;
+  senderId: Id<"users">;
+  receiverId: Id<"users">;
+  content: string;
+}
+
+interface Receiver {
+  _id: Id<"users">;
+  username: string;
+  avatarUrl?: string;
+}
+
+interface DMMessageListProps {
+  messages: Message[];
+  currentUserId: Id<"users">;
+  receiver: Receiver;
+}
+
+export default function DMMessageList({
+  messages,
+  currentUserId,
+  receiver,
+}: DMMessageListProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const isOwnMessage = (message: Message) => {
+    return message.senderId === currentUserId;
+  };
+
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  if (!messages?.length) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="text-4xl mb-4">💬</div>
+          <p className="text-gray-500 dark:text-gray-400 mb-2">
+            No messages yet
+          </p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">
+            Send a message to {receiver.username} to start the conversation
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      {messages.map((message) => (
+        <div
+          key={message._id}
+          className={`flex ${
+            isOwnMessage(message) ? "justify-end" : "justify-start"
+          }`}
+        >
+          <div
+            className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
+              isOwnMessage(message)
+                ? "bg-green-600 text-white"
+                : "bg-white dark:bg-gray-700 border"
+            }`}
+          >
+            <div className="text-sm break-words">{message.content}</div>
+            <div className="text-xs mt-1 opacity-70">
+              {formatTime(message._creationTime)}
+            </div>
+          </div>
+        </div>
+      ))}
+      <div ref={messagesEndRef} />
+    </div>
+  );
+}
