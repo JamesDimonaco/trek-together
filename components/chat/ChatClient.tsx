@@ -106,13 +106,13 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
 
       {/* Chat area */}
       <div className="flex-1 flex flex-col min-h-0">
-        <MessageList 
+        <MessageList
           messages={messages || []}
           currentSessionId={session.sessionId}
-          currentUserId={session.userId}
+          currentUserId={session.userId as Id<"users"> | undefined}
         />
-        
-        <MessageInput 
+
+        <MessageInput
           onSendMessage={handleSendMessage}
           placeholder={`Message ${cityName} trekkers...`}
         />

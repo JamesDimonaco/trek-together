@@ -93,7 +93,7 @@ export default function MessageList({
                 </div>
               </div>
 
-              {canShowActions && (
+              {canShowActions && message.userId && (
                 <MessageActions
                   messageId={message._id}
                   messageType="city_message"

@@ -102,57 +102,63 @@ export default function MessagesClient() {
               </div>
             </Card>
           ) : (
-            conversations.map((conversation) => (
-              <Link
-                key={conversation.partner._id}
-                href={`/dm/${conversation.partner._id}`}
-                className="block"
-              >
-                <Card className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-                  <div className="flex items-start gap-3">
-                    {/* Avatar */}
-                    <div className="flex-shrink-0">
-                      {conversation.partner.avatarUrl ? (
-                        <Image
-                          src={conversation.partner.avatarUrl}
-                          alt={conversation.partner.username}
-                          width={48}
-                          height={48}
-                          className="rounded-full"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                          <span className="text-green-600 dark:text-green-300 font-medium text-lg">
-                            {conversation.partner.username
-                              .charAt(0)
-                              .toUpperCase()}
+            conversations.map((conversation) => {
+              const partner = conversation.partner as {
+                _id: Id<"users">;
+                username: string;
+                avatarUrl?: string;
+              };
+
+              return (
+                <Link
+                  key={partner._id}
+                  href={`/dm/${partner._id}`}
+                  className="block"
+                >
+                  <Card className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                    <div className="flex items-start gap-3">
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        {partner.avatarUrl ? (
+                          <Image
+                            src={partner.avatarUrl}
+                            alt={partner.username}
+                            width={48}
+                            height={48}
+                            className="rounded-full"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                            <span className="text-green-600 dark:text-green-300 font-medium text-lg">
+                              {partner.username.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between gap-2 mb-1">
+                          <h3 className="font-medium truncate">
+                            {partner.username}
+                          </h3>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                            {formatTime(conversation.lastMessageTime)}
                           </span>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline justify-between gap-2 mb-1">
-                        <h3 className="font-medium truncate">
-                          {conversation.partner.username}
-                        </h3>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
-                          {formatTime(conversation.lastMessageTime)}
-                        </span>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {conversation.lastMessage.senderId === convexUserId
+                            ? "You: "
+                            : ""}
+                          {truncateMessage(conversation.lastMessage.content)}
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {conversation.lastMessage.senderId === convexUserId
-                          ? "You: "
-                          : ""}
-                        {truncateMessage(conversation.lastMessage.content)}
-                      </p>
                     </div>
-                  </div>
-                </Card>
-              </Link>
-            ))
+                  </Card>
+                </Link>
+              );
+            })
           )}
         </div>
       </div>

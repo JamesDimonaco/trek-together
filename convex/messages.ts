@@ -46,14 +46,14 @@ export const getMessages = query({
       // Get all users this user has blocked
       const blocked = await ctx.db
         .query("blocked_users")
-        .withIndex("by_blocker", (q) => q.eq("blockerId", args.currentUserId))
+        .withIndex("by_blocker", (q) => q.eq("blockerId", args.currentUserId!))
         .collect();
 
-      const blockedUserIds = new Set(blocked.map(b => b.blockedId));
+      const blockedUserIds = new Set(blocked.map((b) => b.blockedId));
 
       // Filter out messages from blocked users
       const filteredMessages = messages.filter(
-        msg => !msg.userId || !blockedUserIds.has(msg.userId)
+        (msg) => !msg.userId || !blockedUserIds.has(msg.userId)
       );
 
       return filteredMessages.reverse(); // Return in chronological order

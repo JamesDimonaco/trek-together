@@ -126,7 +126,16 @@ export default function SettingsClient() {
               </p>
             ) : (
               <div className="space-y-3">
-                {blockedUsers.map((block) => {
+                {blockedUsers.map((block: {
+                  blockId: Id<"blocked_users">;
+                  blockedAt: number;
+                  reason?: string;
+                  user: {
+                    _id: Id<"users">;
+                    username: string;
+                    avatarUrl?: string;
+                  } | null;
+                }) => {
                   if (!block.user) return null;
 
                   return (
