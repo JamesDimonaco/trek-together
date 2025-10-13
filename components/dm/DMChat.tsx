@@ -8,7 +8,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, User, Lock } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import Link from "next/link";
 import DMMessageList from "./DMMessageList";
 import DMInput from "./DMInput";
@@ -29,10 +29,14 @@ export default function DMChat({ receiverId }: DMChatProps) {
     authUserId ? { authId: authUserId } : "skip"
   );
 
+  // Validate receiverId format before querying
+  const isValidReceiverId = receiverId && /^[0-9a-z]{28,34}$/i.test(receiverId);
+
   // Get receiver's profile
-  const receiver = useQuery(api.users.getUserById, {
-    userId: receiverId as Id<"users">,
-  });
+  const receiver = useQuery(
+    api.users.getUserById,
+    isValidReceiverId ? { userId: receiverId as Id<"users"> } : "skip"
+  );
 
   // Get conversation messages
   const messages = useQuery(
@@ -73,41 +77,18 @@ export default function DMChat({ receiverId }: DMChatProps) {
     );
   }
 
-  // Not authenticated
+  // Not authenticated - show modal only
   if (!authUserId || !currentUser) {
     return (
-      <>
-        <AuthPromptModal
-          isOpen={showAuthModal}
-          onClose={() => router.push("/")}
-        />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="py-12 text-center space-y-4">
-              <Lock className="h-12 w-12 text-gray-400 mx-auto" />
-              <div>
-                <h2 className="text-xl font-semibold mb-2">
-                  Authentication Required
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  You need to be signed in to send direct messages
-                </p>
-                <Button
-                  onClick={() => router.push("/")}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Go Home
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </>
+      <AuthPromptModal
+        isOpen={showAuthModal}
+        onClose={() => router.push("/")}
+      />
     );
   }
 
-  // Receiver not found or is guest
-  if (!receiver || !receiver.authId) {
+  // Invalid receiver ID or receiver not found or is guest
+  if (!isValidReceiverId || !receiver || !receiver.authId) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
