@@ -7,7 +7,7 @@ import {
   useAuth,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Mountain, User, MessageCircle } from "lucide-react";
+import { Mountain, User, MessageCircle, Mail } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
@@ -93,6 +93,12 @@ export default function AuthHeader() {
             </SignedOut>
 
             <SignedIn>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/messages">
+                  <Mail className="h-4 w-4 mr-1" />
+                  Messages
+                </Link>
+              </Button>
               {currentUser && (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={`/profile/${currentUser._id}`}>
@@ -108,7 +114,15 @@ export default function AuthHeader() {
                   },
                 }}
                 userProfileMode="modal"
-              />
+              >
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="Settings"
+                    labelIcon={<User className="h-4 w-4" />}
+                    href="/settings"
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
             </SignedIn>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Id } from "@/convex/_generated/dataModel";
+import MessageActions from "./MessageActions";
 
 interface Message {
   _id: string;
@@ -14,12 +15,13 @@ interface Message {
 interface MessageListProps {
   messages: Message[];
   currentSessionId: string;
-  currentUserId?: string;
+  currentUserId?: Id<"users">;
 }
 
-export default function MessageList({ 
-  messages, 
+export default function MessageList({
+  messages,
   currentSessionId,
+  currentUserId,
 }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -53,40 +55,57 @@ export default function MessageList({
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
-      {messages.map((message) => (
-        <div
-          key={message._id}
-          className={`flex ${isOwnMessage(message) ? "justify-end" : "justify-start"}`}
-        >
+      {messages.map((message) => {
+        const isOwn = isOwnMessage(message);
+        const canShowActions = !isOwn && message.userId && currentUserId;
+
+        return (
           <div
-            className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
-              isOwnMessage(message)
-                ? "bg-green-600 text-white"
-                : "bg-white dark:bg-gray-700 border"
-            }`}
+            key={message._id}
+            className={`flex group ${isOwn ? "justify-end" : "justify-start"}`}
           >
-            {!isOwnMessage(message) && (
-              <div className="text-xs font-medium mb-1 opacity-70">
-                {message.userId ? (
-                  <Link
-                    href={`/profile/${message.userId}`}
-                    className="hover:underline cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {message.username}
-                  </Link>
-                ) : (
-                  <span>{message.username}</span>
+            <div className="flex items-start gap-2">
+              <div
+                className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
+                  isOwn
+                    ? "bg-green-600 text-white"
+                    : "bg-white dark:bg-gray-700 border"
+                }`}
+              >
+                {!isOwn && (
+                  <div className="text-xs font-medium mb-1 opacity-70">
+                    {message.userId ? (
+                      <Link
+                        href={`/profile/${message.userId}`}
+                        className="hover:underline cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {message.username}
+                      </Link>
+                    ) : (
+                      <span>{message.username}</span>
+                    )}
+                  </div>
                 )}
+                <div className="text-sm">{message.content}</div>
+                <div className="text-xs mt-1 opacity-70">
+                  {formatTime(message._creationTime)}
+                </div>
               </div>
-            )}
-            <div className="text-sm">{message.content}</div>
-            <div className="text-xs mt-1 opacity-70">
-              {formatTime(message._creationTime)}
+
+              {canShowActions && message.userId && (
+                <MessageActions
+                  messageId={message._id}
+                  messageType="city_message"
+                  reportedUserId={message.userId}
+                  reporterUserId={currentUserId}
+                  reportedUsername={message.username}
+                />
+              )}
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       <div ref={messagesEndRef} />
     </div>
   );
