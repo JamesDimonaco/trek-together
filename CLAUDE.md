@@ -8,7 +8,7 @@ and outdoor activities. The app provides **city-based group chats** (open to all
 
 Stack:
 
-- **Frontend**: Next.js 14 + shadcn/ui
+- **Frontend**: Next.js 15 + shadcn/ui
 - **Backend/DB**: Convex
 - **Auth + Payments**: Clerk
 - **Hosting**: Vercel
