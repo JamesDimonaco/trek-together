@@ -20,8 +20,9 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
 
   // Convex queries and mutations
   const messages = useQuery(api.messages.getMessages, { cityId });
-  const activeUsersCount = useQuery(api.messages.getActiveUsersCount, { cityId });
+  const activeUsersCount = useQuery(api.users.getActiveCityUsers, { cityId });
   const sendMessage = useMutation(api.messages.sendMessage);
+  const updateLastSeen = useMutation(api.users.updateLastSeen);
 
   // Get session from API
   useEffect(() => {
@@ -47,6 +48,21 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
 
     setCurrentCity();
   }, [cityId]);
+
+  // Update lastSeen periodically (every 2 minutes) while user is active
+  useEffect(() => {
+    if (!session?.userId) return;
+
+    // Update immediately when entering chat
+    updateLastSeen({ userId: session.userId as Id<"users"> });
+
+    // Then update every 2 minutes
+    const interval = setInterval(() => {
+      updateLastSeen({ userId: session.userId as Id<"users"> });
+    }, 2 * 60 * 1000); // 2 minutes
+
+    return () => clearInterval(interval);
+  }, [session?.userId, updateLastSeen]);
 
   const handleSendMessage = async (content: string) => {
     if (!session || !content.trim()) return;

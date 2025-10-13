@@ -327,10 +327,56 @@ export const searchUsers = query({
       .query("users")
       .filter((q) => q.neq(q.field("authId"), undefined)) // Only authenticated users
       .collect();
-    
+
     // Filter by username containing search term
-    return users.filter(user => 
+    return users.filter(user =>
       user.username.toLowerCase().includes(args.searchTerm.toLowerCase())
     );
+  },
+});
+
+// Update user's last seen timestamp
+export const updateLastSeen = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, {
+      lastSeen: Date.now(),
+    });
+  },
+});
+
+// Count active users in a city (active = seen in last 10 minutes)
+export const getActiveCityUsers = query({
+  args: { cityId: v.id("cities") },
+  handler: async (ctx, args) => {
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000; // 10 minutes in milliseconds
+
+    const users = await ctx.db
+      .query("users")
+      .withIndex("by_current_city", (q) => q.eq("currentCityId", args.cityId))
+      .collect();
+
+    // Filter for users active in the last 10 minutes
+    const activeUsers = users.filter(user =>
+      user.lastSeen && user.lastSeen > tenMinutesAgo
+    );
+
+    return activeUsers.length;
+  },
+});
+
+// Count all active users across all cities
+export const getTotalActiveUsers = query({
+  handler: async (ctx) => {
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+
+    const users = await ctx.db
+      .query("users")
+      .filter((q) => q.gt(q.field("lastSeen"), tenMinutesAgo))
+      .collect();
+
+    return users.length;
   },
 });

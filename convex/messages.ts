@@ -11,6 +11,13 @@ export const sendMessage = mutation({
     username: v.string(),
   },
   handler: async (ctx, args) => {
+    // Update user's lastSeen timestamp
+    if (args.userId) {
+      await ctx.db.patch(args.userId, {
+        lastSeen: Date.now(),
+      });
+    }
+
     return await ctx.db.insert("city_messages", {
       cityId: args.cityId,
       userId: args.userId,
