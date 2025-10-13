@@ -6,209 +6,324 @@ TrekTogether is a webapp that helps travelers connect in specific cities for tre
 and outdoor activities. The app provides **city-based group chats** (open to all) and
 **private DMs** (for authenticated users).
 
+**Current Status**: MVP Complete + Safety Features ✅
+
 Stack:
 
-- **Frontend**: Next.js 15 + shadcn/ui
-- **Backend/DB**: Convex
-- **Auth + Payments**: Clerk
+- **Frontend**: Next.js 15 (App Router) + shadcn/ui + Tailwind CSS
+- **Backend/DB**: Convex (real-time database)
+- **Auth**: Clerk (custom auth pages, no modals)
 - **Hosting**: Vercel
 - **Maps/Geo**: Google Maps API (geolocation + reverse geocoding)
+- **Notifications**: Sonner (toast notifications)
+- **Package Manager**: pnpm
 
 Long term: Mobile app using React Native.
 
 ---
 
-## MVP Scope
+## Current Features (Built)
 
-### User Flow
+### 1. Landing & Location Detection ✅
+- Hero section with "Find trekkers near you" CTA
+- Browser geolocation → Google Maps API reverse geocoding → nearest city
+- Dynamic city creation if not in database
+- Shows "X trekkers online now" badge with real-time count
+- Anonymous username prompt (adjective-animal-number format)
 
-1. **Landing Page**
+### 2. City Group Chat ✅
+- **Public access** - No auth required to view/participate
+- Real-time chat via Convex subscriptions
+- Guest users assigned `session_id` + random username (e.g. `curious-otter-43`)
+- Shows active user count (users active in last 10 minutes)
+- **Message features**:
+  - Clickable usernames → profile pages
+  - Report/Block actions on hover (authenticated users only)
+  - Auto-scroll to latest message
+  - Filters out blocked users' messages automatically
 
-   - CTA: “Find trekkers near you”
-   - Detects location (browser geolocation → Google Maps API → nearest city lookup)
-   - If city not in DB → allow user to add (dynamic city creation)
+### 3. Authentication (Clerk) ✅
+- Custom `/sign-in` and `/sign-up` pages (not modals)
+- Required for DMs, Profiles, Messages inbox
+- Username sync from Clerk → Convex
+- Anonymous → authenticated migration support
+- Session persistence across page loads
 
-2. **City Group Chat (No Auth Needed)**
+### 4. User Profiles ✅
+- **View profile**: `/profile/[userId]` (public route)
+  - Username, avatar, bio, WhatsApp number (optional)
+  - Cities visited list
+  - "Send Message" button (opens DM)
+  - "Edit Profile" for own profile
+- **Edit profile**: `/profile/edit` (auth required)
+  - Avatar upload (max 5MB) with preview
+  - Username, bio, WhatsApp fields
+  - Stored in Convex storage
+- Uses Next.js Image component with Clerk domains configured
 
-   - Real-time chat via Convex
-   - Each message persists in DB
-   - Guest users:
-     - Assigned `session_id` + random username (e.g. `curious-otter-43`)
-     - Can chat anonymously
-   - Show city occupancy: "12 trekkers currently here" (count active users in past 10min)
+### 5. Direct Messages (DMs) ✅
+- **DM Chat**: `/dm/[userId]` (auth required)
+  - 1-on-1 private messaging
+  - Real-time updates via Convex
+  - Enter to send, Shift+Enter for new line
+  - Report/Block actions available
+  - Block check prevents messaging blocked users
+- **Messages Inbox**: `/messages` (auth required)
+  - List of all conversations
+  - Last message preview (truncated)
+  - Smart timestamps (time/day/date)
+  - Excludes blocked users automatically
+  - Empty state with CTA to browse cities
+- Guests see AuthPromptModal with link to `/sign-in`
 
-3. **Authentication (Clerk)**
+### 6. Safety & Moderation ✅
+- **Report System**:
+  - Report users from city chat or DMs
+  - Predefined reasons (spam, harassment, inappropriate, scam, other)
+  - Optional description field
+  - Stored in `reports` table for admin review
+- **Block/Unblock**:
+  - Block users from message actions
+  - Blocked users filtered from chat and inbox
+  - Cannot send/receive DMs when blocked
+  - Unblock from Settings page
+- **Settings Page**: `/settings`
+  - Manage blocked users list
+  - Unblock with confirmation dialog
+  - Shows block date
+- Toast notifications for all actions
 
-   - Required for DMs and Profiles
-   - Onboarding suggests a username (`FirstName` or random animal format)
-   - Auth users can see their visited city history
+### 7. SEO & Discoverability ✅
+- Dynamic metadata per city page
+- Sitemap generation (`/sitemap.xml`) - auto-includes all cities
+- Robots.txt configuration
+- Open Graph and Twitter Card tags
+- Canonical URLs
+- Keywords optimization
 
-4. **Profiles (Authed Only)**
-
-   - Fields: username, avatar, bio, optional WhatsApp number
-   - Saved in Convex
-   - Display cities visited
-
-5. **Direct Messages (Authed Only)**
-   - User-to-user private chat stored in Convex
-   - Guests see CTA to sign in
+### 8. Error Handling & UX ✅
+- Global error boundary (`app/error.tsx`)
+- Loading states (`app/loading.tsx`)
+- Custom 404 page
+- Sonner toast notifications throughout
+- Form validation and error messages
+- Loading spinners for async actions
 
 ---
 
-## Convex Schema (Proposed)
+## Convex Schema (Current Implementation)
 
 ```ts
-// USERS
-users: {
-  id: string
-  auth_id: string | null      // Clerk ID (null if guest)
-  session_id: string | null   // identifier for guests
-  username: string
-  avatar_url: string | null
-  bio: string | null
-  whatsapp_number: string | null
-  cities_visited: string[]    // list of city_ids
-  created_at: Date
-}
+// convex/schema.ts
+export default defineSchema({
+  users: defineTable({
+    authId: v.optional(v.string()),        // Clerk ID (undefined if guest)
+    sessionId: v.optional(v.string()),     // Identifier for guests
+    username: v.string(),
+    avatarUrl: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    whatsappNumber: v.optional(v.string()),
+    citiesVisited: v.array(v.id("cities")), // List of city IDs
+    currentCityId: v.optional(v.id("cities")), // Current/last active city
+    lastSeen: v.optional(v.number()),      // Timestamp of last activity
+  })
+    .index("by_auth_id", ["authId"])
+    .index("by_session_id", ["sessionId"])
+    .index("by_current_city", ["currentCityId"])
+    .index("by_last_seen", ["lastSeen"]),
 
-// CITIES
-cities: {
-  id: string
-  name: string
-  country: string
-  lat: number
-  lng: number
-  created_at: Date
-}
+  cities: defineTable({
+    name: v.string(),
+    country: v.string(),
+    lat: v.float64(),
+    lng: v.float64(),
+  })
+    .index("by_name_country", ["name", "country"]),
 
-// CITY MESSAGES
-city_messages: {
-  id: string
-  city_id: string
-  user_id: string | null
-  session_id: string | null
-  username: string
-  content: string
-  created_at: Date
-}
-
-// DMS
-dms: {
-  id: string
-  sender_id: string
-  receiver_id: string
-  content: string
-  created_at: Date
-}
-```
-
----
-
-## MVP Development Plan
-
-### Step 1 – Setup
-
-- Scaffold Next.js + shadcn/ui project
-- Integrate Convex + Clerk (basic config, skip auth usage first)
-- Deploy baseline to Vercel
-
-### Step 2 – Cities + Location
-
-- Implement `cities` table in Convex
-- Use Google Maps API to:
-  - Detect current location
-  - Reverse geocode → nearest city
-  - Query Convex → if missing, insert city
-
-### Step 3 – Group Chat
-
-- Convex mutation/query to `sendMessage(city_id, content, user/session info)`
-- Convex live query for `getMessages(city_id)`
-- Build chat UI (shadcn `Textarea` for input, `ScrollArea` for messages)
-- Assign guest usernames with `adjective-animal-number` generator
-
-### Step 4 – User Presence Count
-
-- Track "active" users by update heartbeat (last_seen timestamp per user in city)
-- Show count of users active in the last X minutes
-
-### Step 5 – Authentication + Profiles
-
-- Add Clerk login/signup
-- Extend schema → save profile data
-- Add profile editing UI (shadcn form)
-
-### Step 6 – DMs (Auth Only)
-
-- Convex schema for DMs
-- New page/modal for DM threads
-- Guest → see message "Sign in to start private chats"
-
----
-
-## Example Convex Functions (City Chat)
-
-```ts
-// convex/messages.ts
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-
-// Send message
-export const sendMessage = mutation({
-  args: {
-    cityId: v.string(),
-    content: v.string(),
-    userId: v.optional(v.string()),
+  city_messages: defineTable({
+    cityId: v.id("cities"),
+    userId: v.optional(v.id("users")),
     sessionId: v.optional(v.string()),
     username: v.string(),
-  },
-  handler: async (ctx, args) => {
-    return await ctx.db.insert("city_messages", {
-      city_id: args.cityId,
-      user_id: args.userId ?? null,
-      session_id: args.sessionId ?? null,
-      username: args.username,
-      content: args.content,
-      created_at: Date.now(),
-    });
-  },
-});
+    content: v.string(),
+  })
+    .index("by_city", ["cityId"]),
 
-// Subscribe to messages
-export const getMessages = query({
-  args: { cityId: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("city_messages")
-      .filter((q) => q.eq(q.field("city_id"), args.cityId))
-      .order("desc")
-      .take(50); // last 50 messages
-  },
+  dms: defineTable({
+    senderId: v.id("users"),
+    receiverId: v.id("users"),
+    content: v.string(),
+  })
+    .index("by_sender", ["senderId"])
+    .index("by_receiver", ["receiverId"])
+    .index("by_participants", ["senderId", "receiverId"]),
+
+  blocked_users: defineTable({
+    blockerId: v.id("users"),           // User who blocked
+    blockedId: v.id("users"),           // User who was blocked
+    reason: v.optional(v.string()),     // Optional reason
+  })
+    .index("by_blocker", ["blockerId"])
+    .index("by_blocked", ["blockedId"])
+    .index("by_blocker_and_blocked", ["blockerId", "blockedId"]),
+
+  reports: defineTable({
+    reporterId: v.id("users"),              // User reporting
+    reportedUserId: v.id("users"),          // User being reported
+    messageId: v.optional(v.string()),      // Message ID being reported
+    messageType: v.optional(v.union(        // Type of message
+      v.literal("city_message"),
+      v.literal("dm")
+    )),
+    reason: v.string(),                     // Report reason
+    description: v.optional(v.string()),    // Additional details
+    status: v.union(                        // Moderation status
+      v.literal("pending"),
+      v.literal("reviewed"),
+      v.literal("resolved"),
+      v.literal("dismissed")
+    ),
+  })
+    .index("by_reporter", ["reporterId"])
+    .index("by_reported_user", ["reportedUserId"])
+    .index("by_status", ["status"]),
 });
 ```
 
+### Key Convex Files
+
+- **`convex/users.ts`**: User CRUD, authentication sync, profile updates, active user tracking
+- **`convex/cities.ts`**: City CRUD, city search
+- **`convex/messages.ts`**: City chat messages (with blocked user filtering)
+- **`convex/dms.ts`**: Direct messages (with block checks)
+- **`convex/safety.ts`**: Block, unblock, report operations
+- **`convex/files.ts`**: Avatar upload URL generation
+
 ---
 
-## Notes for Claude
+## Route Structure
 
-- Always scaffold code in small steps, check Convex schema consistency
-- Suggest UI with shadcn components, keep accessible + mobile friendly
-- Save working deployable checkpoints early (Vercel preview URLs)
-- Focus on speed of MVP over polish, expand later
+### Public Routes
+- `/` - Landing page with location detection
+- `/sign-in` - Clerk sign-in page
+- `/sign-up` - Clerk sign-up page
+- `/chat/[cityId]` - City chat room (public access)
+- `/profile/[userId]` - User profile view (public access)
+
+### Protected Routes (Auth Required)
+- `/profile/edit` - Edit own profile
+- `/dm/[userId]` - Direct message conversation
+- `/messages` - DM inbox with conversation list
+- `/settings` - Account settings (blocked users management)
+
+### API Routes
+- `/api/session` - Get current user session (auth + guest)
+- `/api/current-city` - Get user's current/last city
+- `/api/set-current-city` - Update user's current city
+- `/api/webhooks/clerk` - Clerk user sync webhook
+
+### Special Routes
+- `/sitemap.xml` - Auto-generated sitemap
+- `/robots.txt` - SEO crawling rules
 
 ---
 
-## Next Tasks
+## Development Guidelines
 
-1. [ ] Scaffold Next.js + Convex project
-2. [ ] Create Convex schema (cities, users, city_messages)
-3. [ ] Integrate Google Maps API for city detection
-4. [ ] Basic anon group chat per city w/ random usernames
-5. [ ] Show active users count
+### Best Practices
+- **Use pnpm**: Package manager of choice (`pnpm dlx shadcn@latest add <component>`)
+- **shadcn/ui components**: Import via shadcn CLI, customize as needed
+- **Convex patterns**:
+  - Use mutations for writes
+  - Use queries for reads (automatically reactive)
+  - Index frequently queried fields
+  - Filter blocked users in queries, not UI
+- **Error handling**: Always use toast notifications (Sonner) for user feedback
+- **Loading states**: Show loading spinners/skeletons for async operations
+- **Route protection**: Middleware handles auth, but always verify in components
+- **Mobile-first**: Test responsive design, keep UI accessible
 
-After MVP is live:
+### Code Style
+- TypeScript strict mode
+- Server Components by default, "use client" when needed
+- Tailwind CSS for styling
+- Lucide React for icons
+- next/image for all images (configure domains in next.config.ts)
 
-- [ ] Add Clerk auth
-- [ ] Profiles + DMs
-- [ ] Map + "cities you’ve visited"
-- [ ] Anti-spam (rate limiting, captcha)
+---
+
+## Roadmap & Next Features
+
+### ✅ Completed (MVP + Safety)
+- [x] Landing page + location detection
+- [x] City group chat (anonymous + authenticated)
+- [x] Authentication (Clerk custom pages)
+- [x] User profiles (view + edit)
+- [x] Direct messaging
+- [x] DM inbox
+- [x] Report/Block/Unblock system
+- [x] Settings page
+- [x] SEO (metadata, sitemap, robots.txt)
+- [x] Error handling + toast notifications
+- [x] Active user counter
+
+### 🎯 High Priority (Next Up)
+- [ ] **Search & Discovery**
+  - Search cities by name/country
+  - Find users by username
+  - Browse cities page/map
+- [ ] **Anti-spam Measures**
+  - Rate limiting on messages (per user per minute)
+  - Captcha on sign-up (Cloudflare Turnstile)
+  - Auto-mod flagging (excessive reports)
+- [ ] **Notifications**
+  - Unread DM badge count
+  - Browser notifications (opt-in)
+  - Email notifications for DMs (optional)
+- [ ] **Maps Integration**
+  - Interactive map showing cities visited
+  - City location pins on profile
+  - "Cities near me" feature
+
+### 📋 Medium Priority
+- [ ] **City Pages Enhancement**
+  - City stats (total users, messages)
+  - "Featured trekkers" section
+  - Popular times to visit
+- [ ] **User Verification**
+  - Badge for verified trekkers
+  - Social media link verification
+- [ ] **Photo Sharing**
+  - Upload trip photos to city chat
+  - Image previews in messages
+  - Photo gallery per city
+- [ ] **Events/Meetups**
+  - Create trekking events per city
+  - RSVP system
+  - Event calendar view
+
+### 🎨 Polish & UX
+- [ ] **Dark Mode Toggle** (currently system preference only)
+- [ ] **Message Features**
+  - Emoji reactions to messages
+  - Typing indicators
+  - Message read receipts (DMs)
+  - Link previews
+- [ ] **Profile Enhancements**
+  - Profile completion percentage
+  - "About me" rich text editor
+  - Social links (Instagram, etc.)
+  - User badges/achievements
+- [ ] **Accessibility**
+  - Keyboard navigation improvements
+  - Screen reader optimization
+  - ARIA labels audit
+
+### 🔮 Future Considerations
+- Mobile app (React Native)
+- Push notifications
+- Payment integration (premium features)
+- Admin dashboard (report management)
+- Multi-language support (i18n)
+- Message search functionality
+- Export conversation history
