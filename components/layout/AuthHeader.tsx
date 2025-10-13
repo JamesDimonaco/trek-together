@@ -1,6 +1,12 @@
 "use client";
 
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Mountain, User, MessageCircle } from "lucide-react";
 import Link from "next/link";
@@ -53,18 +59,14 @@ export default function AuthHeader() {
           <div className="flex-1 flex justify-center">
             {currentCity && !isLoading ? (
               <Button variant="ghost" size="sm" asChild>
-                <Link href={`/chat/${currentCity._id}`} className="flex items-center space-x-2">
+                <Link
+                  href={`/chat/${currentCity._id}`}
+                  className="flex items-center space-x-2"
+                >
                   <MessageCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm">
-                    {currentCity.name} Chat
-                  </span>
+                  <span className="text-sm">{currentCity.name} Chat</span>
                 </Link>
               </Button>
-            ) : isLoading ? (
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                <span>Loading...</span>
-              </div>
             ) : null}
           </div>
 
@@ -83,13 +85,13 @@ export default function AuthHeader() {
                 </Button>
               </SignUpButton>
             </SignedOut>
-            
+
             <SignedIn>
-              <UserButton 
+              <UserButton
                 appearance={{
                   elements: {
-                    avatarBox: "h-8 w-8"
-                  }
+                    avatarBox: "h-8 w-8",
+                  },
                 }}
                 userProfileMode="modal"
               />

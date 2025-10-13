@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { MessageCircle, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Link from "next/link";
 
 interface CurrentCity {
@@ -36,16 +42,6 @@ export default function CurrentCityCard() {
     fetchCurrentCity();
   }, []);
 
-  if (isLoading) {
-    return (
-      <Card className="max-w-md mx-auto">
-        <CardContent className="flex items-center justify-center p-6">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   if (!currentCity) {
     return null;
   }
@@ -64,16 +60,18 @@ export default function CurrentCityCard() {
       <CardContent className="space-y-4">
         <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
           <MapPin className="h-4 w-4" />
-          <span>{currentCity.name}, {currentCity.country}</span>
+          <span>
+            {currentCity.name}, {currentCity.country}
+          </span>
         </div>
-        
+
         <Button asChild className="w-full bg-green-600 hover:bg-green-700">
           <Link href={`/chat/${currentCity._id}`}>
             <MessageCircle className="mr-2 h-4 w-4" />
             Return to {currentCity.name} Chat
           </Link>
         </Button>
-        
+
         <p className="text-xs text-center text-gray-500 dark:text-gray-400">
           Or find trekkers in a different city below
         </p>
