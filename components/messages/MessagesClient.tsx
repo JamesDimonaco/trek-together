@@ -148,10 +148,14 @@ export default function MessagesClient() {
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {conversation.lastMessage.senderId === convexUserId
-                            ? "You: "
-                            : ""}
-                          {truncateMessage(conversation.lastMessage.content)}
+                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                            {conversation.lastMessage?.senderId === convexUserId
+                              ? "You: "
+                              : ""}
+                            {truncateMessage(
+                              conversation.lastMessage?.content ?? ""
+                            )}
+                          </p>
                         </p>
                       </div>
                     </div>
