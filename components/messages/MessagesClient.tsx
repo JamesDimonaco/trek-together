@@ -46,7 +46,10 @@ export default function MessagesClient() {
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } else if (diffInHours < 168) {
       // Less than a week
       return date.toLocaleDateString([], { weekday: "short" });
@@ -121,7 +124,9 @@ export default function MessagesClient() {
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
                           <span className="text-green-600 dark:text-green-300 font-medium text-lg">
-                            {conversation.partner.username.charAt(0).toUpperCase()}
+                            {conversation.partner.username
+                              .charAt(0)
+                              .toUpperCase()}
                           </span>
                         </div>
                       )}
@@ -138,7 +143,9 @@ export default function MessagesClient() {
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {conversation.lastMessage.senderId === convexUserId && "You: "}
+                        {conversation.lastMessage.senderId === convexUserId
+                          ? "You: "
+                          : ""}
                         {truncateMessage(conversation.lastMessage.content)}
                       </p>
                     </div>
