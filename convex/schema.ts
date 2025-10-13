@@ -11,10 +11,12 @@ export default defineSchema({
     whatsappNumber: v.optional(v.string()),
     citiesVisited: v.array(v.id("cities")), // list of city_ids
     currentCityId: v.optional(v.id("cities")), // current/last active city
+    lastSeen: v.optional(v.number()),      // timestamp of last activity
   })
     .index("by_auth_id", ["authId"])
     .index("by_session_id", ["sessionId"])
-    .index("by_current_city", ["currentCityId"]),
+    .index("by_current_city", ["currentCityId"])
+    .index("by_last_seen", ["lastSeen"]),
 
   cities: defineTable({
     name: v.string(),

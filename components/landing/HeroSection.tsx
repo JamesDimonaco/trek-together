@@ -1,12 +1,17 @@
+"use client";
+
 import { MapPin, Users, MessageCircle, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface HeroSectionProps {
   onLocationRequest: () => void;
 }
 
 export default function HeroSection({ onLocationRequest }: HeroSectionProps) {
+  const totalActiveUsers = useQuery(api.users.getTotalActiveUsers);
   return (
     <div className="space-y-12 text-center">
       {/* Hero Section */}
@@ -18,9 +23,15 @@ export default function HeroSection({ onLocationRequest }: HeroSectionProps) {
           TrekTogether
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          Connect with fellow trekkers and outdoor enthusiasts in your city. 
+          Connect with fellow trekkers and outdoor enthusiasts in your city.
           Join real-time conversations and plan your next adventure together.
         </p>
+        {totalActiveUsers !== undefined && totalActiveUsers > 0 && (
+          <div className="inline-flex items-center space-x-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-full">
+            <Users className="h-4 w-4" />
+            <span className="font-medium">{totalActiveUsers} trekker{totalActiveUsers !== 1 ? 's' : ''} online now</span>
+          </div>
+        )}
       </div>
 
       {/* Features */}
