@@ -6,6 +6,7 @@ import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import AuthHeader from "@/components/layout/AuthHeader";
 import AuthSync from "@/components/auth/AuthSync";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -115,6 +116,7 @@ export default function RootLayout({
             <AuthSync />
             {children}
             <Analytics />
+            <Toaster />
           </ConvexClientProvider>
         </body>
       </html>

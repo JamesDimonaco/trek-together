@@ -12,15 +12,34 @@ export const sendDM = mutation({
     // Verify both users exist and are authenticated
     const sender = await ctx.db.get(args.senderId);
     const receiver = await ctx.db.get(args.receiverId);
-    
+
     if (!sender || !sender.authId) {
       throw new Error("Sender must be authenticated");
     }
-    
+
     if (!receiver || !receiver.authId) {
       throw new Error("Receiver must be authenticated");
     }
-    
+
+    // Check if either user has blocked the other
+    const senderBlockedReceiver = await ctx.db
+      .query("blocked_users")
+      .withIndex("by_blocker_and_blocked", (q) =>
+        q.eq("blockerId", args.senderId).eq("blockedId", args.receiverId)
+      )
+      .first();
+
+    const receiverBlockedSender = await ctx.db
+      .query("blocked_users")
+      .withIndex("by_blocker_and_blocked", (q) =>
+        q.eq("blockerId", args.receiverId).eq("blockedId", args.senderId)
+      )
+      .first();
+
+    if (senderBlockedReceiver || receiverBlockedSender) {
+      throw new Error("Cannot send message to blocked user");
+    }
+
     return await ctx.db.insert("dms", {
       senderId: args.senderId,
       receiverId: args.receiverId,
@@ -62,28 +81,53 @@ export const getConversation = query({
 export const getUserConversations = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    // Get all users this user has blocked
+    const blockedByMe = await ctx.db
+      .query("blocked_users")
+      .withIndex("by_blocker", (q) => q.eq("blockerId", args.userId))
+      .collect();
+
+    // Get all users who have blocked this user
+    const blockedMe = await ctx.db
+      .query("blocked_users")
+      .withIndex("by_blocked", (q) => q.eq("blockedId", args.userId))
+      .collect();
+
+    const blockedUserIds = new Set([
+      ...blockedByMe.map(b => b.blockedId),
+      ...blockedMe.map(b => b.blockerId),
+    ]);
+
     // Get all unique users this user has messaged with
     const sentMessages = await ctx.db
       .query("dms")
       .withIndex("by_sender", (q) => q.eq("senderId", args.userId))
       .collect();
-    
+
     const receivedMessages = await ctx.db
       .query("dms")
       .withIndex("by_receiver", (q) => q.eq("receiverId", args.userId))
       .collect();
-    
-    // Collect unique conversation partners
+
+    // Collect unique conversation partners (excluding blocked users)
     const conversationPartners = new Set<string>();
-    sentMessages.forEach(msg => conversationPartners.add(msg.receiverId));
-    receivedMessages.forEach(msg => conversationPartners.add(msg.senderId));
-    
+    sentMessages.forEach(msg => {
+      if (!blockedUserIds.has(msg.receiverId)) {
+        conversationPartners.add(msg.receiverId);
+      }
+    });
+    receivedMessages.forEach(msg => {
+      if (!blockedUserIds.has(msg.senderId)) {
+        conversationPartners.add(msg.senderId);
+      }
+    });
+
     // Get last message for each conversation
     const conversations = [];
     for (const partnerId of conversationPartners) {
       const partner = await ctx.db.get(partnerId as any);
       if (!partner) continue;
-      
+
       // Get last message in conversation
       const lastMessage = await ctx.db
         .query("dms")
@@ -101,7 +145,7 @@ export const getUserConversations = query({
         )
         .order("desc")
         .first();
-      
+
       if (lastMessage) {
         conversations.push({
           partner,
@@ -110,10 +154,10 @@ export const getUserConversations = query({
         });
       }
     }
-    
+
     // Sort by last message time
     conversations.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
-    
+
     return conversations;
   },
 });

@@ -1,11 +1,12 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Define public routes (sign-in, sign-up, and home are public)
+// Define public routes (sign-in, sign-up, home, and chat are public)
 const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/chat(.*)",
+  "/profile(.*)", // Profiles are public so users can view each other
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

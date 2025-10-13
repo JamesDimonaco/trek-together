@@ -43,4 +43,34 @@ export default defineSchema({
     .index("by_sender", ["senderId"])
     .index("by_receiver", ["receiverId"])
     .index("by_participants", ["senderId", "receiverId"]),
+
+  blocked_users: defineTable({
+    blockerId: v.id("users"),           // User who blocked
+    blockedId: v.id("users"),           // User who was blocked
+    reason: v.optional(v.string()),     // Optional reason
+  })
+    .index("by_blocker", ["blockerId"])
+    .index("by_blocked", ["blockedId"])
+    .index("by_blocker_and_blocked", ["blockerId", "blockedId"]),
+
+  reports: defineTable({
+    reporterId: v.id("users"),              // User reporting
+    reportedUserId: v.id("users"),          // User being reported
+    messageId: v.optional(v.string()),      // Message ID being reported (stored as string)
+    messageType: v.optional(v.union(        // Type of message
+      v.literal("city_message"),
+      v.literal("dm")
+    )),
+    reason: v.string(),                     // Report reason
+    description: v.optional(v.string()),    // Additional details
+    status: v.union(                        // Moderation status
+      v.literal("pending"),
+      v.literal("reviewed"),
+      v.literal("resolved"),
+      v.literal("dismissed")
+    ),
+  })
+    .index("by_reporter", ["reporterId"])
+    .index("by_reported_user", ["reportedUserId"])
+    .index("by_status", ["status"]),
 });

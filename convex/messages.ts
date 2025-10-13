@@ -30,14 +30,35 @@ export const sendMessage = mutation({
 
 // Get messages for a city
 export const getMessages = query({
-  args: { cityId: v.id("cities") },
+  args: {
+    cityId: v.id("cities"),
+    currentUserId: v.optional(v.id("users")), // Optional: to filter blocked users
+  },
   handler: async (ctx, args) => {
     const messages = await ctx.db
       .query("city_messages")
       .withIndex("by_city", (q) => q.eq("cityId", args.cityId))
       .order("desc")
       .take(50);
-    
+
+    // If user is authenticated, filter out messages from blocked users
+    if (args.currentUserId) {
+      // Get all users this user has blocked
+      const blocked = await ctx.db
+        .query("blocked_users")
+        .withIndex("by_blocker", (q) => q.eq("blockerId", args.currentUserId))
+        .collect();
+
+      const blockedUserIds = new Set(blocked.map(b => b.blockedId));
+
+      // Filter out messages from blocked users
+      const filteredMessages = messages.filter(
+        msg => !msg.userId || !blockedUserIds.has(msg.userId)
+      );
+
+      return filteredMessages.reverse(); // Return in chronological order
+    }
+
     return messages.reverse(); // Return in chronological order
   },
 });

@@ -19,7 +19,12 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
   const [session, setSession] = useState<SessionData | null>(null);
 
   // Convex queries and mutations
-  const messages = useQuery(api.messages.getMessages, { cityId });
+  const messages = useQuery(
+    api.messages.getMessages,
+    session?.userId
+      ? { cityId, currentUserId: session.userId as Id<"users"> }
+      : { cityId }
+  );
   const activeUsersCount = useQuery(api.users.getActiveCityUsers, { cityId });
   const sendMessage = useMutation(api.messages.sendMessage);
   const updateLastSeen = useMutation(api.users.updateLastSeen);
