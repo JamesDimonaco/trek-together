@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
+import Link from "next/link";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface Message {
   _id: string;
   _creationTime: number;
   sessionId?: string;
+  userId?: Id<"users">;
   username: string;
   content: string;
 }
@@ -64,7 +67,17 @@ export default function MessageList({
           >
             {!isOwnMessage(message) && (
               <div className="text-xs font-medium mb-1 opacity-70">
-                {message.username}
+                {message.userId ? (
+                  <Link
+                    href={`/profile/${message.userId}`}
+                    className="hover:underline cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {message.username}
+                  </Link>
+                ) : (
+                  <span>{message.username}</span>
+                )}
               </div>
             )}
             <div className="text-sm">{message.content}</div>

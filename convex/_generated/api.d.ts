@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as cities from "../cities.js";
 import type * as dms from "../dms.js";
+import type * as files from "../files.js";
 import type * as messages from "../messages.js";
 import type * as users from "../users.js";
 
@@ -29,6 +30,7 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   cities: typeof cities;
   dms: typeof dms;
+  files: typeof files;
   messages: typeof messages;
   users: typeof users;
 }>;
