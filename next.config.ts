@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.clerk.dev",
       },
+      {
+        protocol: "https",
+        hostname: "quixotic-scorpion-92.convex.cloud", // Convex storage
+      },
     ],
   },
 };

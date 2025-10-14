@@ -9,6 +9,8 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
     bio: v.optional(v.string()),
     whatsappNumber: v.optional(v.string()),
+    dateOfBirth: v.optional(v.string()),   // user's date of birth (ISO format)
+    location: v.optional(v.string()),      // where user is from (city, country)
     citiesVisited: v.array(v.id("cities")), // list of city_ids
     currentCityId: v.optional(v.id("cities")), // current/last active city
     lastSeen: v.optional(v.number()),      // timestamp of last activity

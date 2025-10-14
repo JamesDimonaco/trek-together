@@ -18,6 +18,20 @@ import {
 } from "lucide-react";
 import { notFound } from "next/navigation";
 
+// Calculate age from date of birth
+function calculateAge(dateOfBirth: string): number {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  return age;
+}
+
 interface ProfileViewProps {
   userId: string;
 }
@@ -78,13 +92,25 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                     </span>
                   )}
                 </CardTitle>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center space-x-1">
                     <Mountain className="h-4 w-4" />
                     <span>
                       {profile.citiesVisited.length} cities visited
                     </span>
                   </div>
+                  {profile.dateOfBirth && (
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{calculateAge(profile.dateOfBirth)} years old</span>
+                    </div>
+                  )}
+                  {profile.location && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{profile.location}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
