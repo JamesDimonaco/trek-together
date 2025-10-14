@@ -20,12 +20,21 @@ import { notFound } from "next/navigation";
 
 // Calculate age from date of birth
 function calculateAge(dateOfBirth: string): number {
-  const today = new Date();
   const birthDate = new Date(dateOfBirth);
+
+  // Validate the date
+  if (isNaN(birthDate.getTime())) {
+    return 0;
+  }
+
+  const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
 
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
     age--;
   }
 
@@ -95,9 +104,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center space-x-1">
                     <Mountain className="h-4 w-4" />
-                    <span>
-                      {profile.citiesVisited.length} cities visited
-                    </span>
+                    <span>{profile.citiesVisited.length} cities visited</span>
                   </div>
                   {profile.dateOfBirth && (
                     <div className="flex items-center space-x-1">
@@ -126,7 +133,11 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 </Button>
               )}
               {!isOwnProfile && !isGuest && (
-                <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                >
                   <Link href={`/dm/${userId}`}>
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Send Message
@@ -141,7 +152,9 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           <CardContent className="pt-0">
             {profile.bio && (
               <div className="mb-4">
-                <p className="text-gray-700 dark:text-gray-300">{profile.bio}</p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {profile.bio}
+                </p>
               </div>
             )}
             {profile.whatsappNumber && (
