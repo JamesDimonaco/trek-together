@@ -28,10 +28,13 @@ export default function ProfileEditForm() {
 
   const updateProfile = useMutation(api.users.updateProfile);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const getFileUrl = useMutation(api.files.getFileUrl);
 
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [location, setLocation] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -43,6 +46,8 @@ export default function ProfileEditForm() {
       setUsername(currentUser.username || "");
       setBio(currentUser.bio || "");
       setWhatsappNumber(currentUser.whatsappNumber || "");
+      setDateOfBirth(currentUser.dateOfBirth || "");
+      setLocation(currentUser.location || "");
     }
   }, [currentUser]);
 
@@ -72,9 +77,11 @@ export default function ProfileEditForm() {
 
         const { storageId } = await result.json();
 
-        // Get the URL from Convex storage
-        const fileUrl = await fetch(`${process.env.NEXT_PUBLIC_CONVEX_URL}/api/storage/${storageId}`);
-        avatarUrl = fileUrl.url;
+        // Get the URL from Convex storage using the mutation
+        const fileUrl = await getFileUrl({ storageId });
+        if (fileUrl) {
+          avatarUrl = fileUrl;
+        }
       }
 
       await updateProfile({
@@ -82,6 +89,8 @@ export default function ProfileEditForm() {
         username: username.trim() || undefined,
         bio: bio.trim() || undefined,
         whatsappNumber: whatsappNumber.trim() || undefined,
+        dateOfBirth: dateOfBirth || undefined,
+        location: location.trim() || undefined,
         avatarUrl: avatarUrl || undefined,
       });
 
@@ -180,6 +189,37 @@ export default function ProfileEditForm() {
               <p className="text-xs text-gray-500">
                 {bio.length}/500 characters
               </p>
+            </div>
+
+            {/* Date of Birth and Location Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Date of Birth */}
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth (Optional)</Label>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="text-base"
+                />
+                <p className="text-xs text-gray-500">
+                  Your age will be calculated automatically
+                </p>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <Label htmlFor="location">From (Optional)</Label>
+                <Input
+                  id="location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="San Francisco, USA"
+                  maxLength={100}
+                />
+              </div>
             </div>
 
             {/* WhatsApp */}

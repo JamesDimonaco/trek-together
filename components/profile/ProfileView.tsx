@@ -18,6 +18,29 @@ import {
 } from "lucide-react";
 import { notFound } from "next/navigation";
 
+// Calculate age from date of birth
+function calculateAge(dateOfBirth: string): number {
+  const birthDate = new Date(dateOfBirth);
+
+  // Validate the date
+  if (isNaN(birthDate.getTime())) {
+    return 0;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age;
+}
+
 interface ProfileViewProps {
   userId: string;
 }
@@ -78,13 +101,23 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                     </span>
                   )}
                 </CardTitle>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center space-x-1">
                     <Mountain className="h-4 w-4" />
-                    <span>
-                      {profile.citiesVisited.length} cities visited
-                    </span>
+                    <span>{profile.citiesVisited.length} cities visited</span>
                   </div>
+                  {profile.dateOfBirth && (
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{calculateAge(profile.dateOfBirth)} years old</span>
+                    </div>
+                  )}
+                  {profile.location && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{profile.location}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -100,7 +133,11 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 </Button>
               )}
               {!isOwnProfile && !isGuest && (
-                <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                >
                   <Link href={`/dm/${userId}`}>
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Send Message
@@ -115,7 +152,9 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           <CardContent className="pt-0">
             {profile.bio && (
               <div className="mb-4">
-                <p className="text-gray-700 dark:text-gray-300">{profile.bio}</p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {profile.bio}
+                </p>
               </div>
             )}
             {profile.whatsappNumber && (
