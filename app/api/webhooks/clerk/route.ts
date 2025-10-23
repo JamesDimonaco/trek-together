@@ -129,6 +129,21 @@ async function upsertUserData(
     avatarUrl: userData.image_url,
   });
 
+  // Check if user already exists before upserting
+  const existing = await convex.query(api.users.getUserByAuthId, {
+    authId: userData.id,
+  });
+
+  if (existing) {
+    console.log(`User already exists, updating:`, {
+      userId: existing._id,
+      existingUsername: existing.username,
+      newUsername: username,
+    });
+  } else {
+    console.log(`Creating new authenticated user for authId: ${userData.id}`);
+  }
+
   await convex.mutation(api.users.upsertUser, {
     authId: userData.id,
     username,

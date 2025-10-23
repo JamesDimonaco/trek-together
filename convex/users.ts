@@ -52,11 +52,18 @@ export const createGuestUser = mutation({
       .query("users")
       .withIndex("by_session_id", (q) => q.eq("sessionId", args.sessionId))
       .first();
-    
+
     if (existing) {
+      // Update username if different (user might have changed it)
+      if (existing.username !== args.username) {
+        await ctx.db.patch(existing._id, {
+          username: args.username,
+        });
+      }
       return existing._id;
     }
-    
+
+    // Create new guest user
     return await ctx.db.insert("users", {
       sessionId: args.sessionId,
       username: args.username,
@@ -402,6 +409,56 @@ export const getUserProfile = query({
     return {
       ...user,
       cities: validCities,
+    };
+  },
+});
+
+// Debug: Find users with duplicate authIds (should never happen)
+export const findDuplicateAuthIds = query({
+  handler: async (ctx) => {
+    const users = await ctx.db
+      .query("users")
+      .filter((q) => q.neq(q.field("authId"), undefined))
+      .collect();
+
+    const authIdCounts = new Map<string, number>();
+    users.forEach(user => {
+      if (user.authId) {
+        authIdCounts.set(user.authId, (authIdCounts.get(user.authId) || 0) + 1);
+      }
+    });
+
+    const duplicates = Array.from(authIdCounts.entries())
+      .filter(([_, count]) => count > 1)
+      .map(([authId, count]) => ({ authId, count }));
+
+    return duplicates;
+  },
+});
+
+// Debug: Find orphaned guest users (no recent activity, never authenticated)
+export const findOrphanedGuestUsers = query({
+  handler: async (ctx) => {
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+
+    const users = await ctx.db
+      .query("users")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("authId"), undefined), // No auth
+          q.neq(q.field("sessionId"), undefined) // Has session
+        )
+      )
+      .collect();
+
+    // Filter for inactive users
+    const orphaned = users.filter(user =>
+      !user.lastSeen || user.lastSeen < thirtyDaysAgo
+    );
+
+    return {
+      count: orphaned.length,
+      users: orphaned.slice(0, 10), // Return first 10 for inspection
     };
   },
 });
