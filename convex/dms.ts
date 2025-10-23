@@ -221,6 +221,25 @@ export const getUnreadCount = query({
 export const getTotalUnreadCount = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    // Authorization: verify the caller is querying their own unread count
+    const identity = await ctx.auth.getUserIdentity();
+
+    // If not authenticated, they can't have DMs (DMs require authentication)
+    if (!identity) {
+      return 0;
+    }
+
+    // Get the authenticated user's record to verify userId matches
+    const authenticatedUser = await ctx.db
+      .query("users")
+      .withIndex("by_auth_id", (q) => q.eq("authId", identity.subject))
+      .first();
+
+    // If the requested userId doesn't match the authenticated user, return 0 (unauthorized)
+    if (!authenticatedUser || authenticatedUser._id !== args.userId) {
+      return 0;
+    }
+
     const unreadMessages = await ctx.db
       .query("dms")
       .withIndex("by_receiver_unread", (q) =>

@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useAuth, useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -83,10 +84,13 @@ export default function ProfileView({ userId }: ProfileViewProps) {
               {/* Avatar */}
               <div className="relative h-24 w-24 sm:h-20 sm:w-20 rounded-full bg-green-100 dark:bg-green-900 flex-shrink-0 overflow-hidden">
                 {profile.avatarUrl ? (
-                  <img
+                  <Image
                     src={profile.avatarUrl}
                     alt={profile.username}
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 96px, 80px"
+                    unoptimized={profile.avatarUrl.startsWith('data:') || !profile.avatarUrl.startsWith('http')}
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">

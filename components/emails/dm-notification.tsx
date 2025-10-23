@@ -82,7 +82,14 @@ export default function DMNotificationEmail({
               </Text>
               <Text className="mb-4 text-xs text-gray-500">
                 <Link
-                  href={`${conversationUrl.split("/messages")[0]}/settings`}
+                  href={(() => {
+                    try {
+                      const url = new URL(conversationUrl);
+                      return `${url.origin}/settings`;
+                    } catch {
+                      return "https://trektogether.app/settings";
+                    }
+                  })()}
                   className="text-green-600 underline"
                 >
                   Manage notification preferences

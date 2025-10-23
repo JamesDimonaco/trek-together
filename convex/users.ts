@@ -19,29 +19,32 @@ export const upsertUser = mutation({
       .first();
 
     if (existing) {
-      // Update existing user
-      await ctx.db.patch(existing._id, {
-        username: args.username,
-        avatarUrl: args.avatarUrl,
-        bio: args.bio,
-        whatsappNumber: args.whatsappNumber,
-        email: args.email,
-      });
+      // Update existing user - only patch defined values
+      const updates: any = { username: args.username };
+      if (args.avatarUrl !== undefined) updates.avatarUrl = args.avatarUrl;
+      if (args.bio !== undefined) updates.bio = args.bio;
+      if (args.whatsappNumber !== undefined) updates.whatsappNumber = args.whatsappNumber;
+      if (args.email !== undefined) updates.email = args.email;
+
+      await ctx.db.patch(existing._id, updates);
       return existing._id;
     }
 
-    // Create new user - enable email notifications by default
-    return await ctx.db.insert("users", {
+    // Create new user - only include defined optional fields, disable email notifications by default (opt-in required)
+    const newUser: any = {
       authId: args.authId,
       username: args.username,
-      avatarUrl: args.avatarUrl,
-      bio: args.bio,
-      whatsappNumber: args.whatsappNumber,
-      email: args.email,
       citiesVisited: [],
-      emailNotifications: true, // Enable by default
+      emailNotifications: false, // Disabled by default (opt-in required for compliance)
       browserNotifications: false, // Disabled by default (requires permission)
-    });
+    };
+
+    if (args.avatarUrl !== undefined) newUser.avatarUrl = args.avatarUrl;
+    if (args.bio !== undefined) newUser.bio = args.bio;
+    if (args.whatsappNumber !== undefined) newUser.whatsappNumber = args.whatsappNumber;
+    if (args.email !== undefined) newUser.email = args.email;
+
+    return await ctx.db.insert("users", newUser);
   },
 });
 
@@ -250,18 +253,22 @@ export const migrateToAuthenticated = mutation({
     }
     
     // Convert anonymous user to authenticated (no existing auth user)
-    await ctx.db.patch(args.userId, {
+    const migrationUpdates: any = {
       authId: args.authId,
       username: args.username,
-      avatarUrl: args.avatarUrl,
-      email: args.email,
       // Keep existing data: citiesVisited, currentCityId, etc.
       // Remove sessionId since user is now authenticated
       sessionId: undefined,
-      // Enable email notifications by default
-      emailNotifications: true,
+      // Disable email notifications by default (opt-in required for compliance)
+      emailNotifications: false,
       browserNotifications: false,
-    });
+    };
+
+    // Only add optional fields if defined
+    if (args.avatarUrl !== undefined) migrationUpdates.avatarUrl = args.avatarUrl;
+    if (args.email !== undefined) migrationUpdates.email = args.email;
+
+    await ctx.db.patch(args.userId, migrationUpdates);
 
     return args.userId;
   },
@@ -512,6 +519,22 @@ export const updateNotificationPreferences = mutation({
     browserNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    // Authorization: verify caller owns this userId
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: You must be signed in to update notification preferences");
+    }
+
+    // Get the authenticated user's record
+    const authenticatedUser = await ctx.db
+      .query("users")
+      .withIndex("by_auth_id", (q) => q.eq("authId", identity.subject))
+      .first();
+
+    if (!authenticatedUser || authenticatedUser._id !== args.userId) {
+      throw new Error("Forbidden: You can only update your own notification preferences");
+    }
+
     const { userId, ...preferences } = args;
 
     const updates: any = {};
