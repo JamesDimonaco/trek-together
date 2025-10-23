@@ -12,6 +12,7 @@ import { ArrowLeft, User } from "lucide-react";
 import Link from "next/link";
 import DMMessageList from "./DMMessageList";
 import DMInput from "./DMInput";
+import TypingIndicator from "@/components/chat/TypingIndicator";
 import AuthPromptModal from "./AuthPromptModal";
 
 interface DMChatProps {
@@ -50,6 +51,7 @@ export default function DMChat({ receiverId }: DMChatProps) {
   );
 
   const sendDM = useMutation(api.dms.sendDM);
+  const markAsRead = useMutation(api.dms.markAsRead);
 
   // Check auth on mount
   useEffect(() => {
@@ -57,6 +59,18 @@ export default function DMChat({ receiverId }: DMChatProps) {
       setShowAuthModal(true);
     }
   }, [isLoaded, authUserId]);
+
+  // Mark messages as read when viewing conversation
+  useEffect(() => {
+    if (currentUser && receiver) {
+      markAsRead({
+        userId: currentUser._id,
+        conversationPartnerId: receiver._id,
+      }).catch((error) => {
+        console.error("Failed to mark messages as read:", error);
+      });
+    }
+  }, [currentUser, receiver, markAsRead]);
 
   const handleSendMessage = async (content: string) => {
     if (!currentUser || !receiver || !content.trim()) return;
@@ -67,6 +81,11 @@ export default function DMChat({ receiverId }: DMChatProps) {
       content: content.trim(),
     });
   };
+
+  // Generate consistent conversationId for typing indicators
+  const conversationId = currentUser && receiver
+    ? `dm-${[currentUser._id, receiver._id].sort().join("-")}`
+    : undefined;
 
   // Loading state
   if (!isLoaded || currentUser === undefined || receiver === undefined) {
@@ -155,7 +174,16 @@ export default function DMChat({ receiverId }: DMChatProps) {
           receiver={receiver}
         />
 
-        <DMInput onSendMessage={handleSendMessage} />
+        <TypingIndicator
+          conversationId={conversationId || ""}
+          currentUserId={currentUser._id}
+        />
+
+        <DMInput
+          onSendMessage={handleSendMessage}
+          conversationId={conversationId}
+          currentUserId={currentUser._id}
+        />
       </div>
     </>
   );

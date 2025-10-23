@@ -123,10 +123,16 @@ async function upsertUserData(
 ) {
   const username = generateUsername(userData);
 
+  // Get primary email address
+  const primaryEmail = userData.email_addresses?.find(
+    (email) => email.id === userData.primary_email_address_id
+  )?.email_address;
+
   console.log(`${action} authenticated user:`, {
     authId: userData.id,
     username,
     avatarUrl: userData.image_url,
+    email: primaryEmail,
   });
 
   // Check if user already exists before upserting
@@ -148,6 +154,7 @@ async function upsertUserData(
     authId: userData.id,
     username,
     avatarUrl: userData.image_url,
+    email: primaryEmail,
   });
 }
 

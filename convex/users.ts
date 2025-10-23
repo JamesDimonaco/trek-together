@@ -9,6 +9,7 @@ export const upsertUser = mutation({
     avatarUrl: v.optional(v.string()),
     bio: v.optional(v.string()),
     whatsappNumber: v.optional(v.string()),
+    email: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Check if user exists
@@ -16,29 +17,72 @@ export const upsertUser = mutation({
       .query("users")
       .withIndex("by_auth_id", (q) => q.eq("authId", args.authId))
       .first();
-    
+
     if (existing) {
-      // Update existing user
-      await ctx.db.patch(existing._id, {
-        username: args.username,
-        avatarUrl: args.avatarUrl,
-        bio: args.bio,
-        whatsappNumber: args.whatsappNumber,
-      });
+      // Update existing user - only patch defined values
+      const updates: any = { username: args.username };
+      if (args.avatarUrl !== undefined) updates.avatarUrl = args.avatarUrl;
+      if (args.bio !== undefined) updates.bio = args.bio;
+      if (args.whatsappNumber !== undefined) updates.whatsappNumber = args.whatsappNumber;
+      if (args.email !== undefined) updates.email = args.email;
+
+      await ctx.db.patch(existing._id, updates);
       return existing._id;
     }
-    
-    // Create new user
-    return await ctx.db.insert("users", {
+
+    // Create new user - only include defined optional fields, disable email notifications by default (opt-in required)
+    const newUser: any = {
       authId: args.authId,
       username: args.username,
-      avatarUrl: args.avatarUrl,
-      bio: args.bio,
-      whatsappNumber: args.whatsappNumber,
       citiesVisited: [],
-    });
+      emailNotifications: false, // Disabled by default (opt-in required for compliance)
+      browserNotifications: false, // Disabled by default (requires permission)
+    };
+
+    if (args.avatarUrl !== undefined) newUser.avatarUrl = args.avatarUrl;
+    if (args.bio !== undefined) newUser.bio = args.bio;
+    if (args.whatsappNumber !== undefined) newUser.whatsappNumber = args.whatsappNumber;
+    if (args.email !== undefined) newUser.email = args.email;
+
+    return await ctx.db.insert("users", newUser);
   },
 });
+
+// Helper function to check if username is taken and suggest alternative
+async function checkUsernameAvailability(ctx: any, desiredUsername: string, excludeSessionId?: string): Promise<{ available: boolean; suggestion?: string }> {
+  // Check if username is already taken
+  const allUsers = await ctx.db.query("users").collect();
+
+  // Filter out the current session if provided (when updating)
+  const otherUsers = excludeSessionId
+    ? allUsers.filter((u: any) => u.sessionId !== excludeSessionId)
+    : allUsers;
+
+  const existingUsernames = new Set(otherUsers.map((u: any) => u.username.toLowerCase()));
+
+  // If username is available, return success
+  if (!existingUsernames.has(desiredUsername.toLowerCase())) {
+    return { available: true };
+  }
+
+  // Username is taken - find an available suggestion
+  let counter = 1;
+  let suggestion = `${desiredUsername}-${counter}`;
+
+  while (existingUsernames.has(suggestion.toLowerCase())) {
+    counter++;
+    suggestion = `${desiredUsername}-${counter}`;
+
+    // Safety check to prevent infinite loop
+    if (counter > 99) {
+      // Fallback to a random suffix
+      suggestion = `${desiredUsername}-${Math.floor(Math.random() * 10000)}`;
+      break;
+    }
+  }
+
+  return { available: false, suggestion };
+}
 
 // Create guest user session
 export const createGuestUser = mutation({
@@ -56,11 +100,33 @@ export const createGuestUser = mutation({
     if (existing) {
       // Update username if different (user might have changed it)
       if (existing.username !== args.username) {
+        // Check if new username is available
+        const availability = await checkUsernameAvailability(ctx, args.username, args.sessionId);
+
+        if (!availability.available) {
+          throw new Error(JSON.stringify({
+            code: "USERNAME_TAKEN",
+            message: `Username "${args.username}" is already taken`,
+            suggestion: availability.suggestion,
+          }));
+        }
+
         await ctx.db.patch(existing._id, {
           username: args.username,
         });
       }
       return existing._id;
+    }
+
+    // Check if username is available for new user
+    const availability = await checkUsernameAvailability(ctx, args.username);
+
+    if (!availability.available) {
+      throw new Error(JSON.stringify({
+        code: "USERNAME_TAKEN",
+        message: `Username "${args.username}" is already taken`,
+        suggestion: availability.suggestion,
+      }));
     }
 
     // Create new guest user
@@ -153,6 +219,7 @@ export const migrateToAuthenticated = mutation({
     authId: v.string(),
     username: v.string(),
     avatarUrl: v.optional(v.string()),
+    email: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const anonymousUser = await ctx.db.get(args.userId);
@@ -186,15 +253,23 @@ export const migrateToAuthenticated = mutation({
     }
     
     // Convert anonymous user to authenticated (no existing auth user)
-    await ctx.db.patch(args.userId, {
+    const migrationUpdates: any = {
       authId: args.authId,
       username: args.username,
-      avatarUrl: args.avatarUrl,
       // Keep existing data: citiesVisited, currentCityId, etc.
       // Remove sessionId since user is now authenticated
       sessionId: undefined,
-    });
-    
+      // Disable email notifications by default (opt-in required for compliance)
+      emailNotifications: false,
+      browserNotifications: false,
+    };
+
+    // Only add optional fields if defined
+    if (args.avatarUrl !== undefined) migrationUpdates.avatarUrl = args.avatarUrl;
+    if (args.email !== undefined) migrationUpdates.email = args.email;
+
+    await ctx.db.patch(args.userId, migrationUpdates);
+
     return args.userId;
   },
 });
@@ -344,6 +419,29 @@ export const searchUsers = query({
   },
 });
 
+// Count authenticated users (efficient version for stats)
+export const countAuthenticatedUsers = query({
+  handler: async (ctx) => {
+    // Authorization: Only allow authenticated users to access debug data
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Must be authenticated to access debug data");
+    }
+
+    // Optional: Add environment check to disable in production
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Debug queries are disabled in production");
+    }
+
+    const users = await ctx.db
+      .query("users")
+      .filter((q) => q.neq(q.field("authId"), undefined))
+      .collect();
+
+    return users.length;
+  },
+});
+
 // Update user's last seen timestamp
 export const updateLastSeen = mutation({
   args: {
@@ -416,6 +514,17 @@ export const getUserProfile = query({
 // Debug: Find users with duplicate authIds (should never happen)
 export const findDuplicateAuthIds = query({
   handler: async (ctx) => {
+    // Authorization: Only allow authenticated users to access debug data
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Must be authenticated to access debug data");
+    }
+
+    // Optional: Add environment check to disable in production
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Debug queries are disabled in production");
+    }
+
     const users = await ctx.db
       .query("users")
       .filter((q) => q.neq(q.field("authId"), undefined))
@@ -436,9 +545,60 @@ export const findDuplicateAuthIds = query({
   },
 });
 
+// Update notification preferences
+export const updateNotificationPreferences = mutation({
+  args: {
+    userId: v.id("users"),
+    emailNotifications: v.optional(v.boolean()),
+    browserNotifications: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    // Authorization: verify caller owns this userId
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: You must be signed in to update notification preferences");
+    }
+
+    // Get the authenticated user's record
+    const authenticatedUser = await ctx.db
+      .query("users")
+      .withIndex("by_auth_id", (q) => q.eq("authId", identity.subject))
+      .first();
+
+    if (!authenticatedUser || authenticatedUser._id !== args.userId) {
+      throw new Error("Forbidden: You can only update your own notification preferences");
+    }
+
+    const { userId, ...preferences } = args;
+
+    const updates: any = {};
+    if (preferences.emailNotifications !== undefined) {
+      updates.emailNotifications = preferences.emailNotifications;
+    }
+    if (preferences.browserNotifications !== undefined) {
+      updates.browserNotifications = preferences.browserNotifications;
+    }
+
+    await ctx.db.patch(userId, updates);
+
+    return { success: true };
+  },
+});
+
 // Debug: Find orphaned guest users (no recent activity, never authenticated)
 export const findOrphanedGuestUsers = query({
   handler: async (ctx) => {
+    // Authorization: Only allow authenticated users to access debug data
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Must be authenticated to access debug data");
+    }
+
+    // Optional: Add environment check to disable in production
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Debug queries are disabled in production");
+    }
+
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
     const users = await ctx.db

@@ -9,9 +9,11 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Ban, Loader2 } from "lucide-react";
+import { ArrowLeft, Ban, Loader2, Bell, Mail as MailIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +30,8 @@ export default function SettingsClient() {
   const [unblockingUserId, setUnblockingUserId] = useState<Id<"users"> | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{ id: Id<"users">; username: string } | null>(null);
+  const [emailNotifications, setEmailNotifications] = useState(false);
+  const [browserNotifications, setBrowserNotifications] = useState(false);
 
   const currentUser = useQuery(
     api.users.getUserByAuthId,
@@ -40,10 +44,14 @@ export default function SettingsClient() {
   );
 
   const unblockUser = useMutation(api.safety.unblockUser);
+  const updateNotificationPreferences = useMutation(api.users.updateNotificationPreferences);
 
   useEffect(() => {
     if (currentUser?._id) {
       setConvexUserId(currentUser._id);
+      // Initialize notification preferences from current user
+      setEmailNotifications(currentUser.emailNotifications ?? true);
+      setBrowserNotifications(currentUser.browserNotifications ?? false);
     }
   }, [currentUser]);
 
@@ -80,6 +88,63 @@ export default function SettingsClient() {
     }
   };
 
+  const handleEmailNotificationsToggle = async (checked: boolean) => {
+    if (!convexUserId) return;
+
+    setEmailNotifications(checked);
+    try {
+      await updateNotificationPreferences({
+        userId: convexUserId,
+        emailNotifications: checked,
+      });
+
+      toast.success(
+        checked ? "Email notifications enabled" : "Email notifications disabled"
+      );
+    } catch (error) {
+      console.error("Failed to update email notifications:", error);
+      toast.error("Failed to update notification preferences");
+      // Revert on error
+      setEmailNotifications(!checked);
+    }
+  };
+
+  const handleBrowserNotificationsToggle = async (checked: boolean) => {
+    if (!convexUserId) return;
+
+    if (checked) {
+      // Request browser notification permission
+      if ("Notification" in window) {
+        const permission = await Notification.requestPermission();
+
+        if (permission !== "granted") {
+          toast.error("Please allow notifications in your browser settings");
+          return;
+        }
+      } else {
+        toast.error("Your browser doesn't support notifications");
+        return;
+      }
+    }
+
+    setBrowserNotifications(checked);
+    try {
+      await updateNotificationPreferences({
+        userId: convexUserId,
+        browserNotifications: checked,
+      });
+
+      toast.success(
+        checked ? "Browser notifications enabled" : "Browser notifications disabled"
+      );
+    } catch (error) {
+      console.error("Failed to update browser notifications:", error);
+      toast.error("Failed to update notification preferences");
+      // Revert on error
+      setBrowserNotifications(!checked);
+    }
+  };
+
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString([], {
       year: "numeric",
@@ -113,6 +178,62 @@ export default function SettingsClient() {
 
         {/* Content */}
         <div className="p-4 space-y-6">
+          {/* Notification Preferences Section */}
+          <Card className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <h2 className="text-lg font-semibold">Notification Preferences</h2>
+            </div>
+
+            <div className="space-y-4">
+              {/* Email Notifications */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <MailIcon className="h-5 w-5 text-gray-500" />
+                  <div>
+                    <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer">
+                      Email Notifications
+                    </Label>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Get notified by email when you receive a new DM
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="email-notifications"
+                  checked={emailNotifications}
+                  onCheckedChange={handleEmailNotificationsToggle}
+                />
+              </div>
+
+              {/* Browser Notifications */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Bell className="h-5 w-5 text-gray-500" />
+                  <div>
+                    <Label htmlFor="browser-notifications" className="text-base font-medium cursor-pointer">
+                      Browser Notifications
+                    </Label>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Get browser notifications for new messages
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="browser-notifications"
+                  checked={browserNotifications}
+                  onCheckedChange={handleBrowserNotificationsToggle}
+                />
+              </div>
+
+              {!currentUser?.email && (
+                <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+                  ⚠ No email address on file. Email notifications will not work until you add an email to your account.
+                </p>
+              )}
+            </div>
+          </Card>
+
           {/* Blocked Users Section */}
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-4">

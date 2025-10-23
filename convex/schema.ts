@@ -11,14 +11,19 @@ export default defineSchema({
     whatsappNumber: v.optional(v.string()),
     dateOfBirth: v.optional(v.string()),   // user's date of birth (ISO format)
     location: v.optional(v.string()),      // where user is from (city, country)
+    email: v.optional(v.string()),         // email for notifications
     citiesVisited: v.array(v.id("cities")), // list of city_ids
     currentCityId: v.optional(v.id("cities")), // current/last active city
     lastSeen: v.optional(v.number()),      // timestamp of last activity
+    // Notification preferences
+    emailNotifications: v.optional(v.boolean()), // receive email notifications for DMs
+    browserNotifications: v.optional(v.boolean()), // receive browser notifications
   })
     .index("by_auth_id", ["authId"])
     .index("by_session_id", ["sessionId"])
     .index("by_current_city", ["currentCityId"])
-    .index("by_last_seen", ["lastSeen"]),
+    .index("by_last_seen", ["lastSeen"])
+    .index("by_email", ["email"]),
 
   cities: defineTable({
     name: v.string(),
@@ -41,10 +46,12 @@ export default defineSchema({
     senderId: v.id("users"),
     receiverId: v.id("users"),
     content: v.string(),
+    read: v.optional(v.boolean()), // has receiver read this message
   })
     .index("by_sender", ["senderId"])
     .index("by_receiver", ["receiverId"])
-    .index("by_participants", ["senderId", "receiverId"]),
+    .index("by_participants", ["senderId", "receiverId"])
+    .index("by_receiver_unread", ["receiverId", "read"]),
 
   blocked_users: defineTable({
     blockerId: v.id("users"),           // User who blocked
@@ -75,4 +82,16 @@ export default defineSchema({
     .index("by_reporter", ["reporterId"])
     .index("by_reported_user", ["reportedUserId"])
     .index("by_status", ["status"]),
+
+  typing_indicators: defineTable({
+    userId: v.id("users"),                  // User who is typing
+    conversationId: v.string(),             // Chat identifier (cityId or dm-userId1-userId2)
+    conversationType: v.union(              // Type of conversation
+      v.literal("city"),
+      v.literal("dm")
+    ),
+    expiresAt: v.number(),                  // Auto-expire after timestamp
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_expires", ["expiresAt"]),
 });

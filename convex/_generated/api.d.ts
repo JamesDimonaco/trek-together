@@ -18,6 +18,7 @@ import type * as dms from "../dms.js";
 import type * as files from "../files.js";
 import type * as messages from "../messages.js";
 import type * as safety from "../safety.js";
+import type * as typing from "../typing.js";
 import type * as users from "../users.js";
 
 /**
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   messages: typeof messages;
   safety: typeof safety;
+  typing: typeof typing;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
