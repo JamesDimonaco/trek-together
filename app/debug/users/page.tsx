@@ -1,15 +1,30 @@
 "use client";
 
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 export default function DebugUsersPage() {
   const duplicateAuthIds = useQuery(api.users.findDuplicateAuthIds);
   const orphanedGuests = useQuery(api.users.findOrphanedGuestUsers);
-  const allUsers = useQuery(api.users.searchUsers, { searchTerm: "" });
+  const userCount = useQuery(api.users.countAuthenticatedUsers);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+    <>
+      <SignedOut>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
+              Access Restricted
+            </h1>
+            <p className="text-gray-700 dark:text-gray-300">
+              You must be signed in to view this debug page.
+            </p>
+          </div>
+        </div>
+      </SignedOut>
+      <SignedIn>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
           User Debug Dashboard
@@ -91,21 +106,22 @@ export default function DebugUsersPage() {
           <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             Total Authenticated Users
           </h2>
-          {!allUsers && <p className="text-gray-500">Loading...</p>}
-          {allUsers && (
+          {userCount === undefined && <p className="text-gray-500">Loading...</p>}
+          {userCount !== undefined && (
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {allUsers.length}
+              {userCount}
             </p>
           )}
         </div>
 
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Note:</strong> This page is for debugging only. In production,
-            add authentication to restrict access.
+            <strong>Note:</strong> This page is for debugging only and is now protected by authentication.
           </p>
         </div>
       </div>
     </div>
+      </SignedIn>
+    </>
   );
 }

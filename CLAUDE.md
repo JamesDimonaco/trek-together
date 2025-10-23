@@ -16,7 +16,7 @@ Stack:
 - **Auth**: Clerk (custom auth pages, no modals)
 - **Hosting**: Vercel
 - **Maps/Geo**: Google Maps API (geolocation + reverse geocoding)
-- **Notifications**: Sonner (toast notifications)
+- **Notifications**: Sonner (toast notifications) + Resend (emails) + React Email
 - **Package Manager**: pnpm
 
 Long term: Mobile app using React Native.
@@ -26,6 +26,7 @@ Long term: Mobile app using React Native.
 ## Current Features (Built)
 
 ### 1. Landing & Location Detection ✅
+
 - Hero section with "Find trekkers near you" CTA
 - Browser geolocation → Google Maps API reverse geocoding → nearest city
 - Dynamic city creation if not in database
@@ -33,6 +34,7 @@ Long term: Mobile app using React Native.
 - Anonymous username prompt (adjective-animal-number format)
 
 ### 2. City Group Chat ✅
+
 - **Public access** - No auth required to view/participate
 - Real-time chat via Convex subscriptions
 - Guest users assigned `session_id` + random username (e.g. `curious-otter-43`)
@@ -44,6 +46,7 @@ Long term: Mobile app using React Native.
   - Filters out blocked users' messages automatically
 
 ### 3. Authentication (Clerk) ✅
+
 - Custom `/sign-in` and `/sign-up` pages (not modals)
 - Required for DMs, Profiles, Messages inbox
 - Username sync from Clerk → Convex
@@ -51,6 +54,7 @@ Long term: Mobile app using React Native.
 - Session persistence across page loads
 
 ### 4. User Profiles ✅
+
 - **View profile**: `/profile/[userId]` (public route)
   - Username, avatar, bio, WhatsApp number (optional)
   - Date of birth (displays calculated age)
@@ -65,6 +69,7 @@ Long term: Mobile app using React Native.
 - Uses Next.js Image component with Clerk and Convex domains configured
 
 ### 5. Direct Messages (DMs) ✅
+
 - **DM Chat**: `/dm/[userId]` (auth required)
   - 1-on-1 private messaging
   - Real-time updates via Convex
@@ -80,6 +85,7 @@ Long term: Mobile app using React Native.
 - Guests see AuthPromptModal with link to `/sign-in`
 
 ### 6. Safety & Moderation ✅
+
 - **Report System**:
   - Report users from city chat or DMs
   - Predefined reasons (spam, harassment, inappropriate, scam, other)
@@ -97,6 +103,7 @@ Long term: Mobile app using React Native.
 - Toast notifications for all actions
 
 ### 7. SEO & Discoverability ✅
+
 - Dynamic metadata per city page
 - Sitemap generation (`/sitemap.xml`) - auto-includes all cities
 - Robots.txt configuration
@@ -105,6 +112,7 @@ Long term: Mobile app using React Native.
 - Keywords optimization
 
 ### 8. Error Handling & UX ✅
+
 - Global error boundary (`app/error.tsx`)
 - Loading states (`app/loading.tsx`)
 - Custom 404 page
@@ -113,6 +121,7 @@ Long term: Mobile app using React Native.
 - Loading spinners for async actions
 
 ### 9. Search & Discovery ✅
+
 - **Browse Cities**: `/cities`
   - Search by city name or country
   - Live active user count per city
@@ -130,6 +139,34 @@ Long term: Mobile app using React Native.
   - `getCitiesWithActiveUsers` - cities with real-time active counts
   - `searchUsers` - find authenticated users by username
 
+### 10. Notifications & Real-time Features ✅
+
+- **Unread Message Tracking**:
+  - Real-time unread DM badge count in navigation
+  - Per-conversation unread counts
+  - Auto-mark messages as read when viewing conversation
+  - Indexed queries for performance
+- **Email Notifications** (via Resend):
+  - Beautiful HTML email templates (React Email + Tailwind)
+  - Sent when receiving new DMs
+  - Opt-in/opt-out preference per user
+  - Captures user email from Clerk during signup
+- **Browser Notifications**:
+  - Push notification permission handling
+  - Opt-in toggle in Settings
+  - Proper permission flow and error handling
+- **Typing Indicators**:
+  - Real-time "user is typing..." bubbles
+  - Animated dots with staggered delays
+  - Auto-expire after 5 seconds of inactivity
+  - Smart text display (1 user / 2 users / X people typing)
+  - Works in both city chat and DMs
+  - Multiple users can type simultaneously
+- **Notification Preferences** (`/settings`):
+  - Toggle email notifications
+  - Toggle browser notifications
+  - Saved per user in Convex
+
 ---
 
 ## Convex Schema (Current Implementation)
@@ -138,30 +175,33 @@ Long term: Mobile app using React Native.
 // convex/schema.ts
 export default defineSchema({
   users: defineTable({
-    authId: v.optional(v.string()),        // Clerk ID (undefined if guest)
-    sessionId: v.optional(v.string()),     // Identifier for guests
+    authId: v.optional(v.string()), // Clerk ID (undefined if guest)
+    sessionId: v.optional(v.string()), // Identifier for guests
     username: v.string(),
     avatarUrl: v.optional(v.string()),
     bio: v.optional(v.string()),
     whatsappNumber: v.optional(v.string()),
-    dateOfBirth: v.optional(v.string()),   // User's date of birth (ISO format)
-    location: v.optional(v.string()),      // Where user is from (city, country)
+    dateOfBirth: v.optional(v.string()), // User's date of birth (ISO format)
+    location: v.optional(v.string()), // Where user is from (city, country)
     citiesVisited: v.array(v.id("cities")), // List of city IDs
     currentCityId: v.optional(v.id("cities")), // Current/last active city
-    lastSeen: v.optional(v.number()),      // Timestamp of last activity
+    lastSeen: v.optional(v.number()), // Timestamp of last activity
+    email: v.optional(v.string()), // User email (from Clerk)
+    emailNotifications: v.optional(v.boolean()), // Opt-in for email notifications
+    browserNotifications: v.optional(v.boolean()), // Opt-in for browser notifications
   })
     .index("by_auth_id", ["authId"])
     .index("by_session_id", ["sessionId"])
     .index("by_current_city", ["currentCityId"])
-    .index("by_last_seen", ["lastSeen"]),
+    .index("by_last_seen", ["lastSeen"])
+    .index("by_email", ["email"]),
 
   cities: defineTable({
     name: v.string(),
     country: v.string(),
     lat: v.float64(),
     lng: v.float64(),
-  })
-    .index("by_name_country", ["name", "country"]),
+  }).index("by_name_country", ["name", "country"]),
 
   city_messages: defineTable({
     cityId: v.id("cities"),
@@ -169,38 +209,43 @@ export default defineSchema({
     sessionId: v.optional(v.string()),
     username: v.string(),
     content: v.string(),
-  })
-    .index("by_city", ["cityId"]),
+  }).index("by_city", ["cityId"]),
 
   dms: defineTable({
     senderId: v.id("users"),
     receiverId: v.id("users"),
     content: v.string(),
+    read: v.optional(v.boolean()), // Message read status
   })
     .index("by_sender", ["senderId"])
     .index("by_receiver", ["receiverId"])
-    .index("by_participants", ["senderId", "receiverId"]),
+    .index("by_participants", ["senderId", "receiverId"])
+    .index("by_receiver_unread", ["receiverId", "read"]),
 
   blocked_users: defineTable({
-    blockerId: v.id("users"),           // User who blocked
-    blockedId: v.id("users"),           // User who was blocked
-    reason: v.optional(v.string()),     // Optional reason
+    blockerId: v.id("users"), // User who blocked
+    blockedId: v.id("users"), // User who was blocked
+    reason: v.optional(v.string()), // Optional reason
   })
     .index("by_blocker", ["blockerId"])
     .index("by_blocked", ["blockedId"])
     .index("by_blocker_and_blocked", ["blockerId", "blockedId"]),
 
   reports: defineTable({
-    reporterId: v.id("users"),              // User reporting
-    reportedUserId: v.id("users"),          // User being reported
-    messageId: v.optional(v.string()),      // Message ID being reported
-    messageType: v.optional(v.union(        // Type of message
-      v.literal("city_message"),
-      v.literal("dm")
-    )),
-    reason: v.string(),                     // Report reason
-    description: v.optional(v.string()),    // Additional details
-    status: v.union(                        // Moderation status
+    reporterId: v.id("users"), // User reporting
+    reportedUserId: v.id("users"), // User being reported
+    messageId: v.optional(v.string()), // Message ID being reported
+    messageType: v.optional(
+      v.union(
+        // Type of message
+        v.literal("city_message"),
+        v.literal("dm")
+      )
+    ),
+    reason: v.string(), // Report reason
+    description: v.optional(v.string()), // Additional details
+    status: v.union(
+      // Moderation status
       v.literal("pending"),
       v.literal("reviewed"),
       v.literal("resolved"),
@@ -210,15 +255,29 @@ export default defineSchema({
     .index("by_reporter", ["reporterId"])
     .index("by_reported_user", ["reportedUserId"])
     .index("by_status", ["status"]),
+
+  typing_indicators: defineTable({
+    userId: v.id("users"), // User who is typing
+    conversationId: v.string(), // City ID or DM conversation ID
+    conversationType: v.union(
+      // Type of conversation
+      v.literal("city"),
+      v.literal("dm")
+    ),
+    expiresAt: v.number(), // Auto-expire timestamp (5 seconds)
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_expires", ["expiresAt"]),
 });
 ```
 
 ### Key Convex Files
 
-- **`convex/users.ts`**: User CRUD, authentication sync, profile updates, active user tracking, user search
+- **`convex/users.ts`**: User CRUD, authentication sync, profile updates, active user tracking, user search, notification preferences
 - **`convex/cities.ts`**: City CRUD, city search, active user counts per city
 - **`convex/messages.ts`**: City chat messages (with blocked user filtering)
-- **`convex/dms.ts`**: Direct messages (with block checks)
+- **`convex/dms.ts`**: Direct messages (with block checks, unread tracking, mark as read)
+- **`convex/typing.ts`**: Typing indicators (set, get, clear, cleanup expired)
 - **`convex/safety.ts`**: Block, unblock, report operations
 - **`convex/files.ts`**: Avatar upload URL generation
 
@@ -227,6 +286,7 @@ export default defineSchema({
 ## Route Structure
 
 ### Public Routes
+
 - `/` - Landing page with location detection
 - `/sign-in` - Clerk sign-in page
 - `/sign-up` - Clerk sign-up page
@@ -236,18 +296,24 @@ export default defineSchema({
 - `/users` - Search for trekkers by username
 
 ### Protected Routes (Auth Required)
+
 - `/profile/edit` - Edit own profile
 - `/dm/[userId]` - Direct message conversation
 - `/messages` - DM inbox with conversation list
 - `/settings` - Account settings (blocked users management)
 
 ### API Routes
+
 - `/api/session` - Get current user session (auth + guest)
 - `/api/current-city` - Get user's current/last city
 - `/api/set-current-city` - Update user's current city
+- `/api/geocode` - Google Maps geocoding (lat/lng ↔ address)
+- `/api/join-city` - Join or create city and redirect to chat
 - `/api/webhooks/clerk` - Clerk user sync webhook
+- `/api/notifications/send-dm-email` - Send email notification for new DM (via Resend)
 
 ### Special Routes
+
 - `/sitemap.xml` - Auto-generated sitemap
 - `/robots.txt` - SEO crawling rules
 
@@ -256,6 +322,7 @@ export default defineSchema({
 ## Development Guidelines
 
 ### Best Practices
+
 - **Use pnpm**: Package manager of choice (`pnpm dlx shadcn@latest add <component>`)
 - **shadcn/ui components**: Import via shadcn CLI, customize as needed
 - **Convex patterns**:
@@ -269,6 +336,7 @@ export default defineSchema({
 - **Mobile-first**: Test responsive design, keep UI accessible
 
 ### Code Style
+
 - TypeScript strict mode
 - Server Components by default, "use client" when needed
 - Tailwind CSS for styling
@@ -280,7 +348,9 @@ export default defineSchema({
 ## 🚀 Production Readiness Checklist
 
 ### Legal & Compliance (CRITICAL)
+
 - [ ] **Privacy Policy** (`/privacy`)
+
   - GDPR compliance (EU users)
   - CCPA compliance (California)
   - Data collection disclosure
@@ -290,6 +360,7 @@ export default defineSchema({
   - Contact information
 
 - [ ] **Terms of Service** (`/terms`)
+
   - User responsibilities
   - Content guidelines
   - Account termination conditions
@@ -298,6 +369,7 @@ export default defineSchema({
   - Age restrictions (13+ / 18+ depending on region)
 
 - [ ] **Cookie Policy** (`/cookies`)
+
   - Essential vs. analytics cookies
   - Cookie consent banner (EU requirement)
   - How to opt-out
@@ -309,6 +381,7 @@ export default defineSchema({
   - Social media links (if applicable)
 
 ### SEO & Marketing
+
 - [x] **Metadata** - Already configured in `app/layout.tsx` ✅
 - [x] **Sitemap** - Auto-generated at `/sitemap.xml` ✅
 - [x] **Robots.txt** - Configured ✅
@@ -329,7 +402,9 @@ export default defineSchema({
   - Manifest.json for PWA
 
 ### About & Transparency
+
 - [ ] **About Page** (`/about`)
+
   - Who you are (solo developer)
   - Why you built TrekTogether
   - Mission: connect outdoor enthusiasts
@@ -346,28 +421,34 @@ export default defineSchema({
   - Mobile app coming?
 
 ### Launch Strategy (Cold Start Problem)
+
 **🎯 Target ONE City First** - Critical for success!
 
 **Recommended first city criteria:**
+
 - You have personal connections there
 - Active outdoor/hiking community
 - English-speaking (if targeting English first)
 - Medium size (50k-500k population)
 
 **Launch tactics:**
+
 1. **In-person** (most effective):
+
    - Visit local hiking meetups
    - Outdoor gear shops (ask to put up flyers)
    - Climbing gyms / adventure sports centers
    - Hostel bulletin boards
 
 2. **Online local communities**:
+
    - Reddit: r/[cityname], r/[cityname]hiking
    - Facebook: Local hiking groups
    - Instagram: Tag local outdoor influencers
    - Meetup.com: hiking/outdoor groups
 
 3. **Content marketing**:
+
    - Blog post: "Best hiking spots near [city]"
    - Instagram: Photo stories of the city
    - Twitter: Share user stats as they grow
@@ -378,27 +459,33 @@ export default defineSchema({
    - Referral incentives
 
 **Success metrics before expanding:**
+
 - 50+ registered users in first city
 - 10+ daily active users
 - 100+ messages per week
 
 ### Technical Production Checklist
+
 - [ ] **Environment Variables**
+
   - Verify all production env vars in Vercel
   - Remove debug queries in production (already done ✅)
 
 - [ ] **Error Monitoring**
+
   - Sentry or similar for production errors
   - Log critical failures
   - Alert on high error rates
 
 - [ ] **Performance**
+
   - Lighthouse score >90
   - Core Web Vitals passing
   - Image optimization check
   - Lazy loading where needed
 
 - [ ] **Security Audit**
+
   - All mutations have auth checks ✅ (already done)
   - All queries verify ownership ✅ (already done)
   - Rate limiting on API routes (partially done via Convex)
@@ -406,6 +493,7 @@ export default defineSchema({
   - XSS prevention (React default + CSP headers)
 
 - [ ] **Backup & Data**
+
   - Convex automatic backups (verify enabled)
   - Export user data endpoint (GDPR requirement)
   - Data retention policy
@@ -416,12 +504,15 @@ export default defineSchema({
   - Database query performance
 
 ### Pre-Launch Testing
+
 - [ ] **Mobile devices**
+
   - iPhone Safari
   - Android Chrome
   - Tablet layouts
 
 - [ ] **Browsers**
+
   - Chrome, Firefox, Safari, Edge
   - Test all critical flows
 
@@ -435,7 +526,8 @@ export default defineSchema({
 
 ## Roadmap & Next Features
 
-### ✅ Completed (MVP + Safety + Discovery)
+### ✅ Completed (MVP + Safety + Discovery + Notifications)
+
 - [x] Landing page + location detection
 - [x] City group chat (anonymous + authenticated)
 - [x] Authentication (Clerk custom pages)
@@ -448,22 +540,29 @@ export default defineSchema({
 - [x] Error handling + toast notifications
 - [x] Active user counter
 - [x] Search & Discovery (browse cities, find trekkers)
+- [x] **Notifications System**
+  - [x] Unread DM badge count (real-time)
+  - [x] Browser notifications (opt-in with permission handling)
+  - [x] Email notifications for DMs via Resend (opt-in)
+  - [x] Notification preferences in Settings
+- [x] **Typing Indicators**
+  - [x] Real-time typing bubbles (city chat + DMs)
+  - [x] Auto-expire after 5 seconds
+  - [x] Multiple simultaneous users supported
 
 ### 🎯 High Priority (Next Up)
+
 - [ ] **Anti-spam Measures**
   - Rate limiting on messages (per user per minute)
   - Captcha on sign-up (Cloudflare Turnstile)
   - Auto-mod flagging (excessive reports)
-- [ ] **Notifications**
-  - Unread DM badge count
-  - Browser notifications (opt-in)
-  - Email notifications for DMs (optional)
 - [ ] **Maps Integration**
   - Interactive map showing cities visited
   - City location pins on profile
   - "Cities near me" feature
 
 ### 📋 Medium Priority
+
 - [ ] **City Pages Enhancement**
   - City stats (total users, messages)
   - "Featured trekkers" section
@@ -481,10 +580,10 @@ export default defineSchema({
   - Event calendar view
 
 ### 🎨 Polish & UX
+
 - [ ] **Dark Mode Toggle** (currently system preference only)
 - [ ] **Message Features**
   - Emoji reactions to messages
-  - Typing indicators
   - Message read receipts (DMs)
   - Link previews
 - [ ] **Profile Enhancements**
@@ -498,6 +597,7 @@ export default defineSchema({
   - ARIA labels audit
 
 ### 🔮 Future Considerations
+
 - Mobile app (React Native)
 - Push notifications
 - Payment integration (premium features)

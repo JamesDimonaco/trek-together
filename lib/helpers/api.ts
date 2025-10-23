@@ -42,18 +42,35 @@ export async function reverseGeocode(
   lng: number
 ): Promise<LocationData | null> {
   try {
+    console.log("[reverseGeocode] Requesting geocode for:", { lat, lng });
     const response = await fetch("/api/geocode", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lat, lng }),
     });
 
+    console.log("[reverseGeocode] Response status:", response.status);
+
     if (response.ok) {
-      return await response.json();
+      const contentType = response.headers.get("content-type");
+      console.log("[reverseGeocode] Content-Type:", contentType);
+
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("[reverseGeocode] Expected JSON but got:", text.substring(0, 200));
+        return null;
+      }
+
+      const data = await response.json();
+      console.log("[reverseGeocode] Success:", data);
+      return data;
     }
+
+    const errorText = await response.text();
+    console.error("[reverseGeocode] Error response:", errorText.substring(0, 200));
     return null;
   } catch (err) {
-    console.error("Geocoding error:", err);
+    console.error("[reverseGeocode] Exception:", err);
     return null;
   }
 }
@@ -62,18 +79,35 @@ export async function geocodeAddress(
   address: string
 ): Promise<LocationData | null> {
   try {
+    console.log("[geocodeAddress] Requesting geocode for:", address);
     const response = await fetch("/api/geocode", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address }),
     });
 
+    console.log("[geocodeAddress] Response status:", response.status);
+
     if (response.ok) {
-      return await response.json();
+      const contentType = response.headers.get("content-type");
+      console.log("[geocodeAddress] Content-Type:", contentType);
+
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("[geocodeAddress] Expected JSON but got:", text.substring(0, 200));
+        return null;
+      }
+
+      const data = await response.json();
+      console.log("[geocodeAddress] Success:", data);
+      return data;
     }
+
+    const errorText = await response.text();
+    console.error("[geocodeAddress] Error response:", errorText.substring(0, 200));
     return null;
   } catch (err) {
-    console.error("Geocoding error:", err);
+    console.error("[geocodeAddress] Exception:", err);
     return null;
   }
 }
@@ -82,7 +116,7 @@ export async function geocodeAddress(
 export async function joinCity(
   locationData: LocationData,
   username?: string
-): Promise<{ success: boolean; redirectUrl?: string; error?: string }> {
+): Promise<{ success: boolean; redirectUrl?: string; error?: string; code?: string; suggestion?: string }> {
   try {
     const response = await fetch("/api/join-city", {
       method: "POST",
@@ -105,6 +139,8 @@ export async function joinCity(
       return {
         success: false,
         error: errorData.error || "Failed to join city chat",
+        code: errorData.code,
+        suggestion: errorData.suggestion,
       };
     }
   } catch (err) {

@@ -7,6 +7,13 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/chat(.*)",
   "/profile(.*)", // Profiles are public so users can view each other
+  "/api/session(.*)",
+  "/api/geocode(.*)",
+  "/api/current-city(.*)",
+  "/api/set-current-city(.*)",
+  "/api/join-city(.*)",
+  "/api/webhooks/clerk(.*)",
+  "/cities(.*)",
 ]);
 
 export const proxy = clerkMiddleware(
