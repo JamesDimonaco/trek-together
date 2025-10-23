@@ -7,6 +7,7 @@ and outdoor activities. The app provides **city-based group chats** (open to all
 **private DMs** (for authenticated users).
 
 **Current Status**: MVP Complete + Safety Features + Search & Discovery ✅
+**Next Phase**: Production Readiness & Launch 🚀
 
 Stack:
 
@@ -273,6 +274,162 @@ export default defineSchema({
 - Tailwind CSS for styling
 - Lucide React for icons
 - next/image for all images (configure domains in next.config.ts)
+
+---
+
+## 🚀 Production Readiness Checklist
+
+### Legal & Compliance (CRITICAL)
+- [ ] **Privacy Policy** (`/privacy`)
+  - GDPR compliance (EU users)
+  - CCPA compliance (California)
+  - Data collection disclosure
+  - Cookie usage explanation
+  - Third-party services (Clerk, Convex, Google Maps, Vercel)
+  - User rights (access, deletion, portability)
+  - Contact information
+
+- [ ] **Terms of Service** (`/terms`)
+  - User responsibilities
+  - Content guidelines
+  - Account termination conditions
+  - Limitation of liability
+  - Dispute resolution
+  - Age restrictions (13+ / 18+ depending on region)
+
+- [ ] **Cookie Policy** (`/cookies`)
+  - Essential vs. analytics cookies
+  - Cookie consent banner (EU requirement)
+  - How to opt-out
+  - List of all cookies used
+
+- [ ] **Footer Links**
+  - Add Privacy, Terms, Cookies links to footer
+  - Contact email / support page
+  - Social media links (if applicable)
+
+### SEO & Marketing
+- [x] **Metadata** - Already configured in `app/layout.tsx` ✅
+- [x] **Sitemap** - Auto-generated at `/sitemap.xml` ✅
+- [x] **Robots.txt** - Configured ✅
+- [ ] **Google Search Console Setup**
+  - Submit sitemap
+  - Verify ownership
+  - Monitor indexing status
+- [ ] **Google Analytics / Plausible**
+  - Privacy-friendly analytics
+  - Track user flows
+  - Monitor conversion rates
+- [ ] **Open Graph Image**
+  - Create `/public/og-image.png` (1200x630)
+  - Show app screenshot or branded image
+- [ ] **Favicon & App Icons**
+  - Multiple sizes for different devices
+  - Apple touch icons
+  - Manifest.json for PWA
+
+### About & Transparency
+- [ ] **About Page** (`/about`)
+  - Who you are (solo developer)
+  - Why you built TrekTogether
+  - Mission: connect outdoor enthusiasts
+  - Your trekking background
+  - How the app works
+  - Future vision
+  - Contact/feedback email
+
+- [ ] **FAQ Page** (optional but recommended)
+  - How does location detection work?
+  - Is it free?
+  - How do I report abuse?
+  - Can I delete my data?
+  - Mobile app coming?
+
+### Launch Strategy (Cold Start Problem)
+**🎯 Target ONE City First** - Critical for success!
+
+**Recommended first city criteria:**
+- You have personal connections there
+- Active outdoor/hiking community
+- English-speaking (if targeting English first)
+- Medium size (50k-500k population)
+
+**Launch tactics:**
+1. **In-person** (most effective):
+   - Visit local hiking meetups
+   - Outdoor gear shops (ask to put up flyers)
+   - Climbing gyms / adventure sports centers
+   - Hostel bulletin boards
+
+2. **Online local communities**:
+   - Reddit: r/[cityname], r/[cityname]hiking
+   - Facebook: Local hiking groups
+   - Instagram: Tag local outdoor influencers
+   - Meetup.com: hiking/outdoor groups
+
+3. **Content marketing**:
+   - Blog post: "Best hiking spots near [city]"
+   - Instagram: Photo stories of the city
+   - Twitter: Share user stats as they grow
+
+4. **Guerrilla marketing**:
+   - Host a real trek using the app
+   - Offer "founding member" badge
+   - Referral incentives
+
+**Success metrics before expanding:**
+- 50+ registered users in first city
+- 10+ daily active users
+- 100+ messages per week
+
+### Technical Production Checklist
+- [ ] **Environment Variables**
+  - Verify all production env vars in Vercel
+  - Remove debug queries in production (already done ✅)
+
+- [ ] **Error Monitoring**
+  - Sentry or similar for production errors
+  - Log critical failures
+  - Alert on high error rates
+
+- [ ] **Performance**
+  - Lighthouse score >90
+  - Core Web Vitals passing
+  - Image optimization check
+  - Lazy loading where needed
+
+- [ ] **Security Audit**
+  - All mutations have auth checks ✅ (already done)
+  - All queries verify ownership ✅ (already done)
+  - Rate limiting on API routes (partially done via Convex)
+  - SQL injection prevention (N/A - using Convex)
+  - XSS prevention (React default + CSP headers)
+
+- [ ] **Backup & Data**
+  - Convex automatic backups (verify enabled)
+  - Export user data endpoint (GDPR requirement)
+  - Data retention policy
+
+- [ ] **Monitoring**
+  - Uptime monitoring (UptimeRobot, BetterUptime)
+  - Vercel Analytics ✅ (already enabled)
+  - Database query performance
+
+### Pre-Launch Testing
+- [ ] **Mobile devices**
+  - iPhone Safari
+  - Android Chrome
+  - Tablet layouts
+
+- [ ] **Browsers**
+  - Chrome, Firefox, Safari, Edge
+  - Test all critical flows
+
+- [ ] **User flows**
+  - Anonymous user → city chat
+  - Sign up → profile edit → DM
+  - Report/block functionality
+  - Mobile navigation
 
 ---
 
