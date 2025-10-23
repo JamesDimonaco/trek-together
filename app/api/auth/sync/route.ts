@@ -28,7 +28,7 @@ export async function POST() {
       user.firstName ||
       currentUsername || // Use existing anonymous username if available
       `user-${user.id.slice(-8)}` ||
-      'anonymous-user';
+      "anonymous-user";
 
     if (process.env.NODE_ENV === "development") {
       console.log("Syncing authenticated user (fallback):", {
@@ -52,12 +52,18 @@ export async function POST() {
       });
 
       if (existingUser) {
+        // Get primary email
+        const primaryEmail = user.emailAddresses.find(
+          (email: { id: any }) => email.id === user.primaryEmailAddressId
+        )?.emailAddress;
+
         // Migrate: update the existing user to be authenticated
         await convex.mutation(api.users.migrateToAuthenticated, {
           userId: existingUser._id,
           authId: user.id,
           username,
           avatarUrl: user.imageUrl,
+          email: primaryEmail,
         });
 
         return NextResponse.json({
@@ -69,11 +75,17 @@ export async function POST() {
       }
     }
 
+    // Get primary email
+    const primaryEmail = user.emailAddresses.find(
+      (email: { id: any }) => email.id === user.primaryEmailAddressId
+    )?.emailAddress;
+
     // Create or update authenticated user
     const userId = await convex.mutation(api.users.upsertUser, {
       authId: user.id,
       username,
       avatarUrl: user.imageUrl,
+      email: primaryEmail,
     });
 
     // Update cookies to reflect authenticated state

@@ -9,6 +9,7 @@ import { Users } from "lucide-react";
 
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
+import TypingIndicator from "./TypingIndicator";
 
 interface ChatClientProps {
   cityId: Id<"cities">;
@@ -112,9 +113,17 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
           currentUserId={session.userId as Id<"users"> | undefined}
         />
 
+        <TypingIndicator
+          conversationId={cityId}
+          currentUserId={session.userId as Id<"users"> | undefined}
+        />
+
         <MessageInput
           onSendMessage={handleSendMessage}
           placeholder={`Message ${cityName} trekkers...`}
+          conversationId={cityId}
+          currentUserId={session.userId as Id<"users"> | undefined}
+          conversationType="city"
         />
       </div>
     </>

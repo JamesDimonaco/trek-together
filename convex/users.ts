@@ -9,6 +9,7 @@ export const upsertUser = mutation({
     avatarUrl: v.optional(v.string()),
     bio: v.optional(v.string()),
     whatsappNumber: v.optional(v.string()),
+    email: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Check if user exists
@@ -16,7 +17,7 @@ export const upsertUser = mutation({
       .query("users")
       .withIndex("by_auth_id", (q) => q.eq("authId", args.authId))
       .first();
-    
+
     if (existing) {
       // Update existing user
       await ctx.db.patch(existing._id, {
@@ -24,18 +25,22 @@ export const upsertUser = mutation({
         avatarUrl: args.avatarUrl,
         bio: args.bio,
         whatsappNumber: args.whatsappNumber,
+        email: args.email,
       });
       return existing._id;
     }
-    
-    // Create new user
+
+    // Create new user - enable email notifications by default
     return await ctx.db.insert("users", {
       authId: args.authId,
       username: args.username,
       avatarUrl: args.avatarUrl,
       bio: args.bio,
       whatsappNumber: args.whatsappNumber,
+      email: args.email,
       citiesVisited: [],
+      emailNotifications: true, // Enable by default
+      browserNotifications: false, // Disabled by default (requires permission)
     });
   },
 });
@@ -153,6 +158,7 @@ export const migrateToAuthenticated = mutation({
     authId: v.string(),
     username: v.string(),
     avatarUrl: v.optional(v.string()),
+    email: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const anonymousUser = await ctx.db.get(args.userId);
@@ -190,11 +196,15 @@ export const migrateToAuthenticated = mutation({
       authId: args.authId,
       username: args.username,
       avatarUrl: args.avatarUrl,
+      email: args.email,
       // Keep existing data: citiesVisited, currentCityId, etc.
       // Remove sessionId since user is now authenticated
       sessionId: undefined,
+      // Enable email notifications by default
+      emailNotifications: true,
+      browserNotifications: false,
     });
-    
+
     return args.userId;
   },
 });
@@ -433,6 +443,30 @@ export const findDuplicateAuthIds = query({
       .map(([authId, count]) => ({ authId, count }));
 
     return duplicates;
+  },
+});
+
+// Update notification preferences
+export const updateNotificationPreferences = mutation({
+  args: {
+    userId: v.id("users"),
+    emailNotifications: v.optional(v.boolean()),
+    browserNotifications: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const { userId, ...preferences } = args;
+
+    const updates: any = {};
+    if (preferences.emailNotifications !== undefined) {
+      updates.emailNotifications = preferences.emailNotifications;
+    }
+    if (preferences.browserNotifications !== undefined) {
+      updates.browserNotifications = preferences.browserNotifications;
+    }
+
+    await ctx.db.patch(userId, updates);
+
+    return { success: true };
   },
 });
 

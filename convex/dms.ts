@@ -44,6 +44,7 @@ export const sendDM = mutation({
       senderId: args.senderId,
       receiverId: args.receiverId,
       content: args.content,
+      read: false, // Mark as unread by default
     });
   },
 });
@@ -147,10 +148,20 @@ export const getUserConversations = query({
         .first();
 
       if (lastMessage) {
+        // Get unread count for this conversation
+        const unreadMessages = await ctx.db
+          .query("dms")
+          .withIndex("by_receiver_unread", (q) =>
+            q.eq("receiverId", args.userId).eq("read", false)
+          )
+          .filter((q) => q.eq(q.field("senderId"), partnerId as any))
+          .collect();
+
         conversations.push({
           partner,
           lastMessage,
           lastMessageTime: lastMessage._creationTime,
+          unreadCount: unreadMessages.length,
         });
       }
     }
@@ -162,16 +173,61 @@ export const getUserConversations = query({
   },
 });
 
-// Mark messages as read (optional feature for future)
+// Mark messages as read
 export const markAsRead = mutation({
   args: {
     userId: v.id("users"),
     conversationPartnerId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    // This would update a "read" status on messages
-    // For MVP, we can implement this later
-    // Would need to add a "read" field to the dms table
-    return { success: true };
+    // Find all unread messages from conversationPartner to userId
+    const unreadMessages = await ctx.db
+      .query("dms")
+      .withIndex("by_receiver_unread", (q) =>
+        q.eq("receiverId", args.userId).eq("read", false)
+      )
+      .filter((q) => q.eq(q.field("senderId"), args.conversationPartnerId))
+      .collect();
+
+    // Mark all as read
+    for (const message of unreadMessages) {
+      await ctx.db.patch(message._id, { read: true });
+    }
+
+    return { success: true, markedCount: unreadMessages.length };
+  },
+});
+
+// Get unread message count for a specific conversation
+export const getUnreadCount = query({
+  args: {
+    userId: v.id("users"),
+    conversationPartnerId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const unreadMessages = await ctx.db
+      .query("dms")
+      .withIndex("by_receiver_unread", (q) =>
+        q.eq("receiverId", args.userId).eq("read", false)
+      )
+      .filter((q) => q.eq(q.field("senderId"), args.conversationPartnerId))
+      .collect();
+
+    return unreadMessages.length;
+  },
+});
+
+// Get total unread DM count for a user
+export const getTotalUnreadCount = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const unreadMessages = await ctx.db
+      .query("dms")
+      .withIndex("by_receiver_unread", (q) =>
+        q.eq("receiverId", args.userId).eq("read", false)
+      )
+      .collect();
+
+    return unreadMessages.length;
   },
 });

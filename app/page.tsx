@@ -78,12 +78,17 @@ export default function Home() {
         setIsLoading(false);
       },
       (error) => {
-        console.error("Location error:", error.message);
-        setError(
-          error.code === 1
-            ? "Location permission denied. Please enter your city manually."
-            : "Could not detect your location. Please enter your city manually."
-        );
+        console.error("Location error:", error.message, "Code:", error.code);
+
+        let errorMessage = "Could not detect your location. Please enter your city manually.";
+
+        if (error.code === 1) {
+          errorMessage = "Location permission denied. Please enter your city manually.";
+        } else if (error.message.includes("secure origin") || error.message.includes("permission")) {
+          errorMessage = "Location services require a secure connection. Please enter your city manually.";
+        }
+
+        setError(errorMessage);
         setLocationStep("manual");
         setIsLoading(false);
       }

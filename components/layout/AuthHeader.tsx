@@ -7,11 +7,12 @@ import {
   useAuth,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Mountain, User, MessageCircle, Mail, MapPin, Users } from "lucide-react";
+import { Mountain, User, MessageCircle, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import MessagesNavLink from "./MessagesNavLink";
 
 interface CurrentCity {
   _id: string;
@@ -112,13 +113,8 @@ export default function AuthHeader() {
             </SignedOut>
 
             <SignedIn>
-              {/* Messages - Icon only on mobile */}
-              <Button variant="ghost" size="sm" asChild className="h-9 w-9 sm:w-auto px-0 sm:px-3">
-                <Link href="/messages" className="flex items-center justify-center">
-                  <Mail className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">Messages</span>
-                </Link>
-              </Button>
+              {/* Messages - Icon only on mobile with unread badge */}
+              <MessagesNavLink userId={currentUser?._id} />
 
               {/* Profile - Icon only on mobile */}
               {currentUser && (

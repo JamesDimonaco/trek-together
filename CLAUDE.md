@@ -6,7 +6,7 @@ TrekTogether is a webapp that helps travelers connect in specific cities for tre
 and outdoor activities. The app provides **city-based group chats** (open to all) and
 **private DMs** (for authenticated users).
 
-**Current Status**: MVP Complete + Safety Features + Search & Discovery ✅
+**Current Status**: MVP Complete + Safety Features + Search & Discovery + Notifications ✅
 
 Stack:
 
@@ -15,7 +15,7 @@ Stack:
 - **Auth**: Clerk (custom auth pages, no modals)
 - **Hosting**: Vercel
 - **Maps/Geo**: Google Maps API (geolocation + reverse geocoding)
-- **Notifications**: Sonner (toast notifications)
+- **Notifications**: Sonner (toast notifications) + Resend (emails) + React Email
 - **Package Manager**: pnpm
 
 Long term: Mobile app using React Native.
@@ -129,6 +129,33 @@ Long term: Mobile app using React Native.
   - `getCitiesWithActiveUsers` - cities with real-time active counts
   - `searchUsers` - find authenticated users by username
 
+### 10. Notifications & Real-time Features ✅
+- **Unread Message Tracking**:
+  - Real-time unread DM badge count in navigation
+  - Per-conversation unread counts
+  - Auto-mark messages as read when viewing conversation
+  - Indexed queries for performance
+- **Email Notifications** (via Resend):
+  - Beautiful HTML email templates (React Email + Tailwind)
+  - Sent when receiving new DMs
+  - Opt-in/opt-out preference per user
+  - Captures user email from Clerk during signup
+- **Browser Notifications**:
+  - Push notification permission handling
+  - Opt-in toggle in Settings
+  - Proper permission flow and error handling
+- **Typing Indicators**:
+  - Real-time "user is typing..." bubbles
+  - Animated dots with staggered delays
+  - Auto-expire after 5 seconds of inactivity
+  - Smart text display (1 user / 2 users / X people typing)
+  - Works in both city chat and DMs
+  - Multiple users can type simultaneously
+- **Notification Preferences** (`/settings`):
+  - Toggle email notifications
+  - Toggle browser notifications
+  - Saved per user in Convex
+
 ---
 
 ## Convex Schema (Current Implementation)
@@ -148,11 +175,15 @@ export default defineSchema({
     citiesVisited: v.array(v.id("cities")), // List of city IDs
     currentCityId: v.optional(v.id("cities")), // Current/last active city
     lastSeen: v.optional(v.number()),      // Timestamp of last activity
+    email: v.optional(v.string()),         // User email (from Clerk)
+    emailNotifications: v.optional(v.boolean()), // Opt-in for email notifications
+    browserNotifications: v.optional(v.boolean()), // Opt-in for browser notifications
   })
     .index("by_auth_id", ["authId"])
     .index("by_session_id", ["sessionId"])
     .index("by_current_city", ["currentCityId"])
-    .index("by_last_seen", ["lastSeen"]),
+    .index("by_last_seen", ["lastSeen"])
+    .index("by_email", ["email"]),
 
   cities: defineTable({
     name: v.string(),
@@ -175,10 +206,12 @@ export default defineSchema({
     senderId: v.id("users"),
     receiverId: v.id("users"),
     content: v.string(),
+    read: v.optional(v.boolean()),         // Message read status
   })
     .index("by_sender", ["senderId"])
     .index("by_receiver", ["receiverId"])
-    .index("by_participants", ["senderId", "receiverId"]),
+    .index("by_participants", ["senderId", "receiverId"])
+    .index("by_receiver_unread", ["receiverId", "read"]),
 
   blocked_users: defineTable({
     blockerId: v.id("users"),           // User who blocked
@@ -209,15 +242,28 @@ export default defineSchema({
     .index("by_reporter", ["reporterId"])
     .index("by_reported_user", ["reportedUserId"])
     .index("by_status", ["status"]),
+
+  typing_indicators: defineTable({
+    userId: v.id("users"),                  // User who is typing
+    conversationId: v.string(),             // City ID or DM conversation ID
+    conversationType: v.union(              // Type of conversation
+      v.literal("city"),
+      v.literal("dm")
+    ),
+    expiresAt: v.number(),                  // Auto-expire timestamp (5 seconds)
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_expires", ["expiresAt"]),
 });
 ```
 
 ### Key Convex Files
 
-- **`convex/users.ts`**: User CRUD, authentication sync, profile updates, active user tracking, user search
+- **`convex/users.ts`**: User CRUD, authentication sync, profile updates, active user tracking, user search, notification preferences
 - **`convex/cities.ts`**: City CRUD, city search, active user counts per city
 - **`convex/messages.ts`**: City chat messages (with blocked user filtering)
-- **`convex/dms.ts`**: Direct messages (with block checks)
+- **`convex/dms.ts`**: Direct messages (with block checks, unread tracking, mark as read)
+- **`convex/typing.ts`**: Typing indicators (set, get, clear, cleanup expired)
 - **`convex/safety.ts`**: Block, unblock, report operations
 - **`convex/files.ts`**: Avatar upload URL generation
 
@@ -244,7 +290,10 @@ export default defineSchema({
 - `/api/session` - Get current user session (auth + guest)
 - `/api/current-city` - Get user's current/last city
 - `/api/set-current-city` - Update user's current city
+- `/api/geocode` - Google Maps geocoding (lat/lng ↔ address)
+- `/api/join-city` - Join or create city and redirect to chat
 - `/api/webhooks/clerk` - Clerk user sync webhook
+- `/api/notifications/send-dm-email` - Send email notification for new DM (via Resend)
 
 ### Special Routes
 - `/sitemap.xml` - Auto-generated sitemap
@@ -278,7 +327,7 @@ export default defineSchema({
 
 ## Roadmap & Next Features
 
-### ✅ Completed (MVP + Safety + Discovery)
+### ✅ Completed (MVP + Safety + Discovery + Notifications)
 - [x] Landing page + location detection
 - [x] City group chat (anonymous + authenticated)
 - [x] Authentication (Clerk custom pages)
@@ -291,16 +340,21 @@ export default defineSchema({
 - [x] Error handling + toast notifications
 - [x] Active user counter
 - [x] Search & Discovery (browse cities, find trekkers)
+- [x] **Notifications System**
+  - [x] Unread DM badge count (real-time)
+  - [x] Browser notifications (opt-in with permission handling)
+  - [x] Email notifications for DMs via Resend (opt-in)
+  - [x] Notification preferences in Settings
+- [x] **Typing Indicators**
+  - [x] Real-time typing bubbles (city chat + DMs)
+  - [x] Auto-expire after 5 seconds
+  - [x] Multiple simultaneous users supported
 
 ### 🎯 High Priority (Next Up)
 - [ ] **Anti-spam Measures**
   - Rate limiting on messages (per user per minute)
   - Captcha on sign-up (Cloudflare Turnstile)
   - Auto-mod flagging (excessive reports)
-- [ ] **Notifications**
-  - Unread DM badge count
-  - Browser notifications (opt-in)
-  - Email notifications for DMs (optional)
 - [ ] **Maps Integration**
   - Interactive map showing cities visited
   - City location pins on profile
@@ -327,7 +381,6 @@ export default defineSchema({
 - [ ] **Dark Mode Toggle** (currently system preference only)
 - [ ] **Message Features**
   - Emoji reactions to messages
-  - Typing indicators
   - Message read receipts (DMs)
   - Link previews
 - [ ] **Profile Enhancements**
