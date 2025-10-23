@@ -6,6 +6,7 @@ import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import AuthHeader from "@/components/layout/AuthHeader";
 import AuthSync from "@/components/auth/AuthSync";
+import Footer from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -109,12 +110,15 @@ export default function RootLayout({
     >
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         >
           <ConvexClientProvider>
             <AuthHeader />
             <AuthSync />
-            {children}
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
             <Analytics />
             <Toaster />
           </ConvexClientProvider>
