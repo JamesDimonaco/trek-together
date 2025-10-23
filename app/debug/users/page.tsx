@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 export default function DebugUsersPage() {
   const duplicateAuthIds = useQuery(api.users.findDuplicateAuthIds);
   const orphanedGuests = useQuery(api.users.findOrphanedGuestUsers);
-  const allUsers = useQuery(api.users.searchUsers, { searchTerm: "" });
+  const userCount = useQuery(api.users.countAuthenticatedUsers);
 
   return (
     <>
@@ -106,10 +106,10 @@ export default function DebugUsersPage() {
           <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             Total Authenticated Users
           </h2>
-          {!allUsers && <p className="text-gray-500">Loading...</p>}
-          {allUsers && (
+          {userCount === undefined && <p className="text-gray-500">Loading...</p>}
+          {userCount !== undefined && (
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {allUsers.length}
+              {userCount}
             </p>
           )}
         </div>

@@ -126,7 +126,7 @@ export default function AuthHeader() {
 
             <SignedIn>
               {/* Messages - Icon only on mobile with unread badge */}
-              <MessagesNavLink userId={currentUser?._id} />
+              <MessagesNavLink />
 
               {/* UserButton */}
               <UserButton

@@ -4,18 +4,10 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Mail } from "lucide-react";
 import Link from "next/link";
-import { Id } from "@/convex/_generated/dataModel";
 
-interface MessagesNavLinkProps {
-  userId: Id<"users"> | undefined;
-}
-
-export default function MessagesNavLink({ userId }: MessagesNavLinkProps) {
-  // Get unread count
-  const unreadCount = useQuery(
-    api.dms.getTotalUnreadCount,
-    userId ? { userId } : "skip"
-  );
+export default function MessagesNavLink() {
+  // Get unread count for authenticated user (returns 0 if not authenticated)
+  const unreadCount = useQuery(api.dms.getTotalUnreadCount);
 
   return (
     <Link

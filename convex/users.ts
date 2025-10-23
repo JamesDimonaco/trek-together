@@ -419,6 +419,29 @@ export const searchUsers = query({
   },
 });
 
+// Count authenticated users (efficient version for stats)
+export const countAuthenticatedUsers = query({
+  handler: async (ctx) => {
+    // Authorization: Only allow authenticated users to access debug data
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Must be authenticated to access debug data");
+    }
+
+    // Optional: Add environment check to disable in production
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Debug queries are disabled in production");
+    }
+
+    const users = await ctx.db
+      .query("users")
+      .filter((q) => q.neq(q.field("authId"), undefined))
+      .collect();
+
+    return users.length;
+  },
+});
+
 // Update user's last seen timestamp
 export const updateLastSeen = mutation({
   args: {
@@ -491,6 +514,17 @@ export const getUserProfile = query({
 // Debug: Find users with duplicate authIds (should never happen)
 export const findDuplicateAuthIds = query({
   handler: async (ctx) => {
+    // Authorization: Only allow authenticated users to access debug data
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Must be authenticated to access debug data");
+    }
+
+    // Optional: Add environment check to disable in production
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Debug queries are disabled in production");
+    }
+
     const users = await ctx.db
       .query("users")
       .filter((q) => q.neq(q.field("authId"), undefined))
@@ -554,6 +588,17 @@ export const updateNotificationPreferences = mutation({
 // Debug: Find orphaned guest users (no recent activity, never authenticated)
 export const findOrphanedGuestUsers = query({
   handler: async (ctx) => {
+    // Authorization: Only allow authenticated users to access debug data
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Must be authenticated to access debug data");
+    }
+
+    // Optional: Add environment check to disable in production
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Debug queries are disabled in production");
+    }
+
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
     const users = await ctx.db
