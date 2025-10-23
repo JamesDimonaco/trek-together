@@ -13,6 +13,7 @@ interface UsernamePromptProps {
   onStayAnonymous: () => void;
   isLoading: boolean;
   error?: string;
+  suggestion?: string;
 }
 
 export default function UsernamePrompt({
@@ -24,6 +25,7 @@ export default function UsernamePrompt({
   onStayAnonymous,
   isLoading,
   error,
+  suggestion,
 }: UsernamePromptProps) {
   return (
     <Card className="max-w-md mx-auto">
@@ -50,7 +52,24 @@ export default function UsernamePrompt({
         />
         
         {error && (
-          <p className="text-sm text-red-500">{error}</p>
+          <div className="space-y-2">
+            <p className="text-sm text-red-500">{error}</p>
+            {suggestion && (
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Try: <span className="font-medium text-gray-900 dark:text-gray-100">{suggestion}</span>
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onUsernameChange(suggestion)}
+                  className="text-xs"
+                >
+                  Use this
+                </Button>
+              </div>
+            )}
+          </div>
         )}
         
         <Button

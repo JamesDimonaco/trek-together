@@ -78,10 +78,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Create or update user in Convex
-    const userId = await convex.mutation(api.users.createGuestUser, {
-      sessionId,
-      username,
-    });
+    let userId;
+    try {
+      userId = await convex.mutation(api.users.createGuestUser, {
+        sessionId,
+        username,
+      });
+    } catch (error) {
+      // Check if this is a username taken error
+      if (error instanceof Error) {
+        try {
+          const errorData = JSON.parse(error.message);
+          if (errorData.code === "USERNAME_TAKEN") {
+            return NextResponse.json(
+              {
+                error: errorData.message,
+                code: errorData.code,
+                suggestion: errorData.suggestion
+              },
+              { status: 409 } // 409 Conflict for username taken
+            );
+          }
+        } catch {
+          // Not a JSON error, continue to generic error handling
+        }
+      }
+      // Re-throw if not a username error
+      throw error;
+    }
 
     // Join city - atomic operation that adds to visited cities and sets as current
     await convex.mutation(api.users.joinCity, {

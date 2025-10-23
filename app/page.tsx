@@ -30,6 +30,7 @@ export default function Home() {
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [error, setError] = useState<string>("");
   const [username, setUsername] = useState("");
+  const [usernameSuggestion, setUsernameSuggestion] = useState<string>("");
   const [session, setSession] = useState<SessionData | null>(null);
 
   // Initialize session on mount
@@ -138,14 +139,12 @@ export default function Home() {
   const handleUsernameSubmit = async () => {
     if (!username.trim()) return;
 
-    try {
-      await updateUsername(username.trim());
-      await handleJoinCity(username.trim());
-    } catch (error) {
-      console.error("Failed to update username:", error);
-      setError("Failed to save username. Please try again.");
-      setIsLoading(false);
-    }
+    setIsLoading(true);
+    setError("");
+    setUsernameSuggestion("");
+
+    await updateUsername(username.trim());
+    await handleJoinCity(username.trim());
   };
 
   const handleStayAnonymous = async () => {
@@ -165,7 +164,13 @@ export default function Home() {
       console.log("Joined city successfully");
       router.push(result.redirectUrl);
     } else {
-      setError(result.error || "Failed to join city chat");
+      // Handle username taken error specifically
+      if (result.code === "USERNAME_TAKEN" && result.suggestion) {
+        setError(result.error || "Username is already taken");
+        setUsernameSuggestion(result.suggestion);
+      } else {
+        setError(result.error || "Failed to join city chat");
+      }
       setIsLoading(false);
     }
   };
@@ -217,6 +222,7 @@ export default function Home() {
             onStayAnonymous={handleStayAnonymous}
             isLoading={isLoading}
             error={error}
+            suggestion={usernameSuggestion}
           />
         )}
       </main>

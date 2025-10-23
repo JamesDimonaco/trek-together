@@ -116,7 +116,7 @@ export async function geocodeAddress(
 export async function joinCity(
   locationData: LocationData,
   username?: string
-): Promise<{ success: boolean; redirectUrl?: string; error?: string }> {
+): Promise<{ success: boolean; redirectUrl?: string; error?: string; code?: string; suggestion?: string }> {
   try {
     const response = await fetch("/api/join-city", {
       method: "POST",
@@ -139,6 +139,8 @@ export async function joinCity(
       return {
         success: false,
         error: errorData.error || "Failed to join city chat",
+        code: errorData.code,
+        suggestion: errorData.suggestion,
       };
     }
   } catch (err) {

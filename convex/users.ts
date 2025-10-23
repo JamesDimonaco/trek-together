@@ -45,6 +45,42 @@ export const upsertUser = mutation({
   },
 });
 
+// Helper function to check if username is taken and suggest alternative
+async function checkUsernameAvailability(ctx: any, desiredUsername: string, excludeSessionId?: string): Promise<{ available: boolean; suggestion?: string }> {
+  // Check if username is already taken
+  const allUsers = await ctx.db.query("users").collect();
+
+  // Filter out the current session if provided (when updating)
+  const otherUsers = excludeSessionId
+    ? allUsers.filter((u: any) => u.sessionId !== excludeSessionId)
+    : allUsers;
+
+  const existingUsernames = new Set(otherUsers.map((u: any) => u.username.toLowerCase()));
+
+  // If username is available, return success
+  if (!existingUsernames.has(desiredUsername.toLowerCase())) {
+    return { available: true };
+  }
+
+  // Username is taken - find an available suggestion
+  let counter = 1;
+  let suggestion = `${desiredUsername}-${counter}`;
+
+  while (existingUsernames.has(suggestion.toLowerCase())) {
+    counter++;
+    suggestion = `${desiredUsername}-${counter}`;
+
+    // Safety check to prevent infinite loop
+    if (counter > 99) {
+      // Fallback to a random suffix
+      suggestion = `${desiredUsername}-${Math.floor(Math.random() * 10000)}`;
+      break;
+    }
+  }
+
+  return { available: false, suggestion };
+}
+
 // Create guest user session
 export const createGuestUser = mutation({
   args: {
@@ -61,11 +97,33 @@ export const createGuestUser = mutation({
     if (existing) {
       // Update username if different (user might have changed it)
       if (existing.username !== args.username) {
+        // Check if new username is available
+        const availability = await checkUsernameAvailability(ctx, args.username, args.sessionId);
+
+        if (!availability.available) {
+          throw new Error(JSON.stringify({
+            code: "USERNAME_TAKEN",
+            message: `Username "${args.username}" is already taken`,
+            suggestion: availability.suggestion,
+          }));
+        }
+
         await ctx.db.patch(existing._id, {
           username: args.username,
         });
       }
       return existing._id;
+    }
+
+    // Check if username is available for new user
+    const availability = await checkUsernameAvailability(ctx, args.username);
+
+    if (!availability.available) {
+      throw new Error(JSON.stringify({
+        code: "USERNAME_TAKEN",
+        message: `Username "${args.username}" is already taken`,
+        suggestion: availability.suggestion,
+      }));
     }
 
     // Create new guest user
