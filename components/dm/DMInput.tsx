@@ -35,7 +35,7 @@ export default function DMInput({ onSendMessage }: DMInputProps) {
   };
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+    <div className="sticky bottom-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 z-10">
       <form onSubmit={handleSubmit} className="flex space-x-2">
         <Textarea
           value={message}

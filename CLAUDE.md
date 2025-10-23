@@ -6,11 +6,11 @@ TrekTogether is a webapp that helps travelers connect in specific cities for tre
 and outdoor activities. The app provides **city-based group chats** (open to all) and
 **private DMs** (for authenticated users).
 
-**Current Status**: MVP Complete + Safety Features ✅
+**Current Status**: MVP Complete + Safety Features + Search & Discovery ✅
 
 Stack:
 
-- **Frontend**: Next.js 15 (App Router) + shadcn/ui + Tailwind CSS
+- **Frontend**: Next.js 16 (App Router) + shadcn/ui + Tailwind CSS
 - **Backend/DB**: Convex (real-time database)
 - **Auth**: Clerk (custom auth pages, no modals)
 - **Hosting**: Vercel
@@ -52,14 +52,16 @@ Long term: Mobile app using React Native.
 ### 4. User Profiles ✅
 - **View profile**: `/profile/[userId]` (public route)
   - Username, avatar, bio, WhatsApp number (optional)
+  - Date of birth (displays calculated age)
+  - Location (where user is from)
   - Cities visited list
   - "Send Message" button (opens DM)
   - "Edit Profile" for own profile
 - **Edit profile**: `/profile/edit` (auth required)
   - Avatar upload (max 5MB) with preview
-  - Username, bio, WhatsApp fields
+  - Username, bio, WhatsApp, date of birth, location fields
   - Stored in Convex storage
-- Uses Next.js Image component with Clerk domains configured
+- Uses Next.js Image component with Clerk and Convex domains configured
 
 ### 5. Direct Messages (DMs) ✅
 - **DM Chat**: `/dm/[userId]` (auth required)
@@ -109,6 +111,24 @@ Long term: Mobile app using React Native.
 - Form validation and error messages
 - Loading spinners for async actions
 
+### 9. Search & Discovery ✅
+- **Browse Cities**: `/cities`
+  - Search by city name or country
+  - Live active user count per city
+  - Sorted by most active cities
+  - Mobile-responsive grid layout
+  - Direct links to city chats
+- **Find Trekkers**: `/users`
+  - Search users by username (min 2 characters)
+  - Shows avatar, bio, location
+  - Direct links to user profiles
+  - Mobile-friendly list view
+- **Navigation**: Icon-based navigation in header (mobile-optimized)
+- **Convex Queries**:
+  - `searchCities` - filter cities by name/country
+  - `getCitiesWithActiveUsers` - cities with real-time active counts
+  - `searchUsers` - find authenticated users by username
+
 ---
 
 ## Convex Schema (Current Implementation)
@@ -123,6 +143,8 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
     bio: v.optional(v.string()),
     whatsappNumber: v.optional(v.string()),
+    dateOfBirth: v.optional(v.string()),   // User's date of birth (ISO format)
+    location: v.optional(v.string()),      // Where user is from (city, country)
     citiesVisited: v.array(v.id("cities")), // List of city IDs
     currentCityId: v.optional(v.id("cities")), // Current/last active city
     lastSeen: v.optional(v.number()),      // Timestamp of last activity
@@ -192,8 +214,8 @@ export default defineSchema({
 
 ### Key Convex Files
 
-- **`convex/users.ts`**: User CRUD, authentication sync, profile updates, active user tracking
-- **`convex/cities.ts`**: City CRUD, city search
+- **`convex/users.ts`**: User CRUD, authentication sync, profile updates, active user tracking, user search
+- **`convex/cities.ts`**: City CRUD, city search, active user counts per city
 - **`convex/messages.ts`**: City chat messages (with blocked user filtering)
 - **`convex/dms.ts`**: Direct messages (with block checks)
 - **`convex/safety.ts`**: Block, unblock, report operations
@@ -209,6 +231,8 @@ export default defineSchema({
 - `/sign-up` - Clerk sign-up page
 - `/chat/[cityId]` - City chat room (public access)
 - `/profile/[userId]` - User profile view (public access)
+- `/cities` - Browse all cities with search
+- `/users` - Search for trekkers by username
 
 ### Protected Routes (Auth Required)
 - `/profile/edit` - Edit own profile
@@ -254,7 +278,7 @@ export default defineSchema({
 
 ## Roadmap & Next Features
 
-### ✅ Completed (MVP + Safety)
+### ✅ Completed (MVP + Safety + Discovery)
 - [x] Landing page + location detection
 - [x] City group chat (anonymous + authenticated)
 - [x] Authentication (Clerk custom pages)
@@ -266,12 +290,9 @@ export default defineSchema({
 - [x] SEO (metadata, sitemap, robots.txt)
 - [x] Error handling + toast notifications
 - [x] Active user counter
+- [x] Search & Discovery (browse cities, find trekkers)
 
 ### 🎯 High Priority (Next Up)
-- [ ] **Search & Discovery**
-  - Search cities by name/country
-  - Find users by username
-  - Browse cities page/map
 - [ ] **Anti-spam Measures**
   - Rate limiting on messages (per user per minute)
   - Captcha on sign-up (Cloudflare Turnstile)

@@ -7,7 +7,7 @@ import {
   useAuth,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Mountain, User, MessageCircle, Mail } from "lucide-react";
+import { Mountain, User, MessageCircle, Mail, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
@@ -78,8 +78,24 @@ export default function AuthHeader() {
             ) : null}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Navigation & Auth Buttons */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* Cities - Always visible */}
+            <Button variant="ghost" size="sm" asChild className="h-9 w-9 sm:w-auto px-0 sm:px-3">
+              <Link href="/cities" className="flex items-center justify-center">
+                <MapPin className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Cities</span>
+              </Link>
+            </Button>
+
+            {/* Users - Always visible */}
+            <Button variant="ghost" size="sm" asChild className="h-9 w-9 sm:w-auto px-0 sm:px-3">
+              <Link href="/users" className="flex items-center justify-center">
+                <Users className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Trekkers</span>
+              </Link>
+            </Button>
+
             <SignedOut>
               <Button variant="ghost" size="sm" asChild className="h-9 px-3">
                 <Link href="/sign-in" className="flex items-center">

@@ -62,6 +62,48 @@ export const findCity = query({
   },
 });
 
+// Search cities by name or country
+export const searchCities = query({
+  args: {
+    searchTerm: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const cities = await ctx.db.query("cities").collect();
+
+    const searchLower = args.searchTerm.toLowerCase();
+
+    return cities.filter(city =>
+      city.name.toLowerCase().includes(searchLower) ||
+      city.country.toLowerCase().includes(searchLower)
+    );
+  },
+});
+
+// Get cities with active user counts
+export const getCitiesWithActiveUsers = query({
+  handler: async (ctx) => {
+    const cities = await ctx.db.query("cities").collect();
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+
+    // Get all users
+    const users = await ctx.db.query("users").collect();
+
+    // Map cities with their active user counts
+    return cities.map(city => {
+      const activeCount = users.filter(user =>
+        user.currentCityId === city._id &&
+        user.lastSeen &&
+        user.lastSeen > tenMinutesAgo
+      ).length;
+
+      return {
+        ...city,
+        activeUsers: activeCount,
+      };
+    }).sort((a, b) => b.activeUsers - a.activeUsers); // Sort by most active
+  },
+});
+
 // Find nearest city (this would typically involve more complex geospatial queries)
 // For MVP, we'll do a simple distance calculation
 export const findNearestCity = query({
