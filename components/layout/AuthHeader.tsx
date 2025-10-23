@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-  useAuth,
-} from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Mountain, User, MessageCircle, MapPin, Users } from "lucide-react";
 import Link from "next/link";
@@ -57,7 +52,10 @@ export default function AuthHeader() {
       <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
         <div className="flex items-center justify-between gap-2">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 min-w-0 flex-shrink-0">
+          <Link
+            href="/"
+            className="flex items-center space-x-2 min-w-0 flex-shrink-0"
+          >
             <Mountain className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0" />
             <span className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
               TrekTogether
@@ -82,7 +80,12 @@ export default function AuthHeader() {
           {/* Navigation & Auth Buttons */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {/* Cities - Always visible */}
-            <Button variant="ghost" size="sm" asChild className="h-9 w-9 sm:w-auto px-0 sm:px-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="h-9 w-9 sm:w-auto px-0 sm:px-3"
+            >
               <Link href="/cities" className="flex items-center justify-center">
                 <MapPin className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Cities</span>
@@ -90,7 +93,12 @@ export default function AuthHeader() {
             </Button>
 
             {/* Users - Always visible */}
-            <Button variant="ghost" size="sm" asChild className="h-9 w-9 sm:w-auto px-0 sm:px-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="h-9 w-9 sm:w-auto px-0 sm:px-3"
+            >
               <Link href="/users" className="flex items-center justify-center">
                 <Users className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Trekkers</span>
@@ -104,7 +112,11 @@ export default function AuthHeader() {
                   <span className="hidden sm:inline">Sign In</span>
                 </Link>
               </Button>
-              <Button size="sm" className="bg-green-600 hover:bg-green-700 h-9 px-3" asChild>
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 h-9 px-3"
+                asChild
+              >
                 <Link href="/sign-up">
                   <span className="hidden sm:inline">Sign Up</span>
                   <span className="sm:hidden">Join</span>
@@ -116,16 +128,6 @@ export default function AuthHeader() {
               {/* Messages - Icon only on mobile with unread badge */}
               <MessagesNavLink userId={currentUser?._id} />
 
-              {/* Profile - Icon only on mobile */}
-              {currentUser && (
-                <Button variant="ghost" size="sm" asChild className="h-9 w-9 sm:w-auto px-0 sm:px-3">
-                  <Link href={`/profile/${currentUser._id}`} className="flex items-center justify-center">
-                    <User className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Profile</span>
-                  </Link>
-                </Button>
-              )}
-
               {/* UserButton */}
               <UserButton
                 appearance={{
@@ -136,11 +138,13 @@ export default function AuthHeader() {
                 userProfileMode="modal"
               >
                 <UserButton.MenuItems>
-                  <UserButton.Link
-                    label="Settings"
-                    labelIcon={<User className="h-4 w-4" />}
-                    href="/settings"
-                  />
+                  {currentUser && (
+                    <UserButton.Link
+                      label="Profile"
+                      labelIcon={<User className="h-4 w-4" />}
+                      href={`/profile/${currentUser._id}`}
+                    />
+                  )}
                 </UserButton.MenuItems>
               </UserButton>
             </SignedIn>
