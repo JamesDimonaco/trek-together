@@ -79,6 +79,11 @@ export default function Home() {
       },
       (error) => {
         console.error("Location error:", error.message);
+        setError(
+          error.code === 1
+            ? "Location permission denied. Please enter your city manually."
+            : "Could not detect your location. Please enter your city manually."
+        );
         setLocationStep("manual");
         setIsLoading(false);
       }

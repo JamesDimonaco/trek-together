@@ -35,7 +35,7 @@ export default function MessageInput({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border-t p-4">
+    <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t p-4 z-10">
       <div className="flex space-x-2">
         <Input
           value={message}
