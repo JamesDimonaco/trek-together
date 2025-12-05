@@ -56,6 +56,15 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     userId: userId as Id<"users">,
   });
 
+  const isOwnProfile = profile?.authId === currentAuthUserId;
+
+  // Track profile view - must be before early returns to maintain hook order
+  useEffect(() => {
+    if (profile) {
+      analytics.profileViewed(userId, isOwnProfile);
+    }
+  }, [userId, isOwnProfile, profile]);
+
   // Loading state
   if (profile === undefined) {
     return (
@@ -72,15 +81,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     notFound();
   }
 
-  const isOwnProfile = profile.authId === currentAuthUserId;
   const isGuest = !profile.authId;
-
-  // Track profile view
-  useEffect(() => {
-    if (profile) {
-      analytics.profileViewed(userId, isOwnProfile);
-    }
-  }, [userId, isOwnProfile, profile]);
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
