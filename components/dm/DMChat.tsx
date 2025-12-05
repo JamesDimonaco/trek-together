@@ -14,6 +14,7 @@ import DMMessageList from "./DMMessageList";
 import DMInput from "./DMInput";
 import TypingIndicator from "@/components/chat/TypingIndicator";
 import AuthPromptModal from "./AuthPromptModal";
+import { analytics } from "@/lib/analytics";
 
 interface DMChatProps {
   receiverId: string;
@@ -63,6 +64,7 @@ export default function DMChat({ receiverId }: DMChatProps) {
   // Mark messages as read when viewing conversation
   useEffect(() => {
     if (currentUser && receiver) {
+      analytics.dmOpened();
       markAsRead({
         userId: currentUser._id,
         conversationPartnerId: receiver._id,
@@ -75,11 +77,19 @@ export default function DMChat({ receiverId }: DMChatProps) {
   const handleSendMessage = async (content: string) => {
     if (!currentUser || !receiver || !content.trim()) return;
 
+    // Track if this is the first message in the conversation
+    const isFirstMessage = !messages || messages.length === 0;
+
     await sendDM({
       senderId: currentUser._id,
       receiverId: receiver._id,
       content: content.trim(),
     });
+
+    analytics.messageSent("dm");
+    if (isFirstMessage) {
+      analytics.dmConversationStarted(receiver._id);
+    }
   };
 
   // Generate consistent conversationId for typing indicators

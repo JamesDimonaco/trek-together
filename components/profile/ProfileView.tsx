@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -19,6 +20,7 @@ import {
   Settings,
 } from "lucide-react";
 import { notFound } from "next/navigation";
+import { analytics } from "@/lib/analytics";
 
 // Calculate age from date of birth
 function calculateAge(dateOfBirth: string): number {
@@ -72,6 +74,13 @@ export default function ProfileView({ userId }: ProfileViewProps) {
 
   const isOwnProfile = profile.authId === currentAuthUserId;
   const isGuest = !profile.authId;
+
+  // Track profile view
+  useEffect(() => {
+    if (profile) {
+      analytics.profileViewed(userId, isOwnProfile);
+    }
+  }, [userId, isOwnProfile, profile]);
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">

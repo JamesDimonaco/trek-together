@@ -10,6 +10,7 @@ import { Users } from "lucide-react";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
+import { analytics } from "@/lib/analytics";
 
 interface ChatClientProps {
   cityId: Id<"cities">;
@@ -19,10 +20,13 @@ interface ChatClientProps {
 export default function ChatClient({ cityId, cityName }: ChatClientProps) {
   const [session, setSession] = useState<SessionData | null>(null);
 
+  // Only use userId for Convex queries if user is authenticated (has valid Convex user ID)
+  const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
+
   // Convex queries and mutations
   const messages = useQuery(
     api.messages.getMessages,
-    session?.userId
+    hasValidConvexUserId
       ? { cityId, currentUserId: session.userId as Id<"users"> }
       : { cityId }
   );
@@ -47,28 +51,31 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ cityId }),
         });
+        // Track city joined - cityName is available from props
+        analytics.cityJoined(cityId, cityName, "");
       } catch (error) {
         console.error("Failed to set current city:", error);
       }
     };
 
     setCurrentCity();
-  }, [cityId]);
+  }, [cityId, cityName]);
 
   // Update lastSeen periodically (every 2 minutes) while user is active
+  // Only for authenticated users with valid Convex user IDs
   useEffect(() => {
-    if (!session?.userId) return;
+    if (!hasValidConvexUserId) return;
 
     // Update immediately when entering chat
-    updateLastSeen({ userId: session.userId as Id<"users"> });
+    updateLastSeen({ userId: session!.userId as Id<"users"> });
 
     // Then update every 2 minutes
     const interval = setInterval(() => {
-      updateLastSeen({ userId: session.userId as Id<"users"> });
+      updateLastSeen({ userId: session!.userId as Id<"users"> });
     }, 2 * 60 * 1000); // 2 minutes
 
     return () => clearInterval(interval);
-  }, [session?.userId, updateLastSeen]);
+  }, [hasValidConvexUserId, session, updateLastSeen]);
 
   const handleSendMessage = async (content: string) => {
     if (!session || !content.trim()) return;
@@ -76,10 +83,11 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
     await sendMessage({
       cityId,
       content: content.trim(),
-      userId: session.userId as Id<"users">,
+      userId: hasValidConvexUserId ? session.userId as Id<"users"> : undefined,
       sessionId: session.sessionId,
       username: session.username || "Anonymous",
     });
+    analytics.messageSent("city", cityId);
   };
 
   if (!session) {
@@ -110,19 +118,19 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
         <MessageList
           messages={messages || []}
           currentSessionId={session.sessionId}
-          currentUserId={session.userId as Id<"users"> | undefined}
+          currentUserId={hasValidConvexUserId ? session.userId as Id<"users"> : undefined}
         />
 
         <TypingIndicator
           conversationId={cityId}
-          currentUserId={session.userId as Id<"users"> | undefined}
+          currentUserId={hasValidConvexUserId ? session.userId as Id<"users"> : undefined}
         />
 
         <MessageInput
           onSendMessage={handleSendMessage}
           placeholder={`Message ${cityName} trekkers...`}
           conversationId={cityId}
-          currentUserId={session.userId as Id<"users"> | undefined}
+          currentUserId={hasValidConvexUserId ? session.userId as Id<"users"> : undefined}
           conversationType="city"
         />
       </div>

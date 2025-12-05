@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MoreVertical, Flag, Ban } from "lucide-react";
+import { analytics } from "@/lib/analytics";
 
 interface MessageActionsProps {
   messageId: string;
@@ -68,6 +69,7 @@ export default function MessageActions({
       });
 
       toast.success("Report submitted successfully");
+      analytics.userReported(reportReason);
       setReportDialogOpen(false);
       setReportReason("spam");
       setReportDescription("");
@@ -89,6 +91,7 @@ export default function MessageActions({
       });
 
       toast.success(`Blocked ${reportedUsername}`);
+      analytics.userBlocked();
       setBlockDialogOpen(false);
       onBlock?.();
     } catch (error) {

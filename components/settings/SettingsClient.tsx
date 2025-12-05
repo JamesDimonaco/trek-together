@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { analytics } from "@/lib/analytics";
 
 export default function SettingsClient() {
   const router = useRouter();
@@ -78,6 +79,7 @@ export default function SettingsClient() {
       });
 
       toast.success(`Unblocked ${selectedUser.username}`);
+      analytics.userUnblocked();
       setConfirmDialogOpen(false);
       setSelectedUser(null);
     } catch (error) {
@@ -101,6 +103,7 @@ export default function SettingsClient() {
       toast.success(
         checked ? "Email notifications enabled" : "Email notifications disabled"
       );
+      analytics.notificationPreferenceChanged("email", checked);
     } catch (error) {
       console.error("Failed to update email notifications:", error);
       toast.error("Failed to update notification preferences");
@@ -137,6 +140,7 @@ export default function SettingsClient() {
       toast.success(
         checked ? "Browser notifications enabled" : "Browser notifications disabled"
       );
+      analytics.notificationPreferenceChanged("browser", checked);
     } catch (error) {
       console.error("Failed to update browser notifications:", error);
       toast.error("Failed to update notification preferences");

@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, User } from "lucide-react";
 import Link from "next/link";
 import AvatarUpload from "./AvatarUpload";
+import { analytics } from "@/lib/analytics";
 
 export default function ProfileEditForm() {
   const router = useRouter();
@@ -81,6 +82,7 @@ export default function ProfileEditForm() {
         const fileUrl = await getFileUrl({ storageId });
         if (fileUrl) {
           avatarUrl = fileUrl;
+          analytics.avatarUploaded();
         }
       }
 
@@ -93,6 +95,18 @@ export default function ProfileEditForm() {
         location: location.trim() || undefined,
         avatarUrl: avatarUrl || undefined,
       });
+
+      // Track which fields were updated
+      const fieldsUpdated: string[] = [];
+      if (username.trim() !== currentUser.username) fieldsUpdated.push("username");
+      if (bio.trim() !== (currentUser.bio || "")) fieldsUpdated.push("bio");
+      if (whatsappNumber.trim() !== (currentUser.whatsappNumber || "")) fieldsUpdated.push("whatsapp");
+      if (dateOfBirth !== (currentUser.dateOfBirth || "")) fieldsUpdated.push("dateOfBirth");
+      if (location.trim() !== (currentUser.location || "")) fieldsUpdated.push("location");
+      if (avatarFile) fieldsUpdated.push("avatar");
+      if (fieldsUpdated.length > 0) {
+        analytics.profileEdited(fieldsUpdated);
+      }
 
       setSuccess(true);
       setTimeout(() => {

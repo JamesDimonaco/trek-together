@@ -11,6 +11,7 @@ import {
   joinCity,
   requestGeolocation,
 } from "@/lib/helpers/api";
+import { analytics } from "@/lib/analytics";
 
 // Landing page components
 import HeroSection from "@/components/landing/HeroSection";
@@ -72,6 +73,7 @@ export default function Home() {
         if (data) {
           setLocationData(data);
           setLocationStep("confirming");
+          analytics.locationDetected(data.city, data.country, "auto");
         } else {
           setError("Could not determine your city. Please enter it manually.");
           setLocationStep("manual");
@@ -107,6 +109,7 @@ export default function Home() {
     if (data) {
       setLocationData(data);
       setLocationStep("confirming");
+      analytics.locationDetected(data.city, data.country, "manual");
     } else {
       setError("Could not find that location. Please try again.");
     }
@@ -144,10 +147,12 @@ export default function Home() {
     setUsernameSuggestion("");
 
     await updateUsername(username.trim());
+    analytics.usernameChosen(false);
     await handleJoinCity(username.trim());
   };
 
   const handleStayAnonymous = async () => {
+    analytics.usernameChosen(true);
     await handleJoinCity();
   };
 

@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
+import { PostHogIdentifier } from "./PostHogProvider";
 import AuthHeader from "@/components/layout/AuthHeader";
 import AuthSync from "@/components/auth/AuthSync";
 import Footer from "@/components/layout/Footer";
@@ -113,6 +114,7 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         >
           <ConvexClientProvider>
+            <PostHogIdentifier />
             <AuthHeader />
             <AuthSync />
             <main className="flex-1">

@@ -18,6 +18,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/join-city(.*)",
   "/api/webhooks/clerk(.*)",
   "/cities(.*)",
+  "/sitemap.xml(.*)",
 ]);
 
 export const proxy = clerkMiddleware(
