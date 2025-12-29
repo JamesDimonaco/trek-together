@@ -66,6 +66,18 @@ export async function POST() {
           email: primaryEmail,
         });
 
+        // Clear the session cookie since user is now authenticated
+        // This prevents join-city from trying to use the old sessionId
+        cookieStore.delete(COOKIE_NAMES.SESSION_ID);
+
+        // Update USER_ID cookie to point to the migrated user
+        cookieStore.set(COOKIE_NAMES.USER_ID, existingUser._id, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 365,
+        });
+
         return NextResponse.json({
           success: true,
           migrated: true,

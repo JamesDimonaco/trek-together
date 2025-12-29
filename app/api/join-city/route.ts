@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { currentUser } from "@clerk/nextjs/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { COOKIE_NAMES } from "@/lib/utils/session";
+import { Id } from "@/convex/_generated/dataModel";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -38,30 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get session info from cookies
-    const sessionId = cookieStore.get(COOKIE_NAMES.SESSION_ID)?.value;
-    let username = cookieStore.get(COOKIE_NAMES.USERNAME)?.value;
-
-    if (!sessionId) {
-      return NextResponse.json({ error: "No session found" }, { status: 401 });
-    }
-
-    // Update username if provided
-    if (providedUsername && providedUsername.trim()) {
-      username = providedUsername.trim();
-      cookieStore.set(COOKIE_NAMES.USERNAME, username || "anonymous", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 365,
-      });
-    }
-
-    if (!username) {
-      return NextResponse.json({ error: "Username required" }, { status: 400 });
-    }
-
-    // Create or find city in Convex
+    // Create or find city in Convex first (doesn't require user)
     const cityId = await convex.mutation(api.cities.createCity, {
       name: city,
       country,
@@ -77,34 +56,86 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create or update user in Convex
-    let userId;
-    try {
-      userId = await convex.mutation(api.users.createGuestUser, {
-        sessionId,
-        username,
+    // Check if user is authenticated via Clerk first
+    const clerkUser = await currentUser();
+    let userId: Id<"users">;
+    let username: string;
+
+    if (clerkUser) {
+      // Authenticated user - look up by authId
+      const existingUser = await convex.query(api.users.getUserByAuthId, {
+        authId: clerkUser.id,
       });
-    } catch (error) {
-      // Check if this is a username taken error
-      if (error instanceof Error) {
-        try {
-          const errorData = JSON.parse(error.message);
-          if (errorData.code === "USERNAME_TAKEN") {
-            return NextResponse.json(
-              {
-                error: errorData.message,
-                code: errorData.code,
-                suggestion: errorData.suggestion
-              },
-              { status: 409 } // 409 Conflict for username taken
-            );
-          }
-        } catch {
-          // Not a JSON error, continue to generic error handling
-        }
+
+      if (existingUser) {
+        userId = existingUser._id;
+        username = existingUser.username;
+      } else {
+        // This shouldn't happen normally, but handle it by creating the user
+        username = clerkUser.username || clerkUser.firstName || `user-${clerkUser.id.slice(-8)}`;
+        const primaryEmail = clerkUser.emailAddresses.find(
+          (email) => email.id === clerkUser.primaryEmailAddressId
+        )?.emailAddress;
+
+        userId = await convex.mutation(api.users.upsertUser, {
+          authId: clerkUser.id,
+          username,
+          avatarUrl: clerkUser.imageUrl,
+          email: primaryEmail,
+        });
       }
-      // Re-throw if not a username error
-      throw error;
+    } else {
+      // Guest user - use sessionId flow
+      const sessionId = cookieStore.get(COOKIE_NAMES.SESSION_ID)?.value;
+      username = cookieStore.get(COOKIE_NAMES.USERNAME)?.value || "";
+
+      if (!sessionId) {
+        return NextResponse.json({ error: "No session found" }, { status: 401 });
+      }
+
+      // Update username if provided
+      if (providedUsername && providedUsername.trim()) {
+        username = providedUsername.trim();
+        cookieStore.set(COOKIE_NAMES.USERNAME, username || "anonymous", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 365,
+        });
+      }
+
+      if (!username) {
+        return NextResponse.json({ error: "Username required" }, { status: 400 });
+      }
+
+      // Create or update guest user in Convex
+      try {
+        userId = await convex.mutation(api.users.createGuestUser, {
+          sessionId,
+          username,
+        });
+      } catch (error) {
+        // Check if this is a username taken error
+        if (error instanceof Error) {
+          try {
+            const errorData = JSON.parse(error.message);
+            if (errorData.code === "USERNAME_TAKEN") {
+              return NextResponse.json(
+                {
+                  error: errorData.message,
+                  code: errorData.code,
+                  suggestion: errorData.suggestion
+                },
+                { status: 409 } // 409 Conflict for username taken
+              );
+            }
+          } catch {
+            // Not a JSON error, continue to generic error handling
+          }
+        }
+        // Re-throw if not a username error
+        throw error;
+      }
     }
 
     // Join city - atomic operation that adds to visited cities and sets as current
