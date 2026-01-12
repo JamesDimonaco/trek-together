@@ -7,6 +7,47 @@ const safeCapture = (event: string, properties?: Record<string, unknown>) => {
   }
 };
 
+// Error capture for manual error logging (caught errors, API failures, etc.)
+export const captureError = (
+  error: Error | string,
+  context?: {
+    source?: string; // Where the error occurred (e.g., "dm_send", "profile_upload")
+    userId?: string;
+    extra?: Record<string, unknown>;
+  }
+) => {
+  if (typeof window !== "undefined" && posthog.__loaded) {
+    const errorMessage = error instanceof Error ? error.message : error;
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    posthog.capture("$exception", {
+      $exception_message: errorMessage,
+      $exception_stack_trace_raw: errorStack,
+      $exception_type: error instanceof Error ? error.name : "Error",
+      $exception_source: context?.source || "manual",
+      // Custom properties
+      error_source: context?.source,
+      user_id: context?.userId,
+      ...context?.extra,
+    });
+  }
+};
+
+// Wrapper for async operations that captures errors
+export const withErrorCapture = async <T>(
+  fn: () => Promise<T>,
+  source: string
+): Promise<T> => {
+  try {
+    return await fn();
+  } catch (error) {
+    captureError(error instanceof Error ? error : new Error(String(error)), {
+      source,
+    });
+    throw error;
+  }
+};
+
 // Event tracking helper functions for PostHog analytics
 export const analytics = {
   // Location & Onboarding

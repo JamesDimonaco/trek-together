@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { captureError } from "@/lib/analytics";
 
 export default function Error({
   error,
@@ -14,6 +15,14 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error("Application error:", error);
+    // Capture to PostHog for monitoring
+    captureError(error, {
+      source: "error_boundary",
+      extra: {
+        digest: error.digest,
+        url: typeof window !== "undefined" ? window.location.href : undefined,
+      },
+    });
   }, [error]);
 
   return (
