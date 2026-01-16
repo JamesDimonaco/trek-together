@@ -25,6 +25,13 @@ export default defineSchema({
     .index("by_last_seen", ["lastSeen"])
     .index("by_email", ["email"]),
 
+  countries: defineTable({
+    name: v.string(),           // "Peru", "Colombia"
+    slug: v.string(),           // "peru", "colombia" (URL-safe)
+  })
+    .index("by_slug", ["slug"])
+    .index("by_name", ["name"]),
+
   cities: defineTable({
     name: v.string(),
     country: v.string(),
@@ -41,6 +48,15 @@ export default defineSchema({
     content: v.string(),
   })
     .index("by_city", ["cityId"]),
+
+  country_messages: defineTable({
+    countryId: v.id("countries"),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.string()),
+    username: v.string(),
+    content: v.string(),
+  })
+    .index("by_country", ["countryId"]),
 
   dms: defineTable({
     senderId: v.id("users"),
@@ -68,7 +84,8 @@ export default defineSchema({
     messageId: v.optional(v.string()),      // Message ID being reported (stored as string)
     messageType: v.optional(v.union(        // Type of message
       v.literal("city_message"),
-      v.literal("dm")
+      v.literal("dm"),
+      v.literal("country_message")
     )),
     reason: v.string(),                     // Report reason
     description: v.optional(v.string()),    // Additional details
@@ -88,7 +105,8 @@ export default defineSchema({
     conversationId: v.string(),             // Chat identifier (cityId or dm-userId1-userId2)
     conversationType: v.union(              // Type of conversation
       v.literal("city"),
-      v.literal("dm")
+      v.literal("dm"),
+      v.literal("country")
     ),
     expiresAt: v.number(),                  // Auto-expire after timestamp
   })

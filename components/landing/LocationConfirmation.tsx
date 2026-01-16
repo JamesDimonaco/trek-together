@@ -49,7 +49,7 @@ export default function LocationConfirmation({
                 Joining...
               </>
             ) : (
-              `Yes, join ${locationData.city} trekkers`
+              `Join ${locationData.city} City Chat`
             )}
           </Button>
           
@@ -64,7 +64,7 @@ export default function LocationConfirmation({
         </div>
 
         <p className="text-xs text-center text-muted-foreground">
-          You&apos;ll join the public chat for {locationData.city} where you can connect with other trekkers
+          Join the city chat to connect with other trekkers in {locationData.city}
         </p>
       </CardContent>
     </Card>

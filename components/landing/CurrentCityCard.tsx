@@ -68,7 +68,7 @@ export default function CurrentCityCard() {
         <Button asChild className="w-full bg-green-600 hover:bg-green-700">
           <Link href={`/chat/${currentCity._id}`}>
             <MessageCircle className="mr-2 h-4 w-4" />
-            Return to {currentCity.name} Chat
+            Return to {currentCity.name} City Chat
           </Link>
         </Button>
 

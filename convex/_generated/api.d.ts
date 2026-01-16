@@ -9,6 +9,8 @@
  */
 
 import type * as cities from "../cities.js";
+import type * as countries from "../countries.js";
+import type * as countryMessages from "../countryMessages.js";
 import type * as dms from "../dms.js";
 import type * as files from "../files.js";
 import type * as messages from "../messages.js";
@@ -24,6 +26,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   cities: typeof cities;
+  countries: typeof countries;
+  countryMessages: typeof countryMessages;
   dms: typeof dms;
   files: typeof files;
   messages: typeof messages;

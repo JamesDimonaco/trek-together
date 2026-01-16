@@ -1,91 +1,114 @@
 "use client";
 
-import { MapPin, Users, MessageCircle, Mountain } from "lucide-react";
+import { MapPin, MessageCircle, Globe, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import Link from "next/link";
 
 interface HeroSectionProps {
   onLocationRequest: () => void;
 }
 
 export default function HeroSection({ onLocationRequest }: HeroSectionProps) {
-  const totalActiveUsers = useQuery(api.users.getTotalActiveUsers);
   return (
-    <div className="space-y-12 text-center">
+    <div className="space-y-16">
       {/* Hero Section */}
-      <div className="space-y-4">
-        <div className="flex justify-center">
-          <Mountain className="h-16 w-16 text-green-600 dark:text-green-400" />
+      <div className="text-center space-y-8">
+        {/* Logo/Brand */}
+        <div className="inline-flex items-center justify-center gap-3 bg-white dark:bg-gray-800 px-6 py-3 rounded-full shadow-lg border border-gray-100 dark:border-gray-700">
+          <span className="text-3xl">🏔️</span>
+          <span className="text-2xl font-bold text-gray-900 dark:text-white">TrekTogether</span>
         </div>
-        <h1 className="text-5xl font-bold text-gray-900 dark:text-white">
-          TrekTogether
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          Connect with fellow trekkers and outdoor enthusiasts in your city.
-          Join real-time conversations and plan your next adventure together.
-        </p>
-        {totalActiveUsers !== undefined && totalActiveUsers > 0 && (
-          <div className="inline-flex items-center space-x-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-full">
-            <Users className="h-4 w-4" />
-            <span className="font-medium">{totalActiveUsers} trekker{totalActiveUsers !== 1 ? 's' : ''} online now</span>
-          </div>
-        )}
-      </div>
 
-      {/* Features */}
-      <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-        <Card>
-          <CardHeader>
-            <MapPin className="h-8 w-8 text-green-600 dark:text-green-400 mb-2" />
-            <CardTitle className="text-lg">City-Based Chats</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription>
-              Join local trekking communities instantly based on your location
-            </CardDescription>
-          </CardContent>
-        </Card>
+        {/* Main headline */}
+        <div className="space-y-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white leading-tight">
+            Find hiking buddies
+            <span className="block text-green-600 dark:text-green-400">wherever you travel</span>
+          </h1>
+          <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
+            Join city-based chat rooms to connect with trekkers, plan adventures, and explore together.
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <Users className="h-8 w-8 text-green-600 dark:text-green-400 mb-2" />
-            <CardTitle className="text-lg">Meet Adventurers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription>
-              Connect with like-minded outdoor enthusiasts near you
-            </CardDescription>
-          </CardContent>
-        </Card>
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Button
+            onClick={onLocationRequest}
+            size="lg"
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
+          >
+            <MapPin className="mr-2 h-5 w-5" />
+            Find Trekkers Near Me
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            asChild
+            className="px-8 py-6 text-lg rounded-full"
+          >
+            <Link href="/cities">
+              <Globe className="mr-2 h-5 w-5" />
+              Browse All Cities
+            </Link>
+          </Button>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <MessageCircle className="h-8 w-8 text-green-600 dark:text-green-400 mb-2" />
-            <CardTitle className="text-lg">Real-Time Chat</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription>
-              Plan trips, share tips, and coordinate meetups instantly
-            </CardDescription>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* CTA */}
-      <div className="space-y-4">
-        <Button
-          onClick={onLocationRequest}
-          size="lg"
-          className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg rounded-full"
-        >
-          <MapPin className="mr-2 h-5 w-5" />
-          Find Trekkers Near Me
-        </Button>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           No sign-up required • Start chatting instantly
         </p>
+      </div>
+
+      {/* How it works */}
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-center text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-8">
+          How it works
+        </h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xl font-bold">
+              1
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Pick your city</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Use your location or browse to find cities worldwide
+            </p>
+          </div>
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xl font-bold">
+              2
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Join the chat</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Enter the city or country chat room instantly
+            </p>
+          </div>
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xl font-bold">
+              3
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Meet & explore</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Connect with trekkers and plan your next adventure
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Value props */}
+      <div className="flex flex-wrap justify-center gap-6 text-sm">
+        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <MessageCircle className="h-4 w-4 text-green-600" />
+          <span>Real-time messaging</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <Globe className="h-4 w-4 text-green-600" />
+          <span>Cities worldwide</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <MapPin className="h-4 w-4 text-green-600" />
+          <span>City & country chats</span>
+        </div>
       </div>
     </div>
   );

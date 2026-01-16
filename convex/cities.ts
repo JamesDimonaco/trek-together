@@ -144,6 +144,82 @@ export const findNearestCity = query({
   },
 });
 
+// Get cities grouped by country with active user counts
+export const getCitiesGroupedByCountry = query({
+  handler: async (ctx) => {
+    const cities = await ctx.db.query("cities").collect();
+    const countries = await ctx.db.query("countries").collect();
+    const users = await ctx.db.query("users").collect();
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+
+    // Create a map of country name to country record
+    const countryMap = new Map(countries.map((c) => [c.name, c]));
+
+    // Group cities by country
+    const grouped: Record<
+      string,
+      {
+        country: { _id: string; name: string; slug: string } | null;
+        cities: Array<{
+          _id: string;
+          name: string;
+          country: string;
+          lat: number;
+          lng: number;
+          activeUsers: number;
+        }>;
+        totalActiveUsers: number;
+      }
+    > = {};
+
+    for (const city of cities) {
+      const countryName = city.country;
+
+      if (!grouped[countryName]) {
+        const countryRecord = countryMap.get(countryName);
+        grouped[countryName] = {
+          country: countryRecord
+            ? { _id: countryRecord._id, name: countryRecord.name, slug: countryRecord.slug }
+            : null,
+          cities: [],
+          totalActiveUsers: 0,
+        };
+      }
+
+      // Calculate active users for this city
+      const activeCount = users.filter(
+        (user) =>
+          user.currentCityId === city._id &&
+          user.lastSeen &&
+          user.lastSeen > tenMinutesAgo
+      ).length;
+
+      grouped[countryName].cities.push({
+        _id: city._id,
+        name: city.name,
+        country: city.country,
+        lat: city.lat,
+        lng: city.lng,
+        activeUsers: activeCount,
+      });
+      grouped[countryName].totalActiveUsers += activeCount;
+    }
+
+    // Sort cities within each country by active users
+    for (const countryName of Object.keys(grouped)) {
+      grouped[countryName].cities.sort((a, b) => b.activeUsers - a.activeUsers);
+    }
+
+    // Convert to array and sort by total active users
+    return Object.entries(grouped)
+      .map(([countryName, data]) => ({
+        countryName,
+        ...data,
+      }))
+      .sort((a, b) => b.totalActiveUsers - a.totalActiveUsers);
+  },
+});
+
 // Helper function to calculate distance between two points
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Radius of the Earth in kilometers

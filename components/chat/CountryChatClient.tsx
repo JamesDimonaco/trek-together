@@ -9,14 +9,18 @@ import { SessionData } from "@/lib/types";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
-import { analytics } from "@/lib/analytics";
 
-interface ChatClientProps {
-  cityId: Id<"cities">;
-  cityName: string;
+interface CountryChatClientProps {
+  countryId: Id<"countries">;
+  countryName: string;
+  countrySlug: string;
 }
 
-export default function ChatClient({ cityId, cityName }: ChatClientProps) {
+export default function CountryChatClient({
+  countryId,
+  countryName,
+  countrySlug,
+}: CountryChatClientProps) {
   const [session, setSession] = useState<SessionData | null>(null);
 
   // Only use userId for Convex queries if user is authenticated (has valid Convex user ID)
@@ -24,41 +28,24 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
 
   // Convex queries and mutations
   const messages = useQuery(
-    api.messages.getMessages,
+    api.countryMessages.getMessages,
     hasValidConvexUserId
-      ? { cityId, currentUserId: session.userId as Id<"users"> }
-      : { cityId }
+      ? { countryId, currentUserId: session.userId as Id<"users"> }
+      : { countryId }
   );
-  const activeUsersCount = useQuery(api.users.getActiveCityUsers, { cityId });
-  const sendMessage = useMutation(api.messages.sendMessage);
+  const activeUsersCount = useQuery(api.countries.getActiveCountryUsers, {
+    countryId,
+  });
+  const sendMessage = useMutation(api.countryMessages.sendMessage);
   const updateLastSeen = useMutation(api.users.updateLastSeen);
 
   // Get session from API
   useEffect(() => {
     fetch("/api/session")
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(setSession)
       .catch(console.error);
   }, []);
-
-  // Set current city when component mounts
-  useEffect(() => {
-    const setCurrentCity = async () => {
-      try {
-        await fetch("/api/set-current-city", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cityId }),
-        });
-        // Track city joined - cityName is available from props
-        analytics.cityJoined(cityId, cityName, "");
-      } catch (error) {
-        console.error("Failed to set current city:", error);
-      }
-    };
-
-    setCurrentCity();
-  }, [cityId, cityName]);
 
   // Update lastSeen periodically (every 2 minutes) while user is active
   // Only for authenticated users with valid Convex user IDs
@@ -80,13 +67,14 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
     if (!session || !content.trim()) return;
 
     await sendMessage({
-      cityId,
+      countryId,
       content: content.trim(),
-      userId: hasValidConvexUserId ? session.userId as Id<"users"> : undefined,
+      userId: hasValidConvexUserId
+        ? (session.userId as Id<"users">)
+        : undefined,
       sessionId: session.sessionId,
       username: session.username || "Anonymous",
     });
-    analytics.messageSent("city", cityId);
   };
 
   if (!session) {
@@ -103,7 +91,7 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
       <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600 dark:text-gray-300">
-            City Chat
+            Country Chat
           </span>
           <span className="text-gray-600 dark:text-gray-300">
             {session.username || "Anonymous"}
@@ -116,20 +104,27 @@ export default function ChatClient({ cityId, cityName }: ChatClientProps) {
         <MessageList
           messages={messages || []}
           currentSessionId={session.sessionId}
-          currentUserId={hasValidConvexUserId ? session.userId as Id<"users"> : undefined}
+          currentUserId={
+            hasValidConvexUserId ? (session.userId as Id<"users">) : undefined
+          }
+          messageType="country_message"
         />
 
         <TypingIndicator
-          conversationId={cityId}
-          currentUserId={hasValidConvexUserId ? session.userId as Id<"users"> : undefined}
+          conversationId={countryId}
+          currentUserId={
+            hasValidConvexUserId ? (session.userId as Id<"users">) : undefined
+          }
         />
 
         <MessageInput
           onSendMessage={handleSendMessage}
-          placeholder={`Message ${cityName} trekkers...`}
-          conversationId={cityId}
-          currentUserId={hasValidConvexUserId ? session.userId as Id<"users"> : undefined}
-          conversationType="city"
+          placeholder={`Message ${countryName} trekkers...`}
+          conversationId={countryId}
+          currentUserId={
+            hasValidConvexUserId ? (session.userId as Id<"users">) : undefined
+          }
+          conversationType="country"
         />
       </div>
     </>

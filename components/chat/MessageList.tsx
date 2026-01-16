@@ -16,17 +16,35 @@ interface MessageListProps {
   messages: Message[];
   currentSessionId: string;
   currentUserId?: Id<"users">;
+  messageType?: "city_message" | "dm" | "country_message";
 }
 
 export default function MessageList({
   messages,
   currentSessionId,
   currentUserId,
+  messageType = "city_message",
 }: MessageListProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
 
+  // Check if user is near bottom before new messages arrive
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const threshold = 100; // pixels from bottom
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    isNearBottomRef.current = isNearBottom;
+  };
+
+  // Only auto-scroll if user was already near the bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = containerRef.current;
+    if (!container || !isNearBottomRef.current) return;
+
+    container.scrollTop = container.scrollHeight;
   }, [messages]);
 
   const isOwnMessage = (message: Message) => {
@@ -54,7 +72,11 @@ export default function MessageList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="flex-1 overflow-y-auto p-4 space-y-3"
+    >
       {messages.map((message) => {
         const isOwn = isOwnMessage(message);
         const canShowActions = !isOwn && message.userId && currentUserId;
@@ -96,7 +118,7 @@ export default function MessageList({
               {canShowActions && message.userId && (
                 <MessageActions
                   messageId={message._id}
-                  messageType="city_message"
+                  messageType={messageType}
                   reportedUserId={message.userId}
                   reporterUserId={currentUserId}
                   reportedUsername={message.username}
@@ -106,7 +128,6 @@ export default function MessageList({
           </div>
         );
       })}
-      <div ref={messagesEndRef} />
     </div>
   );
 }

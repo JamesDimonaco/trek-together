@@ -11,7 +11,7 @@ interface MessageInputProps {
   placeholder?: string;
   conversationId?: string;
   currentUserId?: Id<"users">;
-  conversationType?: "city" | "dm";
+  conversationType?: "city" | "dm" | "country";
 }
 
 export default function MessageInput({

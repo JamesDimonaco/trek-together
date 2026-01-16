@@ -181,10 +181,16 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <main className="container mx-auto px-4 py-16 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-200/30 dark:bg-green-900/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200/30 dark:bg-blue-900/20 rounded-full blur-3xl" />
+      </div>
+
+      <main className="relative container mx-auto px-4 py-12 sm:py-20 max-w-4xl">
         {locationStep === "initial" && (
-          <div className="space-y-8">
+          <div className="space-y-10">
             <CurrentCityCard />
             <HeroSection onLocationRequest={handleLocationRequest} />
           </div>

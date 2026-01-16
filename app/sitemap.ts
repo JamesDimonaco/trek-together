@@ -12,8 +12,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trektogether.app";
 
   try {
-    // Fetch all cities from Convex
-    const cities = await convex.query(api.cities.getCities);
+    // Fetch all cities and countries from Convex
+    const [cities, countries] = await Promise.all([
+      convex.query(api.cities.getCities),
+      convex.query(api.countries.getAllCountries),
+    ]);
 
     // Generate city pages
     const cityPages = cities.map((city) => ({
@@ -23,7 +26,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-    // Return sitemap with homepage + all city pages
+    // Generate country pages
+    const countryPages = countries.map((country) => ({
+      url: `${baseUrl}/chat/country/${country.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.7,
+    }));
+
+    // Return sitemap with homepage + cities page + all city pages + all country pages
     return [
       {
         url: baseUrl,
@@ -31,7 +42,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "daily",
         priority: 1,
       },
+      {
+        url: `${baseUrl}/cities`,
+        lastModified: new Date(),
+        changeFrequency: "daily",
+        priority: 0.9,
+      },
       ...cityPages,
+      ...countryPages,
     ];
   } catch (error) {
     console.error("Failed to generate sitemap:", error);

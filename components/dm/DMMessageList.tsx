@@ -27,10 +27,26 @@ export default function DMMessageList({
   currentUserId,
   receiver,
 }: DMMessageListProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
 
+  // Check if user is near bottom before new messages arrive
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const threshold = 100; // pixels from bottom
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    isNearBottomRef.current = isNearBottom;
+  };
+
+  // Only auto-scroll if user was already near the bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = containerRef.current;
+    if (!container || !isNearBottomRef.current) return;
+
+    container.scrollTop = container.scrollHeight;
   }, [messages]);
 
   const isOwnMessage = (message: Message) => {
@@ -61,7 +77,11 @@ export default function DMMessageList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="flex-1 overflow-y-auto p-4 space-y-3"
+    >
       {messages.map((message) => {
         const isOwn = isOwnMessage(message);
 
@@ -97,7 +117,6 @@ export default function DMMessageList({
           </div>
         );
       })}
-      <div ref={messagesEndRef} />
     </div>
   );
 }

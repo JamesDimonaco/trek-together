@@ -6,7 +6,7 @@ export const setTyping = mutation({
   args: {
     userId: v.id("users"),
     conversationId: v.string(),
-    conversationType: v.union(v.literal("city"), v.literal("dm")),
+    conversationType: v.union(v.literal("city"), v.literal("dm"), v.literal("country")),
   },
   handler: async (ctx, args) => {
     const expiresAt = Date.now() + 5000; // 5 seconds from now

@@ -27,7 +27,7 @@ import { analytics } from "@/lib/analytics";
 
 interface MessageActionsProps {
   messageId: string;
-  messageType: "city_message" | "dm";
+  messageType: "city_message" | "dm" | "country_message";
   reportedUserId: Id<"users">;
   reporterUserId: Id<"users">;
   reportedUsername: string;

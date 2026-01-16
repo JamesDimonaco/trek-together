@@ -72,8 +72,10 @@ export default async function ChatPage({ params }: ChatPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-      <ChatHeaderServer city={city} />
-      <ChatClient cityId={cityId as Id<"cities">} cityName={city.name} />
+      <div className="w-full max-w-3xl mx-auto flex flex-col flex-1">
+        <ChatHeaderServer city={city} />
+        <ChatClient cityId={cityId as Id<"cities">} cityName={city.name} />
+      </div>
     </div>
   );
 }

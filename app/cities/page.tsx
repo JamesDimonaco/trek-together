@@ -1,25 +1,68 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search, MapPin, Users } from "lucide-react";
-import Link from "next/link";
+import { Search, MapPin, Globe } from "lucide-react";
+import { CountrySection } from "@/components/cities/CountrySection";
+import { useEffect } from "react";
 
 export default function CitiesPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Get cities with active user counts
-  const citiesWithUsers = useQuery(api.cities.getCitiesWithActiveUsers);
+  // Get cities grouped by country
+  const groupedCities = useQuery(api.cities.getCitiesGroupedByCountry);
 
-  // Filter cities based on search
-  const filteredCities = citiesWithUsers?.filter(city =>
-    city.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    city.country.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Migration mutation - run once to create countries from cities
+  const migrateCountries = useMutation(api.countries.migrateCountriesFromCities);
+
+  // Run migration on mount if there are cities but no countries
+  useEffect(() => {
+    if (groupedCities && groupedCities.length > 0) {
+      // Check if any country record is missing
+      const hasNullCountry = groupedCities.some((group) => group.country === null);
+      if (hasNullCountry) {
+        migrateCountries().catch(console.error);
+      }
+    }
+  }, [groupedCities, migrateCountries]);
+
+  // Filter groups based on search
+  const filteredGroups = useMemo(() => {
+    if (!groupedCities) return null;
+    if (!searchTerm) return groupedCities;
+
+    const searchLower = searchTerm.toLowerCase();
+
+    return groupedCities
+      .map((group) => {
+        // Check if country name matches
+        const countryMatches = group.countryName.toLowerCase().includes(searchLower);
+
+        // Filter cities that match
+        const matchingCities = group.cities.filter((city) =>
+          city.name.toLowerCase().includes(searchLower)
+        );
+
+        // Include group if country matches or has matching cities
+        if (countryMatches) {
+          return group; // Show all cities if country matches
+        } else if (matchingCities.length > 0) {
+          return {
+            ...group,
+            cities: matchingCities,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) as typeof groupedCities;
+  }, [groupedCities, searchTerm]);
+
+  // Calculate totals
+  const totalCities = groupedCities?.reduce((sum, g) => sum + g.cities.length, 0) || 0;
+  const totalCountries = groupedCities?.length || 0;
+  const filteredCitiesCount = filteredGroups?.reduce((sum, g) => sum + g.cities.length, 0) || 0;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -30,7 +73,7 @@ export default function CitiesPage() {
             Explore Cities
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Find trekkers in cities around the world
+            Find trekkers in cities around the world, grouped by country
           </p>
         </div>
 
@@ -49,14 +92,14 @@ export default function CitiesPage() {
         </div>
 
         {/* Loading state */}
-        {!citiesWithUsers && (
+        {!groupedCities && (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
           </div>
         )}
 
         {/* Empty state */}
-        {citiesWithUsers && citiesWithUsers.length === 0 && (
+        {groupedCities && groupedCities.length === 0 && (
           <div className="text-center py-12">
             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">
@@ -66,7 +109,7 @@ export default function CitiesPage() {
         )}
 
         {/* No results */}
-        {filteredCities && filteredCities.length === 0 && citiesWithUsers && citiesWithUsers.length > 0 && (
+        {filteredGroups && filteredGroups.length === 0 && groupedCities && groupedCities.length > 0 && (
           <div className="text-center py-12">
             <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">
@@ -75,48 +118,32 @@ export default function CitiesPage() {
           </div>
         )}
 
-        {/* Cities grid */}
-        {filteredCities && filteredCities.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCities.map((city) => (
-              <Link
-                key={city._id}
-                href={`/chat/${city._id}`}
-                className="block"
-              >
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:border-green-500 dark:hover:border-green-500 hover:shadow-md transition-all active:scale-[0.98]">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                        {city.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {city.country}
-                      </p>
-                    </div>
-                    <MapPin className="h-5 w-5 text-green-600 flex-shrink-0 ml-2" />
-                  </div>
-
-                  <div className="flex items-center text-sm">
-                    <Users className="h-4 w-4 text-gray-500 mr-1.5" />
-                    <span className="text-gray-600 dark:text-gray-400">
-                      {city.activeUsers === 0
-                        ? "No active trekkers"
-                        : city.activeUsers === 1
-                        ? "1 active trekker"
-                        : `${city.activeUsers} active trekkers`}
-                    </span>
-                  </div>
-                </div>
-              </Link>
+        {/* Countries with cities */}
+        {filteredGroups && filteredGroups.length > 0 && (
+          <div className="space-y-2">
+            {filteredGroups.map((group) => (
+              <CountrySection
+                key={group.countryName}
+                countryName={group.countryName}
+                country={group.country}
+                cities={group.cities}
+                defaultOpen={filteredGroups.length <= 5 || searchTerm.length > 0}
+              />
             ))}
           </div>
         )}
 
         {/* Stats */}
-        {citiesWithUsers && citiesWithUsers.length > 0 && (
-          <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
-            Showing {filteredCities?.length || 0} of {citiesWithUsers.length} cities
+        {groupedCities && groupedCities.length > 0 && (
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <span className="flex items-center gap-1.5">
+              <Globe className="h-4 w-4" />
+              {searchTerm ? `${filteredGroups?.length || 0} of ` : ""}{totalCountries} countries
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MapPin className="h-4 w-4" />
+              {searchTerm ? `${filteredCitiesCount} of ` : ""}{totalCities} cities
+            </span>
           </div>
         )}
       </div>

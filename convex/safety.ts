@@ -137,7 +137,7 @@ export const reportUser = mutation({
     reportedUserId: v.id("users"),
     messageId: v.optional(v.string()),
     messageType: v.optional(
-      v.union(v.literal("city_message"), v.literal("dm"))
+      v.union(v.literal("city_message"), v.literal("dm"), v.literal("country_message"))
     ),
     reason: v.string(),
     description: v.optional(v.string()),
