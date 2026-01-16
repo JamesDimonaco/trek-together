@@ -64,8 +64,17 @@ export const analytics = {
     safeCapture("city_joined", { city_id: cityId, city_name: cityName, country });
   },
 
-  messageSent: (type: "city" | "dm", cityId?: string) => {
-    safeCapture("message_sent", { message_type: type, city_id: cityId });
+  // Country Chat
+  countryJoined: (countryId: string, countryName: string, countrySlug: string) => {
+    safeCapture("country_joined", { country_id: countryId, country_name: countryName, country_slug: countrySlug });
+  },
+
+  countryChatLinkClicked: (countryName: string, fromPage: string) => {
+    safeCapture("country_chat_link_clicked", { country_name: countryName, from_page: fromPage });
+  },
+
+  messageSent: (type: "city" | "dm" | "country", locationId?: string) => {
+    safeCapture("message_sent", { message_type: type, location_id: locationId });
   },
 
   // Direct Messages

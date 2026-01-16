@@ -9,6 +9,7 @@ import { SessionData } from "@/lib/types";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
+import { analytics } from "@/lib/analytics";
 
 interface CountryChatClientProps {
   countryId: Id<"countries">;
@@ -47,6 +48,11 @@ export default function CountryChatClient({
       .catch(console.error);
   }, []);
 
+  // Track country joined
+  useEffect(() => {
+    analytics.countryJoined(countryId, countryName, countrySlug);
+  }, [countryId, countryName, countrySlug]);
+
   // Update lastSeen periodically (every 2 minutes) while user is active
   // Only for authenticated users with valid Convex user IDs
   useEffect(() => {
@@ -75,6 +81,7 @@ export default function CountryChatClient({
       sessionId: session.sessionId,
       username: session.username || "Anonymous",
     });
+    analytics.messageSent("country", countryId);
   };
 
   if (!session) {
