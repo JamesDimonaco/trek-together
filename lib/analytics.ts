@@ -150,4 +150,47 @@ export const analytics = {
   notificationPreferenceChanged: (type: "email" | "browser", enabled: boolean) => {
     safeCapture("notification_preference_changed", { type, enabled });
   },
+
+  // Posts
+  postCreated: (cityId: string, type: string) => {
+    safeCapture("post_created", { city_id: cityId, post_type: type });
+  },
+
+  postViewed: (postId: string) => {
+    safeCapture("post_viewed", { post_id: postId });
+  },
+
+  postLiked: (postId: string, liked: boolean) => {
+    safeCapture("post_liked", { post_id: postId, liked });
+  },
+
+  postCommented: (postId: string) => {
+    safeCapture("post_commented", { post_id: postId });
+  },
+
+  // Requests
+  requestCreated: (cityId: string, activityType: string) => {
+    safeCapture("request_created", { city_id: cityId, activity_type: activityType });
+  },
+
+  requestInterested: (requestId: string, interested: boolean) => {
+    safeCapture("request_interested", { request_id: requestId, interested });
+  },
+
+  requestCommented: (requestId: string) => {
+    safeCapture("request_commented", { request_id: requestId });
+  },
+
+  requestClosed: (requestId: string) => {
+    safeCapture("request_closed", { request_id: requestId });
+  },
+
+  // PWA
+  pwaInstallPromptShown: () => {
+    safeCapture("pwa_install_prompt_shown");
+  },
+
+  pwaInstalled: () => {
+    safeCapture("pwa_installed");
+  },
 };

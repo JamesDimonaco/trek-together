@@ -1,7 +1,7 @@
 import { Id } from "@/convex/_generated/dataModel";
 import { getCityData } from "./actions/city";
 import ChatHeaderServer from "@/components/chat/ChatHeaderServer";
-import ChatClient from "@/components/chat/ChatClient";
+import CityPageTabs from "@/components/chat/CityPageTabs";
 import { Metadata } from "next";
 
 interface ChatPageProps {
@@ -74,7 +74,7 @@ export default async function ChatPage({ params }: ChatPageProps) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <div className="w-full max-w-3xl mx-auto flex flex-col flex-1">
         <ChatHeaderServer city={city} />
-        <ChatClient cityId={cityId as Id<"cities">} cityName={city.name} />
+        <CityPageTabs cityId={cityId as Id<"cities">} cityName={city.name} />
       </div>
     </div>
   );

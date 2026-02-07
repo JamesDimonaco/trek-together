@@ -112,4 +112,80 @@ export default defineSchema({
   })
     .index("by_conversation", ["conversationId"])
     .index("by_expires", ["expiresAt"]),
+
+  // Posts / Articles per city
+  posts: defineTable({
+    cityId: v.id("cities"),
+    authorId: v.id("users"),
+    title: v.string(),
+    content: v.string(),
+    type: v.union(
+      v.literal("trail_report"),
+      v.literal("recommendation"),
+      v.literal("general")
+    ),
+    images: v.array(v.string()),            // Storage IDs
+    difficulty: v.optional(v.union(
+      v.literal("easy"),
+      v.literal("moderate"),
+      v.literal("hard"),
+      v.literal("expert")
+    )),
+    rating: v.optional(v.number()),         // 1-5
+  })
+    .index("by_city", ["cityId"])
+    .index("by_author", ["authorId"])
+    .index("by_city_type", ["cityId", "type"]),
+
+  post_comments: defineTable({
+    postId: v.id("posts"),
+    authorId: v.id("users"),
+    content: v.string(),
+  })
+    .index("by_post", ["postId"]),
+
+  post_likes: defineTable({
+    postId: v.id("posts"),
+    userId: v.id("users"),
+  })
+    .index("by_post", ["postId"])
+    .index("by_user_post", ["userId", "postId"]),
+
+  // Trek Requests per city
+  requests: defineTable({
+    cityId: v.id("cities"),
+    authorId: v.id("users"),
+    title: v.string(),
+    description: v.string(),
+    dateFrom: v.string(),                   // ISO date
+    dateTo: v.optional(v.string()),         // ISO date
+    activityType: v.union(
+      v.literal("trekking"),
+      v.literal("hiking"),
+      v.literal("climbing"),
+      v.literal("camping"),
+      v.literal("other")
+    ),
+    status: v.union(
+      v.literal("open"),
+      v.literal("closed")
+    ),
+  })
+    .index("by_city", ["cityId"])
+    .index("by_author", ["authorId"])
+    .index("by_city_status", ["cityId", "status"]),
+
+  request_interests: defineTable({
+    requestId: v.id("requests"),
+    userId: v.id("users"),
+  })
+    .index("by_request", ["requestId"])
+    .index("by_user_request", ["userId", "requestId"]),
+
+  request_comments: defineTable({
+    requestId: v.id("requests"),
+    authorId: v.id("users"),
+    content: v.string(),
+  })
+    .index("by_request", ["requestId"]),
 });
