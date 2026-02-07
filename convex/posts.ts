@@ -22,20 +22,11 @@ async function getBlockedUserIds(
 }
 
 // Helper: verify caller identity and return their user record
-async function authenticateCaller(ctx: { auth: any; db: any }) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) {
+async function authenticateCaller(ctx: { auth: any; db: any }, userId: Id<"users">) {
+  const user = await ctx.db.get(userId);
+  if (!user || !user.authId) {
     throw new Error("Authentication required");
   }
-
-  const user = await ctx.db
-    .query("users")
-    .withIndex("by_auth_id", (q: any) => q.eq("authId", identity.subject))
-    .first();
-  if (!user) {
-    throw new Error("User not found");
-  }
-
   return user;
 }
 
@@ -214,9 +205,10 @@ export const getPostById = query({
   },
 });
 
-// Create a post (server-side auth)
+// Create a post (auth required)
 export const createPost = mutation({
   args: {
+    userId: v.id("users"),
     cityId: v.id("cities"),
     title: v.string(),
     content: v.string(),
@@ -237,7 +229,7 @@ export const createPost = mutation({
     rating: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     if (!args.title.trim()) {
       throw new Error("Title is required");
@@ -274,13 +266,14 @@ export const createPost = mutation({
   },
 });
 
-// Delete a post (server-side auth, author only, cascade deletes)
+// Delete a post (auth required, author only, cascade deletes)
 export const deletePost = mutation({
   args: {
+    userId: v.id("users"),
     postId: v.id("posts"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     const post = await ctx.db.get(args.postId);
     if (!post) throw new Error("Post not found");
@@ -319,13 +312,14 @@ export const deletePost = mutation({
   },
 });
 
-// Toggle like on a post (server-side auth)
+// Toggle like on a post (auth required)
 export const likePost = mutation({
   args: {
+    userId: v.id("users"),
     postId: v.id("posts"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     const existing = await ctx.db
       .query("post_likes")
@@ -347,14 +341,15 @@ export const likePost = mutation({
   },
 });
 
-// Add a comment to a post (server-side auth)
+// Add a comment to a post (auth required)
 export const addPostComment = mutation({
   args: {
+    userId: v.id("users"),
     postId: v.id("posts"),
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     if (!args.content.trim()) {
       throw new Error("Comment is required");
@@ -371,13 +366,14 @@ export const addPostComment = mutation({
   },
 });
 
-// Delete a comment (server-side auth, author only)
+// Delete a comment (auth required, author only)
 export const deletePostComment = mutation({
   args: {
+    userId: v.id("users"),
     commentId: v.id("post_comments"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     const comment = await ctx.db.get(args.commentId);
     if (!comment) throw new Error("Comment not found");

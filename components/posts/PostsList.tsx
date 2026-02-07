@@ -50,7 +50,7 @@ export default function PostsList({ cityId, session }: PostsListProps) {
       return;
     }
     try {
-      const result = await likePost({ postId });
+      const result = await likePost({ userId: session.userId as Id<"users">, postId });
       analytics.postLiked(postId as string, result.liked);
     } catch {
       toast.error("Failed to like post");
@@ -74,7 +74,7 @@ export default function PostsList({ cityId, session }: PostsListProps) {
         </Select>
 
         {hasValidConvexUserId && (
-          <CreatePostForm cityId={cityId} />
+          <CreatePostForm cityId={cityId} userId={session.userId as Id<"users">} />
         )}
       </div>
 

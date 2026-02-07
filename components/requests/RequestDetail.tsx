@@ -77,7 +77,7 @@ export default function RequestDetail({
       return;
     }
     try {
-      const result = await toggleInterest({ requestId });
+      const result = await toggleInterest({ userId: currentUserId!, requestId });
       analytics.requestInterested(requestId as string, result.interested);
     } catch (error) {
       toast.error(
@@ -89,7 +89,7 @@ export default function RequestDetail({
   const handleClose = async () => {
     if (!currentUserId) return;
     try {
-      await closeRequest({ requestId });
+      await closeRequest({ userId: currentUserId!, requestId });
       analytics.requestClosed(requestId as string);
       toast.success("Request closed");
     } catch {
@@ -100,7 +100,7 @@ export default function RequestDetail({
   const handleReopen = async () => {
     if (!currentUserId) return;
     try {
-      await reopenRequest({ requestId });
+      await reopenRequest({ userId: currentUserId!, requestId });
       toast.success("Request reopened");
     } catch {
       toast.error("Failed to reopen request");
@@ -109,7 +109,7 @@ export default function RequestDetail({
 
   const handleAddComment = async (content: string) => {
     if (!currentUserId) return;
-    await addComment({ requestId, content });
+    await addComment({ userId: currentUserId!, requestId, content });
     analytics.requestCommented(requestId as string);
   };
 
@@ -117,6 +117,7 @@ export default function RequestDetail({
     if (!currentUserId) return;
     try {
       await deleteComment({
+        userId: currentUserId!,
         commentId: commentId as Id<"request_comments">,
       });
     } catch {
@@ -128,7 +129,7 @@ export default function RequestDetail({
     if (!currentUserId) return;
     if (!confirm("Are you sure you want to delete this request?")) return;
     try {
-      await deleteRequest({ requestId });
+      await deleteRequest({ userId: currentUserId!, requestId });
       toast.success("Request deleted");
       onClose();
     } catch {
@@ -140,6 +141,7 @@ export default function RequestDetail({
     return (
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent>
+          <DialogTitle className="sr-only">Loading request</DialogTitle>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
           </div>

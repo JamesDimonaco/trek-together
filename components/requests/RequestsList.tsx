@@ -48,7 +48,7 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
       return;
     }
     try {
-      const result = await toggleInterest({ requestId });
+      const result = await toggleInterest({ userId: session.userId as Id<"users">, requestId });
       analytics.requestInterested(requestId as string, result.interested);
     } catch (error) {
       toast.error(
@@ -72,7 +72,7 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
         </Select>
 
         {hasValidConvexUserId && (
-          <CreateRequestForm cityId={cityId} />
+          <CreateRequestForm cityId={cityId} userId={session.userId as Id<"users">} />
         )}
       </div>
 

@@ -29,9 +29,10 @@ import { analytics } from "@/lib/analytics";
 
 interface CreatePostFormProps {
   cityId: Id<"cities">;
+  userId: Id<"users">;
 }
 
-export default function CreatePostForm({ cityId }: CreatePostFormProps) {
+export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -61,6 +62,7 @@ export default function CreatePostForm({ cityId }: CreatePostFormProps) {
     setIsSubmitting(true);
     try {
       await createPost({
+        userId,
         cityId,
         title: title.trim(),
         content: content.trim(),

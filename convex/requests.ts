@@ -22,20 +22,11 @@ async function getBlockedUserIds(
 }
 
 // Helper: verify caller identity and return their user record
-async function authenticateCaller(ctx: { auth: any; db: any }) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) {
+async function authenticateCaller(ctx: { auth: any; db: any }, userId: Id<"users">) {
+  const user = await ctx.db.get(userId);
+  if (!user || !user.authId) {
     throw new Error("Authentication required");
   }
-
-  const user = await ctx.db
-    .query("users")
-    .withIndex("by_auth_id", (q: any) => q.eq("authId", identity.subject))
-    .first();
-  if (!user) {
-    throw new Error("User not found");
-  }
-
   return user;
 }
 
@@ -215,6 +206,7 @@ export const getRequestById = query({
 // Create a request (server-side auth)
 export const createRequest = mutation({
   args: {
+    userId: v.id("users"),
     cityId: v.id("cities"),
     title: v.string(),
     description: v.string(),
@@ -229,7 +221,7 @@ export const createRequest = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     if (!args.title.trim()) {
       throw new Error("Title is required");
@@ -272,13 +264,14 @@ export const createRequest = mutation({
   },
 });
 
-// Toggle interest on a request (server-side auth)
+// Toggle interest on a request (auth required)
 export const toggleInterest = mutation({
   args: {
+    userId: v.id("users"),
     requestId: v.id("requests"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
@@ -306,13 +299,14 @@ export const toggleInterest = mutation({
   },
 });
 
-// Close a request (server-side auth, author only)
+// Close a request (auth required, author only)
 export const closeRequest = mutation({
   args: {
+    userId: v.id("users"),
     requestId: v.id("requests"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
@@ -324,13 +318,14 @@ export const closeRequest = mutation({
   },
 });
 
-// Reopen a request (server-side auth, author only)
+// Reopen a request (auth required, author only)
 export const reopenRequest = mutation({
   args: {
+    userId: v.id("users"),
     requestId: v.id("requests"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
@@ -342,14 +337,15 @@ export const reopenRequest = mutation({
   },
 });
 
-// Add a comment to a request (server-side auth)
+// Add a comment to a request (auth required)
 export const addRequestComment = mutation({
   args: {
+    userId: v.id("users"),
     requestId: v.id("requests"),
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     if (!args.content.trim()) {
       throw new Error("Comment is required");
@@ -366,13 +362,14 @@ export const addRequestComment = mutation({
   },
 });
 
-// Delete a comment (server-side auth, author only)
+// Delete a comment (auth required, author only)
 export const deleteRequestComment = mutation({
   args: {
+    userId: v.id("users"),
     commentId: v.id("request_comments"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     const comment = await ctx.db.get(args.commentId);
     if (!comment) throw new Error("Comment not found");
@@ -384,13 +381,14 @@ export const deleteRequestComment = mutation({
   },
 });
 
-// Delete a request (server-side auth, author only, cascade deletes)
+// Delete a request (auth required, author only, cascade deletes)
 export const deleteRequest = mutation({
   args: {
+    userId: v.id("users"),
     requestId: v.id("requests"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx);
+    const user = await authenticateCaller(ctx, args.userId);
 
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");

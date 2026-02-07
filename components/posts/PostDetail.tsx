@@ -70,7 +70,7 @@ export default function PostDetail({
       return;
     }
     try {
-      const result = await likePost({ postId });
+      const result = await likePost({ userId: currentUserId!, postId });
       analytics.postLiked(postId as string, result.liked);
     } catch {
       toast.error("Failed to like post");
@@ -79,7 +79,7 @@ export default function PostDetail({
 
   const handleAddComment = async (content: string) => {
     if (!currentUserId) return;
-    await addComment({ postId, content });
+    await addComment({ userId: currentUserId!, postId, content });
     analytics.postCommented(postId as string);
   };
 
@@ -87,6 +87,7 @@ export default function PostDetail({
     if (!currentUserId) return;
     try {
       await deleteComment({
+        userId: currentUserId!,
         commentId: commentId as Id<"post_comments">,
       });
     } catch {
@@ -98,7 +99,7 @@ export default function PostDetail({
     if (!currentUserId) return;
     if (!confirm("Are you sure you want to delete this post?")) return;
     try {
-      await deletePost({ postId });
+      await deletePost({ userId: currentUserId!, postId });
       toast.success("Post deleted");
       onClose();
     } catch {
@@ -118,6 +119,7 @@ export default function PostDetail({
     return (
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent>
+          <DialogTitle className="sr-only">Loading post</DialogTitle>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
           </div>
