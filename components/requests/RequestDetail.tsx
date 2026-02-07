@@ -77,10 +77,7 @@ export default function RequestDetail({
       return;
     }
     try {
-      const result = await toggleInterest({
-        requestId,
-        userId: currentUserId,
-      });
+      const result = await toggleInterest({ requestId });
       analytics.requestInterested(requestId as string, result.interested);
     } catch (error) {
       toast.error(
@@ -92,7 +89,7 @@ export default function RequestDetail({
   const handleClose = async () => {
     if (!currentUserId) return;
     try {
-      await closeRequest({ requestId, userId: currentUserId });
+      await closeRequest({ requestId });
       analytics.requestClosed(requestId as string);
       toast.success("Request closed");
     } catch {
@@ -103,7 +100,7 @@ export default function RequestDetail({
   const handleReopen = async () => {
     if (!currentUserId) return;
     try {
-      await reopenRequest({ requestId, userId: currentUserId });
+      await reopenRequest({ requestId });
       toast.success("Request reopened");
     } catch {
       toast.error("Failed to reopen request");
@@ -112,11 +109,7 @@ export default function RequestDetail({
 
   const handleAddComment = async (content: string) => {
     if (!currentUserId) return;
-    await addComment({
-      requestId,
-      authorId: currentUserId,
-      content,
-    });
+    await addComment({ requestId, content });
     analytics.requestCommented(requestId as string);
   };
 
@@ -125,7 +118,6 @@ export default function RequestDetail({
     try {
       await deleteComment({
         commentId: commentId as Id<"request_comments">,
-        userId: currentUserId,
       });
     } catch {
       toast.error("Failed to delete comment");
@@ -136,7 +128,7 @@ export default function RequestDetail({
     if (!currentUserId) return;
     if (!confirm("Are you sure you want to delete this request?")) return;
     try {
-      await deleteRequest({ requestId, userId: currentUserId });
+      await deleteRequest({ requestId });
       toast.success("Request deleted");
       onClose();
     } catch {

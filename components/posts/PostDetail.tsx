@@ -70,7 +70,7 @@ export default function PostDetail({
       return;
     }
     try {
-      const result = await likePost({ postId, userId: currentUserId });
+      const result = await likePost({ postId });
       analytics.postLiked(postId as string, result.liked);
     } catch {
       toast.error("Failed to like post");
@@ -79,7 +79,7 @@ export default function PostDetail({
 
   const handleAddComment = async (content: string) => {
     if (!currentUserId) return;
-    await addComment({ postId, authorId: currentUserId, content });
+    await addComment({ postId, content });
     analytics.postCommented(postId as string);
   };
 
@@ -88,7 +88,6 @@ export default function PostDetail({
     try {
       await deleteComment({
         commentId: commentId as Id<"post_comments">,
-        userId: currentUserId,
       });
     } catch {
       toast.error("Failed to delete comment");
@@ -99,7 +98,7 @@ export default function PostDetail({
     if (!currentUserId) return;
     if (!confirm("Are you sure you want to delete this post?")) return;
     try {
-      await deletePost({ postId, userId: currentUserId });
+      await deletePost({ postId });
       toast.success("Post deleted");
       onClose();
     } catch {

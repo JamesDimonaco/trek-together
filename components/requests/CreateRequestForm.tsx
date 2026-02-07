@@ -28,12 +28,10 @@ import { analytics } from "@/lib/analytics";
 
 interface CreateRequestFormProps {
   cityId: Id<"cities">;
-  userId: Id<"users">;
 }
 
 export default function CreateRequestForm({
   cityId,
-  userId,
 }: CreateRequestFormProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -61,7 +59,6 @@ export default function CreateRequestForm({
     try {
       await createRequest({
         cityId,
-        authorId: userId,
         title: title.trim(),
         description: description.trim(),
         dateFrom,

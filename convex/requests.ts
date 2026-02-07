@@ -1,5 +1,43 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
+
+// Helper: get blocked user IDs (bidirectional)
+async function getBlockedUserIds(
+  ctx: { db: any },
+  userId: Id<"users">
+): Promise<Set<string>> {
+  const blockedByMe = await ctx.db
+    .query("blocked_users")
+    .withIndex("by_blocker", (q: any) => q.eq("blockerId", userId))
+    .collect();
+  const blockedMe = await ctx.db
+    .query("blocked_users")
+    .withIndex("by_blocked", (q: any) => q.eq("blockedId", userId))
+    .collect();
+  return new Set([
+    ...blockedByMe.map((b: any) => b.blockedId),
+    ...blockedMe.map((b: any) => b.blockerId),
+  ]);
+}
+
+// Helper: verify caller identity and return their user record
+async function authenticateCaller(ctx: { auth: any; db: any }) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Authentication required");
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_auth_id", (q: any) => q.eq("authId", identity.subject))
+    .first();
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
 
 // Get requests for a city with author info, interest/comment counts
 export const getRequestsByCity = query({
@@ -19,18 +57,12 @@ export const getRequestsByCity = query({
         q.eq("cityId", args.cityId).eq("status", status)
       )
       .order("desc")
-      .collect();
+      .take(50);
 
-    // Get blocked user IDs if authenticated
+    // Get blocked user IDs (bidirectional) if authenticated
     let blockedUserIds = new Set<string>();
     if (args.currentUserId) {
-      const blocked = await ctx.db
-        .query("blocked_users")
-        .withIndex("by_blocker", (q) =>
-          q.eq("blockerId", args.currentUserId!)
-        )
-        .collect();
-      blockedUserIds = new Set(blocked.map((b) => b.blockedId));
+      blockedUserIds = await getBlockedUserIds(ctx, args.currentUserId);
     }
 
     const enriched = await Promise.all(
@@ -90,6 +122,12 @@ export const getRequestById = query({
     const request = await ctx.db.get(args.requestId);
     if (!request) return null;
 
+    // Block check: hide request if author is blocked (bidirectional)
+    if (args.currentUserId) {
+      const blockedUserIds = await getBlockedUserIds(ctx, args.currentUserId);
+      if (blockedUserIds.has(request.authorId)) return null;
+    }
+
     const author = await ctx.db.get(request.authorId);
 
     const interests = await ctx.db
@@ -117,8 +155,16 @@ export const getRequestById = query({
       .order("asc")
       .collect();
 
-    const enrichedComments = await Promise.all(
+    // Get blocked IDs for filtering comments
+    let blockedUserIds = new Set<string>();
+    if (args.currentUserId) {
+      blockedUserIds = await getBlockedUserIds(ctx, args.currentUserId);
+    }
+
+    // Enrich comments with author info, filter blocked users
+    const enrichedCommentsRaw = await Promise.all(
       comments.map(async (comment) => {
+        if (blockedUserIds.has(comment.authorId)) return null;
         const commentAuthor = await ctx.db.get(comment.authorId);
         return {
           ...comment,
@@ -131,6 +177,9 @@ export const getRequestById = query({
             : null,
         };
       })
+    );
+    const enrichedComments = enrichedCommentsRaw.filter(
+      (c): c is NonNullable<typeof c> => c !== null
     );
 
     let hasExpressedInterest = false;
@@ -163,11 +212,10 @@ export const getRequestById = query({
   },
 });
 
-// Create a request (auth required)
+// Create a request (server-side auth)
 export const createRequest = mutation({
   args: {
     cityId: v.id("cities"),
-    authorId: v.id("users"),
     title: v.string(),
     description: v.string(),
     dateFrom: v.string(),
@@ -181,18 +229,41 @@ export const createRequest = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const user = await authenticateCaller(ctx);
+
+    if (!args.title.trim()) {
+      throw new Error("Title is required");
+    }
     if (args.title.length > 200) {
       throw new Error("Title must be 200 characters or less");
+    }
+    if (!args.description.trim()) {
+      throw new Error("Description is required");
     }
     if (args.description.length > 2000) {
       throw new Error("Description must be 2000 characters or less");
     }
 
+    // Validate dates
+    const fromDate = new Date(args.dateFrom);
+    if (isNaN(fromDate.getTime())) {
+      throw new Error("Invalid start date");
+    }
+    if (args.dateTo) {
+      const toDate = new Date(args.dateTo);
+      if (isNaN(toDate.getTime())) {
+        throw new Error("Invalid end date");
+      }
+      if (toDate < fromDate) {
+        throw new Error("End date must be after start date");
+      }
+    }
+
     return await ctx.db.insert("requests", {
       cityId: args.cityId,
-      authorId: args.authorId,
-      title: args.title,
-      description: args.description,
+      authorId: user._id,
+      title: args.title.trim(),
+      description: args.description.trim(),
       dateFrom: args.dateFrom,
       dateTo: args.dateTo,
       activityType: args.activityType,
@@ -201,23 +272,24 @@ export const createRequest = mutation({
   },
 });
 
-// Toggle interest on a request
+// Toggle interest on a request (server-side auth)
 export const toggleInterest = mutation({
   args: {
     requestId: v.id("requests"),
-    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const user = await authenticateCaller(ctx);
+
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
-    if (request.authorId === args.userId) {
+    if (request.authorId === user._id) {
       throw new Error("Cannot express interest in your own request");
     }
 
     const existing = await ctx.db
       .query("request_interests")
       .withIndex("by_user_request", (q) =>
-        q.eq("userId", args.userId).eq("requestId", args.requestId)
+        q.eq("userId", user._id).eq("requestId", args.requestId)
       )
       .first();
 
@@ -227,23 +299,24 @@ export const toggleInterest = mutation({
     } else {
       await ctx.db.insert("request_interests", {
         requestId: args.requestId,
-        userId: args.userId,
+        userId: user._id,
       });
       return { interested: true };
     }
   },
 });
 
-// Close a request (author only)
+// Close a request (server-side auth, author only)
 export const closeRequest = mutation({
   args: {
     requestId: v.id("requests"),
-    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const user = await authenticateCaller(ctx);
+
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
-    if (request.authorId !== args.userId) {
+    if (request.authorId !== user._id) {
       throw new Error("Only the author can close this request");
     }
 
@@ -251,16 +324,17 @@ export const closeRequest = mutation({
   },
 });
 
-// Reopen a request (author only)
+// Reopen a request (server-side auth, author only)
 export const reopenRequest = mutation({
   args: {
     requestId: v.id("requests"),
-    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const user = await authenticateCaller(ctx);
+
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
-    if (request.authorId !== args.userId) {
+    if (request.authorId !== user._id) {
       throw new Error("Only the author can reopen this request");
     }
 
@@ -268,36 +342,41 @@ export const reopenRequest = mutation({
   },
 });
 
-// Add a comment to a request
+// Add a comment to a request (server-side auth)
 export const addRequestComment = mutation({
   args: {
     requestId: v.id("requests"),
-    authorId: v.id("users"),
     content: v.string(),
   },
   handler: async (ctx, args) => {
+    const user = await authenticateCaller(ctx);
+
+    if (!args.content.trim()) {
+      throw new Error("Comment is required");
+    }
     if (args.content.length > 1000) {
       throw new Error("Comment must be 1000 characters or less");
     }
 
     return await ctx.db.insert("request_comments", {
       requestId: args.requestId,
-      authorId: args.authorId,
-      content: args.content,
+      authorId: user._id,
+      content: args.content.trim(),
     });
   },
 });
 
-// Delete a comment (author only)
+// Delete a comment (server-side auth, author only)
 export const deleteRequestComment = mutation({
   args: {
     commentId: v.id("request_comments"),
-    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const user = await authenticateCaller(ctx);
+
     const comment = await ctx.db.get(args.commentId);
     if (!comment) throw new Error("Comment not found");
-    if (comment.authorId !== args.userId) {
+    if (comment.authorId !== user._id) {
       throw new Error("Only the author can delete this comment");
     }
 
@@ -305,16 +384,17 @@ export const deleteRequestComment = mutation({
   },
 });
 
-// Delete a request (author only, cascade deletes)
+// Delete a request (server-side auth, author only, cascade deletes)
 export const deleteRequest = mutation({
   args: {
     requestId: v.id("requests"),
-    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const user = await authenticateCaller(ctx);
+
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
-    if (request.authorId !== args.userId) {
+    if (request.authorId !== user._id) {
       throw new Error("Only the author can delete this request");
     }
 
