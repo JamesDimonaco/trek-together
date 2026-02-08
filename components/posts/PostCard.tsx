@@ -107,13 +107,19 @@ export default function PostCard({
         </p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Link
-              href={`/profile/${post.author?._id}`}
-              onClick={(e) => e.stopPropagation()}
-              className="hover:text-green-600 dark:hover:text-green-400"
-            >
-              {post.author?.username || "Unknown"}
-            </Link>
+            {post.author?._id ? (
+              <Link
+                href={`/profile/${post.author._id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:text-green-600 dark:hover:text-green-400"
+              >
+                {post.author.username}
+              </Link>
+            ) : (
+              <span className="hover:text-green-600 dark:hover:text-green-400">
+                Unknown
+              </span>
+            )}
             <span>{formatTime(post._creationTime)}</span>
           </div>
           <div

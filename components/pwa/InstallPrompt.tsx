@@ -20,7 +20,12 @@ export default function InstallPrompt() {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       // Only show if user hasn't dismissed before
-      const dismissed = localStorage.getItem("pwa-install-dismissed");
+      let dismissed = false;
+      try {
+        dismissed = !!localStorage.getItem("pwa-install-dismissed");
+      } catch {
+        // localStorage may throw in private browsing mode
+      }
       if (!dismissed) {
         setShowBanner(true);
         analytics.pwaInstallPromptShown();
@@ -47,7 +52,11 @@ export default function InstallPrompt() {
 
   const handleDismiss = () => {
     setShowBanner(false);
-    localStorage.setItem("pwa-install-dismissed", "true");
+    try {
+      localStorage.setItem("pwa-install-dismissed", "true");
+    } catch {
+      // localStorage may throw in private browsing mode
+    }
   };
 
   if (!showBanner) return null;

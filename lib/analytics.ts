@@ -60,8 +60,8 @@ export const analytics = {
   },
 
   // City Chat
-  cityJoined: (cityId: string, cityName: string, country: string) => {
-    safeCapture("city_joined", { city_id: cityId, city_name: cityName, country });
+  cityJoined: (cityId: string, cityName: string, country?: string) => {
+    safeCapture("city_joined", { city_id: cityId, city_name: cityName, ...(country ? { country } : {}) });
   },
 
   // Country Chat

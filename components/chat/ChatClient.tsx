@@ -9,6 +9,7 @@ import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
 import { analytics } from "@/lib/analytics";
+import { toast } from "sonner";
 
 interface ChatClientProps {
   cityId: Id<"cities">;
@@ -30,14 +31,20 @@ export default function ChatClient({ cityId, cityName, session }: ChatClientProp
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
-    await sendMessage({
-      cityId,
-      content: content.trim(),
-      userId: hasValidConvexUserId ? (session.userId as Id<"users">) : undefined,
-      sessionId: session.sessionId,
-      username: session.username || "Anonymous",
-    });
-    analytics.messageSent("city", cityId);
+    try {
+      await sendMessage({
+        cityId,
+        content: content.trim(),
+        userId: hasValidConvexUserId ? (session.userId as Id<"users">) : undefined,
+        sessionId: session.sessionId,
+        username: session.username || "Anonymous",
+      });
+      analytics.messageSent("city", cityId);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to send message"
+      );
+    }
   };
 
   return (

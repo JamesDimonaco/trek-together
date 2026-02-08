@@ -86,12 +86,18 @@ export default function CommentSection({
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <Link
-                    href={`/profile/${comment.author?._id}`}
-                    className="font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400"
-                  >
-                    {comment.author?.username || "Unknown"}
-                  </Link>
+                  {comment.author?._id ? (
+                    <Link
+                      href={`/profile/${comment.author._id}`}
+                      className="font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400"
+                    >
+                      {comment.author.username}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      Unknown
+                    </span>
+                  )}
                   <span className="text-xs text-gray-400">
                     {formatTime(comment._creationTime)}
                   </span>

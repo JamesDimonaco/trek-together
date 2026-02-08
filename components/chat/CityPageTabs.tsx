@@ -26,8 +26,16 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
   // Get session from API
   useEffect(() => {
     fetch("/api/session")
-      .then((res) => res.json())
-      .then(setSession)
+      .then((res) => {
+        if (!res.ok) {
+          console.error("Failed to fetch session:", res.status, res.statusText);
+          return;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data) setSession(data);
+      })
       .catch(console.error);
   }, []);
 
@@ -40,7 +48,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ cityId }),
         });
-        analytics.cityJoined(cityId, cityName, "");
+        analytics.cityJoined(cityId, cityName);
       } catch (error) {
         console.error("Failed to set current city:", error);
       }

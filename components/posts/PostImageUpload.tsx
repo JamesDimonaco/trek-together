@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,14 @@ export default function PostImageUpload({
 }: PostImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const objectUrlsRef = useRef<string[]>([]);
+
+  // Clean up all object URLs on unmount
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -66,7 +74,9 @@ export default function PostImageUpload({
 
         const { storageId } = await result.json();
         newIds.push(storageId);
-        newUrls.push(URL.createObjectURL(file));
+        const objectUrl = URL.createObjectURL(file);
+        objectUrlsRef.current.push(objectUrl);
+        newUrls.push(objectUrl);
       }
 
       onImagesChange([...images, ...newIds], [...imageUrls, ...newUrls]);
@@ -80,6 +90,12 @@ export default function PostImageUpload({
   };
 
   const removeImage = (index: number) => {
+    // Revoke the object URL to free memory
+    const removedUrl = imageUrls[index];
+    if (removedUrl) {
+      URL.revokeObjectURL(removedUrl);
+      objectUrlsRef.current = objectUrlsRef.current.filter((u) => u !== removedUrl);
+    }
     const newImages = images.filter((_, i) => i !== index);
     const newUrls = imageUrls.filter((_, i) => i !== index);
     onImagesChange(newImages, newUrls);
@@ -90,7 +106,7 @@ export default function PostImageUpload({
       {imageUrls.length > 0 && (
         <div className="flex gap-2 flex-wrap">
           {imageUrls.map((url, index) => (
-            <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden">
+            <div key={images[index] || url} className="relative w-20 h-20 rounded-lg overflow-hidden">
               <Image
                 src={url}
                 alt={`Upload ${index + 1}`}

@@ -321,6 +321,9 @@ export const likePost = mutation({
   handler: async (ctx, args) => {
     const user = await authenticateCaller(ctx, args.userId);
 
+    const post = await ctx.db.get(args.postId);
+    if (!post) throw new Error("Post not found");
+
     const existing = await ctx.db
       .query("post_likes")
       .withIndex("by_user_post", (q) =>
@@ -350,6 +353,9 @@ export const addPostComment = mutation({
   },
   handler: async (ctx, args) => {
     const user = await authenticateCaller(ctx, args.userId);
+
+    const post = await ctx.db.get(args.postId);
+    if (!post) throw new Error("Post not found");
 
     if (!args.content.trim()) {
       throw new Error("Comment is required");

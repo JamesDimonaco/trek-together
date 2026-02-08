@@ -137,13 +137,29 @@ export default function RequestDetail({
     }
   };
 
-  if (!request) {
+  if (request === undefined) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent>
           <DialogTitle className="sr-only">Loading request</DialogTitle>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (request === null) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogTitle className="sr-only">Request not found</DialogTitle>
+          <div className="flex flex-col items-center justify-center py-8 gap-4">
+            <p className="text-sm text-gray-500">Request not found</p>
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -171,12 +187,18 @@ export default function RequestDetail({
           </div>
           <DialogTitle className="text-lg">{request.title}</DialogTitle>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Link
-              href={`/profile/${request.author?._id}`}
-              className="hover:text-green-600 dark:hover:text-green-400 font-medium"
-            >
-              {request.author?.username || "Unknown"}
-            </Link>
+            {request.author?._id ? (
+              <Link
+                href={`/profile/${request.author._id}`}
+                className="hover:text-green-600 dark:hover:text-green-400 font-medium"
+              >
+                {request.author.username}
+              </Link>
+            ) : (
+              <span className="hover:text-green-600 dark:hover:text-green-400 font-medium">
+                Unknown
+              </span>
+            )}
             <div className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
               <span>

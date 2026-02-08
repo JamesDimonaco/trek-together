@@ -79,8 +79,12 @@ export default function PostDetail({
 
   const handleAddComment = async (content: string) => {
     if (!currentUserId) return;
-    await addComment({ userId: currentUserId!, postId, content });
-    analytics.postCommented(postId as string);
+    try {
+      await addComment({ userId: currentUserId!, postId, content });
+      analytics.postCommented(postId as string);
+    } catch {
+      toast.error("Failed to add comment");
+    }
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -150,12 +154,18 @@ export default function PostDetail({
           </div>
           <DialogTitle className="text-lg">{post.title}</DialogTitle>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Link
-              href={`/profile/${post.author?._id}`}
-              className="hover:text-green-600 dark:hover:text-green-400 font-medium"
-            >
-              {post.author?.username || "Unknown"}
-            </Link>
+            {post.author?._id ? (
+              <Link
+                href={`/profile/${post.author._id}`}
+                className="hover:text-green-600 dark:hover:text-green-400 font-medium"
+              >
+                {post.author.username}
+              </Link>
+            ) : (
+              <span className="hover:text-green-600 dark:hover:text-green-400 font-medium">
+                Unknown
+              </span>
+            )}
             <span>{formatDate(post._creationTime)}</span>
             {currentUserId === post.authorId && (
               <Button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -44,6 +44,14 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createPost = useMutation(api.posts.createPost);
+
+  // Clear difficulty and rating when type changes away from trail_report/recommendation
+  useEffect(() => {
+    if (type !== "trail_report" && type !== "recommendation") {
+      setDifficulty("");
+      setRating(0);
+    }
+  }, [type]);
 
   const resetForm = () => {
     setTitle("");

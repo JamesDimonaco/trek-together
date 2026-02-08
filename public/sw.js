@@ -18,9 +18,8 @@ self.addEventListener("activate", (event) => {
           .filter((key) => key !== CACHE_NAME)
           .map((key) => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // Network-first strategy for navigations, cache fallback for offline
