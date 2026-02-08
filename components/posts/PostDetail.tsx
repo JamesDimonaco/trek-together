@@ -119,13 +119,29 @@ export default function PostDetail({
     });
   };
 
-  if (!post) {
+  if (post === undefined) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent>
           <DialogTitle className="sr-only">Loading post</DialogTitle>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (post === null) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogTitle className="sr-only">Post not found</DialogTitle>
+          <div className="flex flex-col items-center justify-center py-8 gap-4">
+            <p className="text-gray-500">Post not found or has been deleted.</p>
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

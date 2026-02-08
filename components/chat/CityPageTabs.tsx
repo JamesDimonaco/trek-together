@@ -28,15 +28,20 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
     fetch("/api/session")
       .then((res) => {
         if (!res.ok) {
-          console.error("Failed to fetch session:", res.status, res.statusText);
-          return;
+          throw new Error(`Session fetch failed: ${res.status}`);
         }
         return res.json();
       })
-      .then((data) => {
-        if (data) setSession(data);
-      })
-      .catch(console.error);
+      .then(setSession)
+      .catch((error) => {
+        console.error("Failed to fetch session:", error);
+        setSession({
+          isAuthenticated: false,
+          isAnonymous: true,
+          sessionId: crypto.randomUUID(),
+          username: "Anonymous",
+        });
+      });
   }, []);
 
   // Set current city when component mounts
