@@ -99,6 +99,7 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
             <RequestCard
               key={request._id}
               request={request}
+              cityId={cityId as string}
               onToggleInterest={() =>
                 handleToggleInterest(request._id as Id<"requests">)
               }
@@ -116,6 +117,7 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
       {selectedRequestId && (
         <RequestDetail
           requestId={selectedRequestId}
+          cityId={cityId as string}
           currentUserId={
             hasValidConvexUserId ? (session.userId as Id<"users">) : undefined
           }

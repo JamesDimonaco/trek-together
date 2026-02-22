@@ -28,6 +28,7 @@ interface PostCardProps {
     commentCount: number;
     hasLiked: boolean;
   };
+  cityId: string;
   onLike: () => void;
   onClick: () => void;
   isAuthenticated: boolean;
@@ -55,6 +56,7 @@ const difficultyColors = {
 
 export default function PostCard({
   post,
+  cityId,
   onLike,
   onClick,
   isAuthenticated,
@@ -97,7 +99,15 @@ export default function PostCard({
                 </span>
               )}
             </div>
-            <h3 className="font-semibold text-sm line-clamp-1">{post.title}</h3>
+            <h3 className="font-semibold text-sm line-clamp-1">
+              <Link
+                href={`/chat/${cityId}/posts/${post._id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:text-green-600 dark:hover:text-green-400"
+              >
+                {post.title}
+              </Link>
+            </h3>
           </div>
         </div>
       </CardHeader>

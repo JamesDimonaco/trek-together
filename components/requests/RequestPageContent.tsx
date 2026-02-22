@@ -1,37 +1,29 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { SessionData } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CommentSection from "@/components/shared/CommentSection";
+import AuthPromptModal from "@/components/dm/AuthPromptModal";
 import {
   Calendar,
   HandHelping,
   Trash2,
   Lock,
   Unlock,
-  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { analytics } from "@/lib/analytics";
+import { useRouter } from "next/navigation";
 
-interface RequestDetailProps {
-  requestId: Id<"requests">;
+interface RequestPageContentProps {
+  requestId: string;
   cityId: string;
-  currentUserId?: Id<"users">;
-  isAuthenticated: boolean;
-  open: boolean;
-  onClose: () => void;
-  onAuthPrompt: () => void;
 }
 
 const activityColors: Record<string, string> = {
@@ -54,19 +46,31 @@ function formatDateRange(from: string, to?: string) {
   return `${fromDate.toLocaleDateString("en-US", options)} – ${toDate.toLocaleDateString("en-US", options)}`;
 }
 
-export default function RequestDetail({
+export default function RequestPageContent({
   requestId,
   cityId,
-  currentUserId,
-  isAuthenticated,
-  open,
-  onClose,
-  onAuthPrompt,
-}: RequestDetailProps) {
-  const request = useQuery(
-    api.requests.getRequestById,
-    open ? { requestId, currentUserId } : "skip"
-  );
+}: RequestPageContentProps) {
+  const router = useRouter();
+  const [session, setSession] = useState<SessionData | null>(null);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/session")
+      .then((res) => res.json())
+      .then(setSession)
+      .catch(() => setSession(null));
+  }, []);
+
+  const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
+  const currentUserId = hasValidConvexUserId
+    ? (session.userId as Id<"users">)
+    : undefined;
+
+  const request = useQuery(api.requests.getRequestById, {
+    requestId: requestId as Id<"requests">,
+    currentUserId,
+  });
+
   const toggleInterest = useMutation(api.requests.toggleInterest);
   const closeRequest = useMutation(api.requests.closeRequest);
   const reopenRequest = useMutation(api.requests.reopenRequest);
@@ -75,13 +79,16 @@ export default function RequestDetail({
   const deleteRequest = useMutation(api.requests.deleteRequest);
 
   const handleToggleInterest = async () => {
-    if (!isAuthenticated || !currentUserId) {
-      onAuthPrompt();
+    if (!hasValidConvexUserId || !currentUserId) {
+      setShowAuthPrompt(true);
       return;
     }
     try {
-      const result = await toggleInterest({ userId: currentUserId!, requestId });
-      analytics.requestInterested(requestId as string, result.interested);
+      const result = await toggleInterest({
+        userId: currentUserId,
+        requestId: requestId as Id<"requests">,
+      });
+      analytics.requestInterested(requestId, result.interested);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to toggle interest"
@@ -92,8 +99,11 @@ export default function RequestDetail({
   const handleClose = async () => {
     if (!currentUserId) return;
     try {
-      await closeRequest({ userId: currentUserId!, requestId });
-      analytics.requestClosed(requestId as string);
+      await closeRequest({
+        userId: currentUserId,
+        requestId: requestId as Id<"requests">,
+      });
+      analytics.requestClosed(requestId);
       toast.success("Request closed");
     } catch {
       toast.error("Failed to close request");
@@ -103,7 +113,10 @@ export default function RequestDetail({
   const handleReopen = async () => {
     if (!currentUserId) return;
     try {
-      await reopenRequest({ userId: currentUserId!, requestId });
+      await reopenRequest({
+        userId: currentUserId,
+        requestId: requestId as Id<"requests">,
+      });
       toast.success("Request reopened");
     } catch {
       toast.error("Failed to reopen request");
@@ -112,15 +125,19 @@ export default function RequestDetail({
 
   const handleAddComment = async (content: string) => {
     if (!currentUserId) return;
-    await addComment({ userId: currentUserId!, requestId, content });
-    analytics.requestCommented(requestId as string);
+    await addComment({
+      userId: currentUserId,
+      requestId: requestId as Id<"requests">,
+      content,
+    });
+    analytics.requestCommented(requestId);
   };
 
   const handleDeleteComment = async (commentId: string) => {
     if (!currentUserId) return;
     try {
       await deleteComment({
-        userId: currentUserId!,
+        userId: currentUserId,
         commentId: commentId as Id<"request_comments">,
       });
     } catch {
@@ -132,9 +149,12 @@ export default function RequestDetail({
     if (!currentUserId) return;
     if (!confirm("Are you sure you want to delete this request?")) return;
     try {
-      await deleteRequest({ userId: currentUserId!, requestId });
+      await deleteRequest({
+        userId: currentUserId,
+        requestId: requestId as Id<"requests">,
+      });
       toast.success("Request deleted");
-      onClose();
+      router.push(`/chat/${cityId}`);
     } catch {
       toast.error("Failed to delete request");
     }
@@ -142,81 +162,65 @@ export default function RequestDetail({
 
   if (request === undefined) {
     return (
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogTitle className="sr-only">Loading request</DialogTitle>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+      </div>
     );
   }
 
   if (request === null) {
     return (
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogTitle className="sr-only">Request not found</DialogTitle>
-          <div className="flex flex-col items-center justify-center py-8 gap-4">
-            <p className="text-sm text-gray-500">Request not found</p>
-            <Button variant="outline" size="sm" onClick={onClose}>
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <div className="flex flex-col items-center justify-center py-8 gap-4">
+        <p className="text-sm text-gray-500">Request not found or has been deleted.</p>
+        <Button variant="outline" asChild>
+          <Link href={`/chat/${cityId}`}>Back to city</Link>
+        </Button>
+      </div>
     );
   }
 
   const isAuthor = currentUserId === request.authorId;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <Badge
-              variant="secondary"
-              className={activityColors[request.activityType] || activityColors.other}
-            >
-              {request.activityType}
-            </Badge>
-            {request.status === "closed" && (
-              <Badge variant="secondary" className="bg-gray-200 text-gray-600">
-                Closed
-              </Badge>
-            )}
-          </div>
-          <DialogTitle className="text-lg">{request.title}</DialogTitle>
-          <Link
-            href={`/chat/${cityId}/requests/${requestId}`}
-            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
+    <>
+      <div className="space-y-4">
+        {/* Badges */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge
+            variant="secondary"
+            className={activityColors[request.activityType] || activityColors.other}
           >
-            <ExternalLink className="h-3 w-3" />
-            Open full page
-          </Link>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            {request.author?._id ? (
-              <Link
-                href={`/profile/${request.author._id}`}
-                className="hover:text-green-600 dark:hover:text-green-400 font-medium"
-              >
-                {request.author.username}
-              </Link>
-            ) : (
-              <span className="hover:text-green-600 dark:hover:text-green-400 font-medium">
-                Unknown
-              </span>
-            )}
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" />
-              <span>
-                {formatDateRange(request.dateFrom, request.dateTo)}
-              </span>
-            </div>
+            {request.activityType}
+          </Badge>
+          {request.status === "closed" && (
+            <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+              Closed
+            </Badge>
+          )}
+        </div>
+
+        {/* Title */}
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          {request.title}
+        </h1>
+
+        {/* Author + dates */}
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          {request.author?._id ? (
+            <Link
+              href={`/profile/${request.author._id}`}
+              className="hover:text-green-600 dark:hover:text-green-400 font-medium"
+            >
+              {request.author.username}
+            </Link>
+          ) : (
+            <span className="font-medium">Unknown</span>
+          )}
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3.5 w-3.5" />
+            <span>{formatDateRange(request.dateFrom, request.dateTo)}</span>
           </div>
-        </DialogHeader>
+        </div>
 
         {/* Description */}
         <div className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
@@ -310,10 +314,15 @@ export default function RequestDetail({
           currentUserId={currentUserId as string | undefined}
           onAddComment={handleAddComment}
           onDeleteComment={handleDeleteComment}
-          isAuthenticated={isAuthenticated}
-          onAuthPrompt={onAuthPrompt}
+          isAuthenticated={!!hasValidConvexUserId}
+          onAuthPrompt={() => setShowAuthPrompt(true)}
         />
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      <AuthPromptModal
+        isOpen={showAuthPrompt}
+        onClose={() => setShowAuthPrompt(false)}
+      />
+    </>
   );
 }

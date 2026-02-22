@@ -34,6 +34,7 @@ interface RequestCardProps {
     commentCount: number;
     hasExpressedInterest: boolean;
   };
+  cityId: string;
   onToggleInterest: () => void;
   onClick: () => void;
   isAuthenticated: boolean;
@@ -60,6 +61,7 @@ function formatDateRange(from: string, to?: string) {
 
 export default function RequestCard({
   request,
+  cityId,
   onToggleInterest,
   onClick,
   isAuthenticated,
@@ -87,7 +89,13 @@ export default function RequestCard({
               )}
             </div>
             <h3 className="font-semibold text-sm line-clamp-1">
-              {request.title}
+              <Link
+                href={`/chat/${cityId}/requests/${request._id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:text-green-600 dark:hover:text-green-400"
+              >
+                {request.title}
+              </Link>
             </h3>
           </div>
         </div>

@@ -372,6 +372,19 @@ export const addPostComment = mutation({
   },
 });
 
+// Get all post IDs with cityId and creation time (for sitemap)
+export const getAllPostIds = query({
+  args: {},
+  handler: async (ctx) => {
+    const posts = await ctx.db.query("posts").collect();
+    return posts.map((post) => ({
+      _id: post._id,
+      cityId: post.cityId,
+      _creationTime: post._creationTime,
+    }));
+  },
+});
+
 // Delete a comment (auth required, author only)
 export const deletePostComment = mutation({
   args: {
