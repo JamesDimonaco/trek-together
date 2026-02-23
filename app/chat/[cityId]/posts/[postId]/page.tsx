@@ -1,13 +1,19 @@
+import { cache } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { getCityData } from "../../actions/city";
 import { getPostData } from "./actions/post";
+import { getServerSession } from "@/lib/server-session";
+import { BASE_URL, safeJsonLd, truncateAtWord } from "@/lib/convex-server";
 import PostPageContent from "@/components/posts/PostPageContent";
 
 interface PostPageProps {
   params: Promise<{ cityId: string; postId: string }>;
 }
+
+// React.cache deduplicates getCityData across generateMetadata + page render
+const getCachedCityData = cache(getCityData);
 
 export async function generateMetadata({
   params,
@@ -16,14 +22,14 @@ export async function generateMetadata({
 
   try {
     const [city, post] = await Promise.all([
-      getCityData(cityId),
+      getCachedCityData(cityId),
       getPostData(postId, cityId),
     ]);
 
     const title = `${post.title} | ${city.name} | TrekTogether`;
-    const description = post.content.slice(0, 160);
+    const description = truncateAtWord(post.content, 160);
     const ogImage = post.imageUrls?.[0] || "/og-image.png";
-    const canonicalUrl = `https://trektogether.app/chat/${cityId}/posts/${postId}`;
+    const canonicalUrl = `${BASE_URL}/chat/${cityId}/posts/${postId}`;
 
     const keywordsByType: Record<string, string[]> = {
       trail_report: [
@@ -85,9 +91,10 @@ export async function generateMetadata({
 export default async function PostPage({ params }: PostPageProps) {
   const { cityId, postId } = await params;
 
-  const [city, post] = await Promise.all([
-    getCityData(cityId),
+  const [city, post, session] = await Promise.all([
+    getCachedCityData(cityId),
     getPostData(postId, cityId),
+    getServerSession(),
   ]);
 
   // JSON-LD structured data
@@ -102,11 +109,11 @@ export default async function PostPage({ params }: PostPageProps) {
         }
       : undefined,
     datePublished: new Date(post._creationTime).toISOString(),
-    description: post.content.slice(0, 160),
+    description: truncateAtWord(post.content, 160),
     image: post.imageUrls?.[0],
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://trektogether.app/chat/${cityId}/posts/${postId}`,
+      "@id": `${BASE_URL}/chat/${cityId}/posts/${postId}`,
     },
   };
 
@@ -116,7 +123,7 @@ export default async function PostPage({ params }: PostPageProps) {
         {/* JSON-LD */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
 
         {/* Breadcrumb */}
@@ -142,7 +149,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
         {/* Content */}
         <div className="p-4">
-          <PostPageContent postId={postId} cityId={cityId} />
+          <PostPageContent postId={postId} cityId={cityId} session={session} />
         </div>
       </div>
     </div>

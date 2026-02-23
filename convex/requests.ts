@@ -362,11 +362,15 @@ export const addRequestComment = mutation({
   },
 });
 
-// Get all request IDs with cityId and creation time (for sitemap)
+// Get open request IDs with cityId and creation time (for sitemap)
 export const getAllRequestIds = query({
   args: {},
   handler: async (ctx) => {
-    const requests = await ctx.db.query("requests").collect();
+    // Only index open requests - closed ones have noindex meta anyway
+    const requests = await ctx.db
+      .query("requests")
+      .filter((q) => q.eq(q.field("status"), "open"))
+      .take(10000);
     return requests.map((req) => ({
       _id: req._id,
       cityId: req.cityId,

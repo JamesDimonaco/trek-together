@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import LikeButton from "@/components/shared/LikeButton";
 import CommentSection from "@/components/shared/CommentSection";
-import { Star, Trash2, ExternalLink } from "lucide-react";
+import { Star, Trash2, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -175,7 +175,7 @@ export default function PostDetail({
             href={`/chat/${cityId}/posts/${postId}`}
             className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
           >
-            <ExternalLink className="h-3 w-3" />
+            <ArrowUpRight className="h-3 w-3" />
             Open full page
           </Link>
           <div className="flex items-center gap-2 text-sm text-gray-500">

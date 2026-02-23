@@ -1,13 +1,19 @@
+import { cache } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { getCityData } from "../../actions/city";
 import { getRequestData } from "./actions/request";
+import { getServerSession } from "@/lib/server-session";
+import { BASE_URL, safeJsonLd, truncateAtWord } from "@/lib/convex-server";
 import RequestPageContent from "@/components/requests/RequestPageContent";
 
 interface RequestPageProps {
   params: Promise<{ cityId: string; requestId: string }>;
 }
+
+// React.cache deduplicates getCityData across generateMetadata + page render
+const getCachedCityData = cache(getCityData);
 
 export async function generateMetadata({
   params,
@@ -16,7 +22,7 @@ export async function generateMetadata({
 
   try {
     const [city, request] = await Promise.all([
-      getCityData(cityId),
+      getCachedCityData(cityId),
       getRequestData(requestId, cityId),
     ]);
 
@@ -24,8 +30,8 @@ export async function generateMetadata({
     const dateRange = request.dateTo
       ? `${request.dateFrom} to ${request.dateTo}`
       : request.dateFrom;
-    const description = `Looking for ${request.activityType} buddies in ${city.name}: ${request.description.slice(0, 120)}. Dates: ${dateRange}.`;
-    const canonicalUrl = `https://trektogether.app/chat/${cityId}/requests/${requestId}`;
+    const description = `Looking for ${request.activityType} buddies in ${city.name}: ${truncateAtWord(request.description, 120)}. Dates: ${dateRange}.`;
+    const canonicalUrl = `${BASE_URL}/chat/${cityId}/requests/${requestId}`;
 
     const metadata: Metadata = {
       title,
@@ -79,9 +85,10 @@ export async function generateMetadata({
 export default async function RequestPage({ params }: RequestPageProps) {
   const { cityId, requestId } = await params;
 
-  const [city, request] = await Promise.all([
-    getCityData(cityId),
+  const [city, request, session] = await Promise.all([
+    getCachedCityData(cityId),
     getRequestData(requestId, cityId),
+    getServerSession(),
   ]);
 
   // JSON-LD structured data (Event schema)
@@ -89,7 +96,7 @@ export default async function RequestPage({ params }: RequestPageProps) {
     "@context": "https://schema.org",
     "@type": "Event",
     name: request.title,
-    description: request.description.slice(0, 300),
+    description: truncateAtWord(request.description, 300),
     startDate: request.dateFrom,
     endDate: request.dateTo || request.dateFrom,
     eventStatus: request.status === "open"
@@ -118,7 +125,7 @@ export default async function RequestPage({ params }: RequestPageProps) {
         {/* JSON-LD */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
 
         {/* Breadcrumb */}
@@ -144,7 +151,11 @@ export default async function RequestPage({ params }: RequestPageProps) {
 
         {/* Content */}
         <div className="p-4">
-          <RequestPageContent requestId={requestId} cityId={cityId} />
+          <RequestPageContent
+            requestId={requestId}
+            cityId={cityId}
+            session={session}
+          />
         </div>
       </div>
     </div>

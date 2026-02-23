@@ -376,7 +376,7 @@ export const addPostComment = mutation({
 export const getAllPostIds = query({
   args: {},
   handler: async (ctx) => {
-    const posts = await ctx.db.query("posts").collect();
+    const posts = await ctx.db.query("posts").take(10000);
     return posts.map((post) => ({
       _id: post._id,
       cityId: post.cityId,

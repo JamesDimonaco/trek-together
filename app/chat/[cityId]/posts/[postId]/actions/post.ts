@@ -1,15 +1,10 @@
-import { ConvexHttpClient } from "convex/browser";
+import { cache } from "react";
+import { convex } from "@/lib/convex-server";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { notFound } from "next/navigation";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-if (!convexUrl) {
-  throw new Error("NEXT_PUBLIC_CONVEX_URL environment variable is required");
-}
-const convex = new ConvexHttpClient(convexUrl);
-
-export async function getPostData(postId: string, cityId: string) {
+async function _getPostData(postId: string, cityId: string) {
   try {
     // Validate that postId matches Convex ID format
     if (!postId || !/^[0-9a-z]{28,34}$/i.test(postId)) {
@@ -39,3 +34,5 @@ export async function getPostData(postId: string, cityId: string) {
     notFound();
   }
 }
+
+export const getPostData = cache(_getPostData);

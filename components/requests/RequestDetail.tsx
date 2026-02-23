@@ -18,11 +18,12 @@ import {
   Trash2,
   Lock,
   Unlock,
-  ExternalLink,
+  ArrowUpRight,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { analytics } from "@/lib/analytics";
+import { activityColors, formatDateRange } from "@/lib/request-utils";
 
 interface RequestDetailProps {
   requestId: Id<"requests">;
@@ -32,26 +33,6 @@ interface RequestDetailProps {
   open: boolean;
   onClose: () => void;
   onAuthPrompt: () => void;
-}
-
-const activityColors: Record<string, string> = {
-  trekking: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  hiking: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  climbing: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  camping: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  other: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-};
-
-function formatDateRange(from: string, to?: string) {
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  };
-  const fromDate = new Date(from + "T00:00:00");
-  if (!to) return fromDate.toLocaleDateString("en-US", options);
-  const toDate = new Date(to + "T00:00:00");
-  return `${fromDate.toLocaleDateString("en-US", options)} – ${toDate.toLocaleDateString("en-US", options)}`;
 }
 
 export default function RequestDetail({
@@ -193,7 +174,7 @@ export default function RequestDetail({
             href={`/chat/${cityId}/requests/${requestId}`}
             className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
           >
-            <ExternalLink className="h-3 w-3" />
+            <ArrowUpRight className="h-3 w-3" />
             Open full page
           </Link>
           <div className="flex items-center gap-2 text-sm text-gray-500">

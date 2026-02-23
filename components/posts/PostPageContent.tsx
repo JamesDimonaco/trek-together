@@ -1,12 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { SessionData } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import LikeButton from "@/components/shared/LikeButton";
 import CommentSection from "@/components/shared/CommentSection";
 import AuthPromptModal from "@/components/dm/AuthPromptModal";
@@ -20,6 +31,7 @@ import { useRouter } from "next/navigation";
 interface PostPageContentProps {
   postId: string;
   cityId: string;
+  session: SessionData;
 }
 
 const typeLabels = {
@@ -41,19 +53,11 @@ const difficultyColors = {
   expert: "bg-red-100 text-red-700",
 };
 
-export default function PostPageContent({ postId, cityId }: PostPageContentProps) {
+export default function PostPageContent({ postId, cityId, session }: PostPageContentProps) {
   const router = useRouter();
-  const [session, setSession] = useState<SessionData | null>(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/session")
-      .then((res) => res.json())
-      .then(setSession)
-      .catch(() => setSession(null));
-  }, []);
-
-  const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
+  const hasValidConvexUserId = session.isAuthenticated && session.userId;
   const currentUserId = hasValidConvexUserId
     ? (session.userId as Id<"users">)
     : undefined;
@@ -103,9 +107,8 @@ export default function PostPageContent({ postId, cityId }: PostPageContentProps
     }
   };
 
-  const handleDelete = async () => {
+  const handleConfirmDelete = async () => {
     if (!currentUserId) return;
-    if (!confirm("Are you sure you want to delete this post?")) return;
     try {
       await deletePost({ userId: currentUserId, postId: postId as Id<"posts"> });
       toast.success("Post deleted");
@@ -182,14 +185,34 @@ export default function PostPageContent({ postId, cityId }: PostPageContentProps
           )}
           <span>{formatDate(post._creationTime)}</span>
           {currentUserId === post.authorId && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              className="ml-auto text-red-500 hover:text-red-600 h-7 px-2"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto text-red-500 hover:text-red-600 h-7 px-2"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete post?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete this post and all its comments. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleConfirmDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
 

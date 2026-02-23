@@ -1,12 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { SessionData } from "@/lib/types";
+import { activityColors, formatDateRange } from "@/lib/request-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import CommentSection from "@/components/shared/CommentSection";
 import AuthPromptModal from "@/components/dm/AuthPromptModal";
 import {
@@ -24,44 +36,18 @@ import { useRouter } from "next/navigation";
 interface RequestPageContentProps {
   requestId: string;
   cityId: string;
-}
-
-const activityColors: Record<string, string> = {
-  trekking: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  hiking: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  climbing: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  camping: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  other: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-};
-
-function formatDateRange(from: string, to?: string) {
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  };
-  const fromDate = new Date(from + "T00:00:00");
-  if (!to) return fromDate.toLocaleDateString("en-US", options);
-  const toDate = new Date(to + "T00:00:00");
-  return `${fromDate.toLocaleDateString("en-US", options)} – ${toDate.toLocaleDateString("en-US", options)}`;
+  session: SessionData;
 }
 
 export default function RequestPageContent({
   requestId,
   cityId,
+  session,
 }: RequestPageContentProps) {
   const router = useRouter();
-  const [session, setSession] = useState<SessionData | null>(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/session")
-      .then((res) => res.json())
-      .then(setSession)
-      .catch(() => setSession(null));
-  }, []);
-
-  const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
+  const hasValidConvexUserId = session.isAuthenticated && session.userId;
   const currentUserId = hasValidConvexUserId
     ? (session.userId as Id<"users">)
     : undefined;
@@ -145,9 +131,8 @@ export default function RequestPageContent({
     }
   };
 
-  const handleDelete = async () => {
+  const handleConfirmDelete = async () => {
     if (!currentUserId) return;
-    if (!confirm("Are you sure you want to delete this request?")) return;
     try {
       await deleteRequest({
         userId: currentUserId,
@@ -273,14 +258,34 @@ export default function RequestPageContent({
                   Reopen
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDelete}
-                className="h-7 px-2 text-xs text-red-500 hover:text-red-600"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete request?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this request and all its comments. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleConfirmDelete}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           )}
         </div>
