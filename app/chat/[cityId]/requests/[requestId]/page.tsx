@@ -1,12 +1,19 @@
 import { cache } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { getCityData } from "../../actions/city";
 import { getRequestData } from "./actions/request";
 import { getServerSession } from "@/lib/server-session";
 import { BASE_URL, safeJsonLd, truncateAtWord } from "@/lib/convex-server";
 import RequestPageContent from "@/components/requests/RequestPageContent";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface RequestPageProps {
   params: Promise<{ cityId: string; requestId: string }>;
@@ -129,25 +136,27 @@ export default async function RequestPage({ params }: RequestPageProps) {
         />
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1 text-sm text-gray-500 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <Link
-            href="/cities"
-            className="hover:text-green-600 dark:hover:text-green-400"
-          >
-            Cities
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <Link
-            href={`/chat/${cityId}`}
-            className="hover:text-green-600 dark:hover:text-green-400"
-          >
-            {city.name}
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-gray-900 dark:text-gray-100 truncate max-w-[200px]">
-            {request.title}
-          </span>
-        </nav>
+        <Breadcrumb className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/cities">Cities</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href={`/chat/${cityId}`}>{city.name}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="truncate max-w-[200px]">
+                {request.title}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
         {/* Content */}
         <div className="p-4">
