@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { activityColors, formatDateRange } from "@/lib/request-utils";
 
 interface RequestCardProps {
   request: {
@@ -34,32 +35,16 @@ interface RequestCardProps {
     commentCount: number;
     hasExpressedInterest: boolean;
   };
+  cityId: string;
   onToggleInterest: () => void;
   onClick: () => void;
   isAuthenticated: boolean;
   onAuthPrompt: () => void;
 }
 
-const activityColors: Record<string, string> = {
-  trekking: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  hiking: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  climbing: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  camping: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  other: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-};
-
-function formatDateRange(from: string, to?: string) {
-  const fromDate = new Date(from + "T00:00:00");
-  const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-
-  if (!to) return fromDate.toLocaleDateString("en-US", options);
-
-  const toDate = new Date(to + "T00:00:00");
-  return `${fromDate.toLocaleDateString("en-US", options)} – ${toDate.toLocaleDateString("en-US", options)}`;
-}
-
 export default function RequestCard({
   request,
+  cityId,
   onToggleInterest,
   onClick,
   isAuthenticated,
@@ -87,7 +72,13 @@ export default function RequestCard({
               )}
             </div>
             <h3 className="font-semibold text-sm line-clamp-1">
-              {request.title}
+              <Link
+                href={`/chat/${cityId}/requests/${request._id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:text-green-600 dark:hover:text-green-400"
+              >
+                {request.title}
+              </Link>
             </h3>
           </div>
         </div>

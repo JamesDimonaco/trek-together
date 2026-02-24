@@ -99,6 +99,7 @@ export default function PostsList({ cityId, session }: PostsListProps) {
             <PostCard
               key={post._id}
               post={post}
+              cityId={cityId as string}
               onLike={() => handleLike(post._id as Id<"posts">)}
               onClick={() => {
                 setSelectedPostId(post._id as Id<"posts">);
@@ -115,6 +116,7 @@ export default function PostsList({ cityId, session }: PostsListProps) {
       {selectedPostId && (
         <PostDetail
           postId={selectedPostId}
+          cityId={cityId as string}
           currentUserId={
             hasValidConvexUserId ? (session.userId as Id<"users">) : undefined
           }

@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import LikeButton from "@/components/shared/LikeButton";
 import CommentSection from "@/components/shared/CommentSection";
-import { Star, Trash2 } from "lucide-react";
+import { Star, Trash2, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import { analytics } from "@/lib/analytics";
 
 interface PostDetailProps {
   postId: Id<"posts">;
+  cityId: string;
   currentUserId?: Id<"users">;
   isAuthenticated: boolean;
   open: boolean;
@@ -41,14 +42,15 @@ const typeColors = {
 };
 
 const difficultyColors = {
-  easy: "bg-green-100 text-green-700",
-  moderate: "bg-yellow-100 text-yellow-700",
-  hard: "bg-orange-100 text-orange-700",
-  expert: "bg-red-100 text-red-700",
+  easy: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  moderate: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  hard: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  expert: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
 export default function PostDetail({
   postId,
+  cityId,
   currentUserId,
   isAuthenticated,
   open,
@@ -169,6 +171,14 @@ export default function PostDetail({
             )}
           </div>
           <DialogTitle className="text-lg">{post.title}</DialogTitle>
+          <Link
+            href={`/chat/${cityId}/posts/${postId}`}
+            onClick={onClose}
+            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
+          >
+            <ArrowUpRight className="h-3 w-3" />
+            Open full page
+          </Link>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             {post.author?._id ? (
               <Link
