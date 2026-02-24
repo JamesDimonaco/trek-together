@@ -172,6 +172,7 @@ export default function RequestDetail({
           <DialogTitle className="text-lg">{request.title}</DialogTitle>
           <Link
             href={`/chat/${cityId}/requests/${requestId}`}
+            onClick={onClose}
             className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
           >
             <ArrowUpRight className="h-3 w-3" />
