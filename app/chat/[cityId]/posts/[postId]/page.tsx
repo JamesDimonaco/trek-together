@@ -117,7 +117,7 @@ export default async function PostPage({ params }: PostPageProps) {
       : undefined,
     datePublished: new Date(post._creationTime).toISOString(),
     description: truncateAtWord(post.content, 160),
-    image: post.imageUrls?.[0],
+    image: post.imageUrls?.[0] || "/og-image.png",
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `${BASE_URL}/chat/${cityId}/posts/${postId}`,
