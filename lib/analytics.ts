@@ -156,6 +156,10 @@ export const analytics = {
     safeCapture("post_created", { city_id: cityId, post_type: type });
   },
 
+  postEdited: (postId: string) => {
+    safeCapture("post_edited", { post_id: postId });
+  },
+
   postViewed: (postId: string) => {
     safeCapture("post_viewed", { post_id: postId });
   },

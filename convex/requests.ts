@@ -362,6 +362,20 @@ export const addRequestComment = mutation({
   },
 });
 
+// Count open requests for a city
+export const countOpenRequestsByCity = query({
+  args: { cityId: v.id("cities") },
+  handler: async (ctx, args) => {
+    const requests = await ctx.db
+      .query("requests")
+      .withIndex("by_city_status", (q) =>
+        q.eq("cityId", args.cityId).eq("status", "open")
+      )
+      .collect();
+    return requests.length;
+  },
+});
+
 // Get open request IDs with cityId and creation time (for sitemap)
 export const getAllRequestIds = query({
   args: {},

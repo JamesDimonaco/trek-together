@@ -2,6 +2,8 @@ import { MetadataRoute } from "next";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
+export const revalidate = 3600; // Regenerate sitemap every hour
+
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 if (!convexUrl) {
   throw new Error("NEXT_PUBLIC_CONVEX_URL is required");

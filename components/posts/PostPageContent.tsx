@@ -21,7 +21,9 @@ import {
 import LikeButton from "@/components/shared/LikeButton";
 import CommentSection from "@/components/shared/CommentSection";
 import AuthPromptModal from "@/components/dm/AuthPromptModal";
-import { Star, Trash2 } from "lucide-react";
+import ImageLightbox from "@/components/shared/ImageLightbox";
+import EditPostForm from "./EditPostForm";
+import { Star, Trash2, Pencil } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -56,6 +58,8 @@ const difficultyColors = {
 export default function PostPageContent({ postId, cityId, session }: PostPageContentProps) {
   const router = useRouter();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const hasValidConvexUserId = session.isAuthenticated && session.userId;
   const currentUserId = hasValidConvexUserId
@@ -145,6 +149,9 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
     );
   }
 
+  // Check if content looks like HTML (from rich text editor)
+  const isHtmlContent = post.content.includes("<") && post.content.includes(">");
+
   return (
     <>
       <div className="space-y-4">
@@ -171,7 +178,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
           {post.title}
         </h1>
 
-        {/* Author + date */}
+        {/* Author + date + actions */}
         <div className="flex items-center gap-2 text-sm text-gray-500">
           {post.author?._id ? (
             <Link
@@ -185,34 +192,44 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
           )}
           <span>{formatDate(post._creationTime)}</span>
           {currentUserId === post.authorId && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="ml-auto text-red-500 hover:text-red-600 h-7 px-2"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete post?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete this post and all its comments. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleConfirmDelete}
-                    className="bg-red-600 hover:bg-red-700"
+            <div className="ml-auto flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowEditDialog(true)}
+                className="text-gray-500 hover:text-green-600 h-7 px-2"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-600 h-7 px-2"
                   >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete post?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this post and all its comments. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleConfirmDelete}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </div>
 
@@ -222,13 +239,15 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
             {post.imageUrls.map((url, i) => (
               <div
                 key={i}
-                className="relative w-48 h-36 rounded-lg overflow-hidden flex-shrink-0"
+                className="relative w-48 h-36 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+                onClick={() => setLightboxIndex(i)}
               >
                 <Image
                   src={url}
                   alt={`${post.title} image ${i + 1}`}
                   fill
                   className="object-cover"
+                  unoptimized
                 />
               </div>
             ))}
@@ -236,9 +255,16 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
         )}
 
         {/* Content */}
-        <div className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
-          {post.content}
-        </div>
+        {isHtmlContent ? (
+          <div
+            className="prose prose-sm dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+        ) : (
+          <div className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+            {post.content}
+          </div>
+        )}
 
         {/* Like */}
         <div className="flex items-center border-t border-b border-gray-200 dark:border-gray-700 py-1">
@@ -264,6 +290,35 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
         isOpen={showAuthPrompt}
         onClose={() => setShowAuthPrompt(false)}
       />
+
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={post.imageUrls}
+          initialIndex={lightboxIndex}
+          open={true}
+          onClose={() => setLightboxIndex(null)}
+          alt={post.title}
+        />
+      )}
+
+      {showEditDialog && currentUserId && (
+        <EditPostForm
+          cityId={cityId as Id<"cities">}
+          userId={currentUserId}
+          post={{
+            _id: postId as Id<"posts">,
+            title: post.title,
+            content: post.content,
+            type: post.type,
+            images: post.images,
+            imageUrls: post.imageUrls,
+            difficulty: post.difficulty,
+            rating: post.rating,
+          }}
+          open={showEditDialog}
+          onClose={() => setShowEditDialog(false)}
+        />
+      )}
     </>
   );
 }

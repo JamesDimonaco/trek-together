@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mountain, User, MessageCircle, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import MessagesNavLink from "./MessagesNavLink";
@@ -17,6 +18,7 @@ interface CurrentCity {
 
 export default function AuthHeader() {
   const { userId: authUserId } = useAuth();
+  const pathname = usePathname();
   const [currentCity, setCurrentCity] = useState<CurrentCity | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,7 +47,7 @@ export default function AuthHeader() {
     };
 
     fetchCurrentCity();
-  }, []);
+  }, [pathname]);
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">

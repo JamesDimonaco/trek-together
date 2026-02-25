@@ -54,6 +54,10 @@ const difficultyColors = {
   expert: "bg-red-100 text-red-700",
 };
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "").trim();
+}
+
 export default function PostCard({
   post,
   cityId,
@@ -113,7 +117,7 @@ export default function PostCard({
       </CardHeader>
       <CardContent className="px-4 pb-3 pt-0">
         <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
-          {post.content}
+          {stripHtml(post.content)}
         </p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-gray-500">

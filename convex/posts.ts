@@ -240,8 +240,8 @@ export const createPost = mutation({
     if (!args.content.trim()) {
       throw new Error("Content is required");
     }
-    if (args.content.length > 5000) {
-      throw new Error("Content must be 5000 characters or less");
+    if (args.content.length > 10000) {
+      throw new Error("Content must be 10000 characters or less");
     }
     if (args.images.length > 5) {
       throw new Error("Maximum 5 images per post");
@@ -309,6 +309,96 @@ export const deletePost = mutation({
     }
 
     await ctx.db.delete(args.postId);
+  },
+});
+
+// Update a post (auth required, author only)
+export const updatePost = mutation({
+  args: {
+    userId: v.id("users"),
+    postId: v.id("posts"),
+    title: v.string(),
+    content: v.string(),
+    type: v.union(
+      v.literal("trail_report"),
+      v.literal("recommendation"),
+      v.literal("general")
+    ),
+    images: v.array(v.string()),
+    difficulty: v.optional(
+      v.union(
+        v.literal("easy"),
+        v.literal("moderate"),
+        v.literal("hard"),
+        v.literal("expert")
+      )
+    ),
+    rating: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const user = await authenticateCaller(ctx, args.userId);
+
+    const post = await ctx.db.get(args.postId);
+    if (!post) throw new Error("Post not found");
+    if (post.authorId !== user._id) {
+      throw new Error("Only the author can edit this post");
+    }
+
+    if (!args.title.trim()) {
+      throw new Error("Title is required");
+    }
+    if (args.title.length > 200) {
+      throw new Error("Title must be 200 characters or less");
+    }
+    if (!args.content.trim()) {
+      throw new Error("Content is required");
+    }
+    if (args.content.length > 10000) {
+      throw new Error("Content must be 10000 characters or less");
+    }
+    if (args.images.length > 5) {
+      throw new Error("Maximum 5 images per post");
+    }
+    if (
+      args.rating !== undefined &&
+      (args.rating < 1 || args.rating > 5 || Math.floor(args.rating) !== args.rating)
+    ) {
+      throw new Error("Rating must be an integer between 1 and 5");
+    }
+
+    // Delete removed images from storage
+    const oldImages = new Set(post.images);
+    const newImages = new Set(args.images);
+    for (const storageId of oldImages) {
+      if (!newImages.has(storageId)) {
+        try {
+          await ctx.storage.delete(storageId);
+        } catch {
+          // Image may already be deleted
+        }
+      }
+    }
+
+    await ctx.db.patch(args.postId, {
+      title: args.title.trim(),
+      content: args.content.trim(),
+      type: args.type,
+      images: args.images,
+      difficulty: args.difficulty,
+      rating: args.rating,
+    });
+  },
+});
+
+// Count posts for a city
+export const countPostsByCity = query({
+  args: { cityId: v.id("cities") },
+  handler: async (ctx, args) => {
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_city", (q) => q.eq("cityId", args.cityId))
+      .collect();
+    return posts.length;
   },
 });
 

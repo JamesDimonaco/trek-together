@@ -220,6 +220,86 @@ export const getCitiesGroupedByCountry = query({
   },
 });
 
+// Get activity stats for a city (for nearby suggestions)
+export const getCityActivity = query({
+  args: { cityId: v.id("cities") },
+  handler: async (ctx, args) => {
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+    const fortyEightHoursAgo = Date.now() - 48 * 60 * 60 * 1000;
+
+    const users = await ctx.db
+      .query("users")
+      .withIndex("by_current_city", (q) => q.eq("currentCityId", args.cityId))
+      .collect();
+
+    const activeUsers = users.filter(
+      (user) => user.lastSeen && user.lastSeen > tenMinutesAgo
+    ).length;
+
+    const recentMessages = await ctx.db
+      .query("city_messages")
+      .withIndex("by_city", (q) => q.eq("cityId", args.cityId))
+      .order("desc")
+      .take(1);
+
+    const hasRecentMessages =
+      recentMessages.length > 0 &&
+      recentMessages[0]._creationTime > fortyEightHoursAgo;
+
+    return { activeUsers, hasRecentMessages };
+  },
+});
+
+// Get nearby cities with activity (for suggestions when current city is quiet)
+export const getNearbyActiveCities = query({
+  args: {
+    cityId: v.id("cities"),
+    radiusKm: v.optional(v.float64()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const radius = args.radiusKm ?? 100;
+    const limit = args.limit ?? 3;
+
+    const currentCity = await ctx.db.get(args.cityId);
+    if (!currentCity) return [];
+
+    const cities = await ctx.db.query("cities").collect();
+    const users = await ctx.db.query("users").collect();
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+
+    const nearbyCities = cities
+      .filter((city) => city._id !== args.cityId)
+      .map((city) => {
+        const distance = calculateDistance(
+          currentCity.lat,
+          currentCity.lng,
+          city.lat,
+          city.lng
+        );
+        const activeUsers = users.filter(
+          (user) =>
+            user.currentCityId === city._id &&
+            user.lastSeen &&
+            user.lastSeen > tenMinutesAgo
+        ).length;
+
+        return {
+          _id: city._id,
+          name: city.name,
+          country: city.country,
+          distance: Math.round(distance),
+          activeUsers,
+        };
+      })
+      .filter((city) => city.distance <= radius && city.activeUsers > 0)
+      .sort((a, b) => b.activeUsers - a.activeUsers)
+      .slice(0, limit);
+
+    return nearbyCities;
+  },
+});
+
 // Helper function to calculate distance between two points
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Radius of the Earth in kilometers
