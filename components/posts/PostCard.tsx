@@ -7,6 +7,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import LikeButton from "@/components/shared/LikeButton";
+import { typeLabels, typeColors, difficultyColors, stripHtml } from "@/lib/post-utils";
 import { MessageCircle, Star } from "lucide-react";
 import Link from "next/link";
 
@@ -33,35 +34,6 @@ interface PostCardProps {
   onClick: () => void;
   isAuthenticated: boolean;
   onAuthPrompt: () => void;
-}
-
-const typeLabels = {
-  trail_report: "Trail Report",
-  recommendation: "Recommendation",
-  general: "General",
-};
-
-const typeColors = {
-  trail_report: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  recommendation: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  general: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-};
-
-const difficultyColors = {
-  easy: "bg-green-100 text-green-700",
-  moderate: "bg-yellow-100 text-yellow-700",
-  hard: "bg-orange-100 text-orange-700",
-  expert: "bg-red-100 text-red-700",
-};
-
-function stripHtml(html: string): string {
-  const text = html.replace(/<[^>]*>/g, "");
-  const textarea = typeof document !== "undefined" ? document.createElement("textarea") : null;
-  if (textarea) {
-    textarea.innerHTML = text;
-    return textarea.value.trim();
-  }
-  return text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
 }
 
 export default function PostCard({

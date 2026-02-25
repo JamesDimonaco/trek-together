@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import PostImageUpload from "./PostImageUpload";
 import PostEditor from "./PostEditor";
 import { analytics } from "@/lib/analytics";
+import { stripHtml } from "@/lib/post-utils";
 
 interface CreatePostFormProps {
   cityId: Id<"cities">;
@@ -46,13 +47,13 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
 
   const createPost = useMutation(api.posts.createPost);
 
-  // Clear difficulty and rating when type changes away from trail_report/recommendation
-  useEffect(() => {
-    if (type !== "trail_report" && type !== "recommendation") {
+  const handleTypeChange = (newType: typeof type) => {
+    setType(newType);
+    if (newType !== "trail_report" && newType !== "recommendation") {
       setDifficulty("");
       setRating(0);
     }
-  }, [type]);
+  };
 
   const resetForm = () => {
     setTitle("");
@@ -66,7 +67,14 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) return;
+    if (!title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (!stripHtml(content).length) {
+      toast.error("Content is required");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -124,7 +132,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
         <form onSubmit={handleSubmit} className={expanded ? "space-y-4 flex-1 flex flex-col min-h-0 overflow-y-auto" : "space-y-4"}>
           <div className="space-y-2">
             <Label htmlFor="post-type">Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as typeof type)}>
+            <Select value={type} onValueChange={(v) => handleTypeChange(v as typeof type)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -211,7 +219,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
 
           <Button
             type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim()}
+            disabled={isSubmitting || !title.trim() || !stripHtml(content).length}
             className="w-full bg-green-600 hover:bg-green-700"
           >
             {isSubmitting ? "Creating..." : "Create Post"}

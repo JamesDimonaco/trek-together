@@ -28,6 +28,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 import { analytics } from "@/lib/analytics";
+import { typeLabels, typeColors, difficultyColors, formatPostDate, isHtmlContent } from "@/lib/post-utils";
 import { useRouter } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -36,25 +37,6 @@ interface PostPageContentProps {
   cityId: string;
   session: SessionData;
 }
-
-const typeLabels = {
-  trail_report: "Trail Report",
-  recommendation: "Recommendation",
-  general: "General",
-};
-
-const typeColors = {
-  trail_report: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  recommendation: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  general: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-};
-
-const difficultyColors = {
-  easy: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  moderate: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  hard: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  expert: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-};
 
 export default function PostPageContent({ postId, cityId, session }: PostPageContentProps) {
   const router = useRouter();
@@ -123,14 +105,6 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
     }
   };
 
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   if (post === undefined) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -150,8 +124,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
     );
   }
 
-  // Check if content looks like HTML (from rich text editor)
-  const isHtmlContent = post.content.includes("<") && post.content.includes(">");
+  const htmlContent = isHtmlContent(post.content);
 
   return (
     <>
@@ -191,7 +164,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
           ) : (
             <span className="font-medium">Unknown</span>
           )}
-          <span>{formatDate(post._creationTime)}</span>
+          <span>{formatPostDate(post._creationTime)}</span>
           {currentUserId === post.authorId && (
             <div className="ml-auto flex items-center gap-1">
               <Button
@@ -260,7 +233,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
         )}
 
         {/* Content */}
-        {isHtmlContent ? (
+        {htmlContent ? (
           <div
             className="prose prose-sm dark:prose-invert max-w-none"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}

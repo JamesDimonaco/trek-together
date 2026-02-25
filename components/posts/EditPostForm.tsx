@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import PostImageUpload from "./PostImageUpload";
 import PostEditor from "./PostEditor";
 import { analytics } from "@/lib/analytics";
+import { stripHtml } from "@/lib/post-utils";
 
 interface EditPostFormProps {
   cityId: Id<"cities">;
@@ -62,7 +63,7 @@ export default function EditPostForm({
 
   const updatePost = useMutation(api.posts.updatePost);
 
-  // Reset form when post changes
+  // Reset form when a different post is loaded
   useEffect(() => {
     setTitle(post.title);
     setContent(post.content);
@@ -71,19 +72,26 @@ export default function EditPostForm({
     setRating(post.rating ?? 0);
     setImages(post.images);
     setImageUrls(post.imageUrls);
-  }, [post]);
+  }, [post._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Clear difficulty and rating when type changes away from trail_report/recommendation
-  useEffect(() => {
-    if (type !== "trail_report" && type !== "recommendation") {
+  const handleTypeChange = (newType: typeof type) => {
+    setType(newType);
+    if (newType !== "trail_report" && newType !== "recommendation") {
       setDifficulty("");
       setRating(0);
     }
-  }, [type]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) return;
+    if (!title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (!stripHtml(content).length) {
+      toast.error("Content is required");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -134,7 +142,7 @@ export default function EditPostForm({
         <form onSubmit={handleSubmit} className={expanded ? "space-y-4 flex-1 flex flex-col min-h-0 overflow-y-auto" : "space-y-4"}>
           <div className="space-y-2">
             <Label htmlFor="edit-post-type">Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as typeof type)}>
+            <Select value={type} onValueChange={(v) => handleTypeChange(v as typeof type)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -221,7 +229,7 @@ export default function EditPostForm({
 
           <Button
             type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim()}
+            disabled={isSubmitting || !title.trim() || !stripHtml(content).length}
             className="w-full bg-green-600 hover:bg-green-700"
           >
             {isSubmitting ? "Updating..." : "Update Post"}

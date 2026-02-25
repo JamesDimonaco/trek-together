@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
 import { SessionData } from "@/lib/types";
@@ -23,22 +23,23 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
   const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
   const updateLastSeen = useMutation(api.users.updateLastSeen);
+  const [suggestedShown, setSuggestedShown] = useState(false);
   const postCount = useQuery(api.posts.countPostsByCity, { cityId });
   const requestCount = useQuery(api.requests.countOpenRequestsByCity, { cityId });
-  const cityActivity = useQuery(api.cities.getCityActivity, { cityId });
-  const nearbyCities = useQuery(api.cities.getNearbyActiveCities, { cityId });
-  const suggestedRef = useRef(false);
+  const cityActivity = useQuery(api.cities.getCityActivity, !suggestedShown ? { cityId } : "skip");
+  const nearbyCities = useQuery(api.cities.getNearbyActiveCities, !suggestedShown ? { cityId } : "skip");
 
   // Reset suggestion flag when city changes
   useEffect(() => {
-    suggestedRef.current = false;
+    setSuggestedShown(false);
   }, [cityId]);
 
   const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
 
   // Get session from API
   useEffect(() => {
-    fetch("/api/session")
+    const controller = new AbortController();
+    fetch("/api/session", { signal: controller.signal })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Session fetch failed: ${res.status}`);
@@ -47,6 +48,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
       })
       .then(setSession)
       .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch session:", error);
         setSession({
           isAuthenticated: false,
@@ -55,6 +57,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
           username: "Anonymous",
         });
       });
+    return () => controller.abort();
   }, []);
 
   // Set current city when component mounts
@@ -90,7 +93,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
 
   // Suggest nearby active cities when current city is quiet
   useEffect(() => {
-    if (suggestedRef.current) return;
+    if (suggestedShown) return;
     if (cityActivity === undefined || nearbyCities === undefined) return;
 
     if (
@@ -98,7 +101,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
       !cityActivity.hasRecentMessages &&
       nearbyCities.length > 0
     ) {
-      suggestedRef.current = true;
+      setSuggestedShown(true);
       const top = nearbyCities[0];
       toast(
         `Quiet here! ${top.name} (${top.distance}km away) has ${top.activeUsers} active trekker${top.activeUsers === 1 ? "" : "s"}`,
@@ -111,7 +114,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
         }
       );
     }
-  }, [cityActivity, nearbyCities, router]);
+  }, [cityActivity, nearbyCities, router, suggestedShown]);
 
   if (!session) {
     return (
@@ -143,6 +146,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
               {postCount !== undefined && postCount > 0 && (
                 <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-[10px] font-medium min-w-[18px] text-center">
                   {postCount}
+                  <span className="sr-only"> posts</span>
                 </span>
               )}
             </TabsTrigger>
@@ -155,6 +159,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
               {requestCount !== undefined && requestCount > 0 && (
                 <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-[10px] font-medium min-w-[18px] text-center">
                   {requestCount}
+                  <span className="sr-only"> open requests</span>
                 </span>
               )}
             </TabsTrigger>
