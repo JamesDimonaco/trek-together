@@ -29,6 +29,11 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
   const nearbyCities = useQuery(api.cities.getNearbyActiveCities, { cityId });
   const suggestedRef = useRef(false);
 
+  // Reset suggestion flag when city changes
+  useEffect(() => {
+    suggestedRef.current = false;
+  }, [cityId]);
+
   const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
 
   // Get session from API

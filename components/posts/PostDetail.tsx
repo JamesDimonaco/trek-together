@@ -21,6 +21,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 import { analytics } from "@/lib/analytics";
+import DOMPurify from "isomorphic-dompurify";
 
 interface PostDetailProps {
   postId: Id<"posts">;
@@ -209,6 +210,7 @@ export default function PostDetail({
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowEditDialog(true)}
+                    aria-label="Edit post"
                     className="text-gray-500 hover:text-green-600 h-7 px-2"
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -217,6 +219,7 @@ export default function PostDetail({
                     variant="ghost"
                     size="sm"
                     onClick={handleDelete}
+                    aria-label="Delete post"
                     className="text-red-500 hover:text-red-600 h-7 px-2"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -230,8 +233,10 @@ export default function PostDetail({
           {post.imageUrls.length > 0 && (
             <div className="flex gap-2 overflow-x-auto py-2">
               {post.imageUrls.map((url, i) => (
-                <div
+                <button
                   key={i}
+                  type="button"
+                  aria-label={`View ${post.title} image ${i + 1}`}
                   className="relative w-48 h-36 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
                   onClick={() => setLightboxIndex(i)}
                 >
@@ -242,7 +247,7 @@ export default function PostDetail({
                     className="object-cover"
                     unoptimized
                   />
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -251,7 +256,7 @@ export default function PostDetail({
           {isHtmlContent ? (
             <div
               className="prose prose-sm dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
             />
           ) : (
             <div className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">

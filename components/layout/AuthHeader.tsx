@@ -29,10 +29,14 @@ export default function AuthHeader() {
   );
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchCurrentCity = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/api/current-city");
+        const response = await fetch("/api/current-city", {
+          signal: controller.signal,
+        });
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.city) {
@@ -40,13 +44,17 @@ export default function AuthHeader() {
           }
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch current city:", error);
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchCurrentCity();
+    return () => controller.abort();
   }, [pathname]);
 
   return (

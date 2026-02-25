@@ -64,6 +64,7 @@ export default function PostEditor({
       size="sm"
       onClick={onClick}
       title={title}
+      aria-label={title}
       className={cn(
         "h-7 w-7 p-0",
         isActive && "bg-gray-200 dark:bg-gray-700"

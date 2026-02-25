@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,12 @@ export default function ImageLightbox({
   alt,
 }: ImageLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex]);
+
+  if (images.length === 0) return null;
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,6 +64,7 @@ export default function ImageLightbox({
                 variant="ghost"
                 size="sm"
                 onClick={handlePrev}
+                aria-label="Previous image"
                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white h-10 w-10 p-0 rounded-full"
               >
                 <ChevronLeft className="h-6 w-6" />
@@ -66,6 +73,7 @@ export default function ImageLightbox({
                 variant="ghost"
                 size="sm"
                 onClick={handleNext}
+                aria-label="Next image"
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white h-10 w-10 p-0 rounded-full"
               >
                 <ChevronRight className="h-6 w-6" />

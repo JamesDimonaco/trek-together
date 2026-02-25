@@ -55,7 +55,13 @@ const difficultyColors = {
 };
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").trim();
+  const text = html.replace(/<[^>]*>/g, "");
+  const textarea = typeof document !== "undefined" ? document.createElement("textarea") : null;
+  if (textarea) {
+    textarea.innerHTML = text;
+    return textarea.value.trim();
+  }
+  return text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
 }
 
 export default function PostCard({

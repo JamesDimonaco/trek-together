@@ -113,6 +113,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
               variant="ghost"
               size="sm"
               onClick={() => setExpanded(!expanded)}
+              aria-label={expanded ? "Collapse editor" : "Expand editor"}
               className="h-7 w-7 p-0"
             >
               {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -182,6 +183,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
                       key={star}
                       type="button"
                       onClick={() => setRating(rating === star ? 0 : star)}
+                      aria-label={`Rate ${star} star${star === 1 ? "" : "s"}`}
                       className="p-0.5"
                     >
                       <Star
