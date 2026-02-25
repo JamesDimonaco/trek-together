@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
 import { SessionData } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageCircle, FileText, HandHelping } from "lucide-react";
 import { analytics } from "@/lib/analytics";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 import ChatClient from "./ChatClient";
 import PostsList from "@/components/posts/PostsList";
 import RequestsList from "@/components/requests/RequestsList";
@@ -18,14 +20,26 @@ interface CityPageTabsProps {
 }
 
 export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
+  const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
   const updateLastSeen = useMutation(api.users.updateLastSeen);
+  const [suggestedShown, setSuggestedShown] = useState(false);
+  const postCount = useQuery(api.posts.countPostsByCity, { cityId });
+  const requestCount = useQuery(api.requests.countOpenRequestsByCity, { cityId });
+  const cityActivity = useQuery(api.cities.getCityActivity, !suggestedShown ? { cityId } : "skip");
+  const nearbyCities = useQuery(api.cities.getNearbyActiveCities, !suggestedShown ? { cityId } : "skip");
+
+  // Reset suggestion flag when city changes
+  useEffect(() => {
+    setSuggestedShown(false);
+  }, [cityId]);
 
   const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
 
   // Get session from API
   useEffect(() => {
-    fetch("/api/session")
+    const controller = new AbortController();
+    fetch("/api/session", { signal: controller.signal })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Session fetch failed: ${res.status}`);
@@ -34,6 +48,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
       })
       .then(setSession)
       .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch session:", error);
         setSession({
           isAuthenticated: false,
@@ -42,6 +57,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
           username: "Anonymous",
         });
       });
+    return () => controller.abort();
   }, []);
 
   // Set current city when component mounts
@@ -75,6 +91,31 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
     return () => clearInterval(interval);
   }, [hasValidConvexUserId, session, updateLastSeen]);
 
+  // Suggest nearby active cities when current city is quiet
+  useEffect(() => {
+    if (suggestedShown) return;
+    if (cityActivity === undefined || nearbyCities === undefined) return;
+
+    if (
+      cityActivity.activeUsers === 0 &&
+      !cityActivity.hasRecentMessages &&
+      nearbyCities.length > 0
+    ) {
+      setSuggestedShown(true);
+      const top = nearbyCities[0];
+      toast(
+        `Quiet here! ${top.name} (${top.distance}km away) has ${top.activeUsers} active trekker${top.activeUsers === 1 ? "" : "s"}`,
+        {
+          action: {
+            label: "Join",
+            onClick: () => router.push(`/chat/${top._id}`),
+          },
+          duration: 10000,
+        }
+      );
+    }
+  }, [cityActivity, nearbyCities, router, suggestedShown]);
+
   if (!session) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -102,6 +143,12 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
             >
               <FileText className="h-3.5 w-3.5 mr-1" />
               Posts
+              {postCount !== undefined && postCount > 0 && (
+                <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-[10px] font-medium min-w-[18px] text-center">
+                  {postCount}
+                  <span className="sr-only"> posts</span>
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger
               value="requests"
@@ -109,6 +156,12 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
             >
               <HandHelping className="h-3.5 w-3.5 mr-1" />
               Requests
+              {requestCount !== undefined && requestCount > 0 && (
+                <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-[10px] font-medium min-w-[18px] text-center">
+                  {requestCount}
+                  <span className="sr-only"> open requests</span>
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
           <span className="text-gray-600 dark:text-gray-300 text-xs">

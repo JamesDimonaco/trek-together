@@ -117,20 +117,25 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         // Check if this is a username taken error
         if (error instanceof Error) {
-          try {
-            const errorData = JSON.parse(error.message);
-            if (errorData.code === "USERNAME_TAKEN") {
-              return NextResponse.json(
-                {
-                  error: errorData.message,
-                  code: errorData.code,
-                  suggestion: errorData.suggestion
-                },
-                { status: 409 } // 409 Conflict for username taken
-              );
+          // Convex wraps the error message - extract the JSON from it
+          const msg = error.message;
+          const jsonStart = msg.indexOf("{");
+          if (jsonStart !== -1) {
+            try {
+              const errorData = JSON.parse(msg.slice(jsonStart));
+              if (errorData.code === "USERNAME_TAKEN") {
+                return NextResponse.json(
+                  {
+                    error: errorData.message,
+                    code: errorData.code,
+                    suggestion: errorData.suggestion
+                  },
+                  { status: 409 }
+                );
+              }
+            } catch {
+              // Not a JSON error, continue to generic error handling
             }
-          } catch {
-            // Not a JSON error, continue to generic error handling
           }
         }
         // Re-throw if not a username error

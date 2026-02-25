@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageCircle, MapPin } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { SessionData } from "@/lib/types";
+import { MessageCircle, MapPin, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,9 +22,19 @@ interface CurrentCity {
   country: string;
 }
 
-export default function CurrentCityCard() {
+interface CurrentCityCardProps {
+  session: SessionData | null;
+  onFindNewCity: () => void;
+}
+
+export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityCardProps) {
   const [currentCity, setCurrentCity] = useState<CurrentCity | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
+  const visitedCities = useQuery(
+    api.users.getUserVisitedCities,
+    hasValidConvexUserId ? { userId: session!.userId as Id<"users"> } : "skip"
+  );
 
   useEffect(() => {
     const fetchCurrentCity = async () => {
@@ -34,8 +48,6 @@ export default function CurrentCityCard() {
         }
       } catch (error) {
         console.error("Failed to fetch current city:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -45,6 +57,9 @@ export default function CurrentCityCard() {
   if (!currentCity) {
     return null;
   }
+
+  // Filter out current city from visited cities list
+  const otherCities = visitedCities?.filter((c) => c._id !== currentCity._id) ?? [];
 
   return (
     <Card className="max-w-md mx-auto bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
@@ -72,9 +87,39 @@ export default function CurrentCityCard() {
           </Link>
         </Button>
 
-        <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-          Or find trekkers in a different city below
-        </p>
+        {otherCities.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              Your Cities
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {otherCities.map((city) => (
+                <Button
+                  key={city._id}
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="h-7 text-xs"
+                >
+                  <Link href={`/chat/${city._id}`}>
+                    <MapPin className="h-3 w-3 mr-1" />
+                    {city.name}
+                  </Link>
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onFindNewCity}
+          className="w-full gap-1.5"
+        >
+          <Compass className="h-4 w-4" />
+          Find Trekkers in a New City
+        </Button>
       </CardContent>
     </Card>
   );

@@ -191,7 +191,7 @@ export default function Home() {
       <main className="relative container mx-auto px-4 py-12 sm:py-20 max-w-4xl">
         {locationStep === "initial" && (
           <div className="space-y-10">
-            <CurrentCityCard />
+            <CurrentCityCard session={session} onFindNewCity={handleLocationRequest} />
             <HeroSection onLocationRequest={handleLocationRequest} />
           </div>
         )}

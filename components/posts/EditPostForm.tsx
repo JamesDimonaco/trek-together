@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,31 +20,59 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Star, Maximize2, Minimize2 } from "lucide-react";
+import { Star, Maximize2, Minimize2 } from "lucide-react";
 import { toast } from "sonner";
 import PostImageUpload from "./PostImageUpload";
 import PostEditor from "./PostEditor";
 import { analytics } from "@/lib/analytics";
 import { stripHtml } from "@/lib/post-utils";
 
-interface CreatePostFormProps {
+interface EditPostFormProps {
   cityId: Id<"cities">;
   userId: Id<"users">;
+  post: {
+    _id: Id<"posts">;
+    title: string;
+    content: string;
+    type: "trail_report" | "recommendation" | "general";
+    images: string[];
+    imageUrls: string[];
+    difficulty?: "easy" | "moderate" | "hard" | "expert";
+    rating?: number;
+  };
+  open: boolean;
+  onClose: () => void;
 }
 
-export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) {
-  const [open, setOpen] = useState(false);
+export default function EditPostForm({
+  cityId,
+  userId,
+  post,
+  open,
+  onClose,
+}: EditPostFormProps) {
   const [expanded, setExpanded] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [type, setType] = useState<"trail_report" | "recommendation" | "general">("general");
-  const [difficulty, setDifficulty] = useState<string>("");
-  const [rating, setRating] = useState<number>(0);
-  const [images, setImages] = useState<string[]>([]);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [title, setTitle] = useState(post.title);
+  const [content, setContent] = useState(post.content);
+  const [type, setType] = useState<"trail_report" | "recommendation" | "general">(post.type);
+  const [difficulty, setDifficulty] = useState<string>(post.difficulty ?? "");
+  const [rating, setRating] = useState<number>(post.rating ?? 0);
+  const [images, setImages] = useState<string[]>(post.images);
+  const [imageUrls, setImageUrls] = useState<string[]>(post.imageUrls);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createPost = useMutation(api.posts.createPost);
+  const updatePost = useMutation(api.posts.updatePost);
+
+  // Reset form when a different post is loaded
+  useEffect(() => {
+    setTitle(post.title);
+    setContent(post.content);
+    setType(post.type);
+    setDifficulty(post.difficulty ?? "");
+    setRating(post.rating ?? 0);
+    setImages(post.images);
+    setImageUrls(post.imageUrls);
+  }, [post._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTypeChange = (newType: typeof type) => {
     setType(newType);
@@ -53,16 +80,6 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
       setDifficulty("");
       setRating(0);
     }
-  };
-
-  const resetForm = () => {
-    setTitle("");
-    setContent("");
-    setType("general");
-    setDifficulty("");
-    setRating(0);
-    setImages([]);
-    setImageUrls([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,9 +95,9 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
 
     setIsSubmitting(true);
     try {
-      await createPost({
+      await updatePost({
         userId,
-        cityId,
+        postId: post._id,
         title: title.trim(),
         content: content.trim(),
         type,
@@ -91,13 +108,12 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
         rating: rating > 0 ? rating : undefined,
       });
 
-      analytics.postCreated(cityId, type);
-      toast.success("Post created!");
-      resetForm();
-      setOpen(false);
+      analytics.postEdited(post._id as string);
+      toast.success("Post updated!");
+      onClose();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to create post"
+        error instanceof Error ? error.message : "Failed to update post"
       );
     } finally {
       setIsSubmitting(false);
@@ -105,17 +121,11 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5">
-          <Plus className="h-4 w-4" />
-          New Post
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className={expanded ? "sm:max-w-4xl w-[90vw] h-[90vh] flex flex-col" : "max-w-lg max-h-[90vh] overflow-y-auto"}>
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>Create a Post</DialogTitle>
+            <DialogTitle>Edit Post</DialogTitle>
             <Button
               type="button"
               variant="ghost"
@@ -131,7 +141,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
 
         <form onSubmit={handleSubmit} className={expanded ? "space-y-4 flex-1 flex flex-col min-h-0 overflow-y-auto" : "space-y-4"}>
           <div className="space-y-2">
-            <Label htmlFor="post-type">Type</Label>
+            <Label htmlFor="edit-post-type">Type</Label>
             <Select value={type} onValueChange={(v) => handleTypeChange(v as typeof type)}>
               <SelectTrigger>
                 <SelectValue />
@@ -145,9 +155,9 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="post-title">Title</Label>
+            <Label htmlFor="edit-post-title">Title</Label>
             <Input
-              id="post-title"
+              id="edit-post-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Your post title..."
@@ -222,7 +232,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
             disabled={isSubmitting || !title.trim() || !stripHtml(content).length}
             className="w-full bg-green-600 hover:bg-green-700"
           >
-            {isSubmitting ? "Creating..." : "Create Post"}
+            {isSubmitting ? "Updating..." : "Update Post"}
           </Button>
         </form>
       </DialogContent>

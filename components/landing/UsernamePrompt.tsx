@@ -94,7 +94,7 @@ export default function UsernamePrompt({
           disabled={isLoading}
         >
           Stay anonymous
-          {session?.username && (
+          {session?.username && !session.isAuthenticated && (
             <span className="text-xs ml-2 text-muted-foreground">
               (as {session.username})
             </span>

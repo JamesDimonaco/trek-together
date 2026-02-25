@@ -21,7 +21,7 @@ export async function getCityData(cityId: string) {
       console.log("Invalid cityId format:", cityId);
       notFound();
     }
-    
+
     const city = await convex.query(api.cities.getCityById, {
       cityId: cityId as Id<"cities">,
     });
@@ -35,7 +35,21 @@ export async function getCityData(cityId: string) {
       console.log("Found city:", city);
     }
 
-    return city;
+    // Ensure the country record exists so country chat links work (best-effort)
+    let countrySlug: string | undefined;
+    try {
+      const country = await convex.mutation(api.countries.getOrCreateCountry, {
+        name: city.country,
+      });
+      countrySlug = country?.slug;
+    } catch (error) {
+      console.error("Failed to ensure country record:", error);
+    }
+
+    return {
+      ...city,
+      countrySlug,
+    };
   } catch (error) {
     console.error("Failed to fetch city:", error);
     notFound();

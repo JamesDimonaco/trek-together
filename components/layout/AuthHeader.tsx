@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mountain, User, MessageCircle, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import MessagesNavLink from "./MessagesNavLink";
@@ -17,6 +18,7 @@ interface CurrentCity {
 
 export default function AuthHeader() {
   const { userId: authUserId } = useAuth();
+  const pathname = usePathname();
   const [currentCity, setCurrentCity] = useState<CurrentCity | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,10 +29,14 @@ export default function AuthHeader() {
   );
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchCurrentCity = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/api/current-city");
+        const response = await fetch("/api/current-city", {
+          signal: controller.signal,
+        });
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.city) {
@@ -38,14 +44,18 @@ export default function AuthHeader() {
           }
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch current city:", error);
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchCurrentCity();
-  }, []);
+    return () => controller.abort();
+  }, [pathname]);
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -9,15 +10,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import LikeButton from "@/components/shared/LikeButton";
 import CommentSection from "@/components/shared/CommentSection";
-import { Star, Trash2, ArrowUpRight } from "lucide-react";
+import ImageLightbox from "@/components/shared/ImageLightbox";
+import EditPostForm from "./EditPostForm";
+import { Star, Trash2, ArrowUpRight, Pencil } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 import { analytics } from "@/lib/analytics";
+import { typeLabels, typeColors, difficultyColors, formatPostDate, isHtmlContent } from "@/lib/post-utils";
+import DOMPurify from "isomorphic-dompurify";
 
 interface PostDetailProps {
   postId: Id<"posts">;
@@ -29,25 +45,6 @@ interface PostDetailProps {
   onAuthPrompt: () => void;
 }
 
-const typeLabels = {
-  trail_report: "Trail Report",
-  recommendation: "Recommendation",
-  general: "General",
-};
-
-const typeColors = {
-  trail_report: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  recommendation: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  general: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-};
-
-const difficultyColors = {
-  easy: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  moderate: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  hard: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  expert: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-};
-
 export default function PostDetail({
   postId,
   cityId,
@@ -57,6 +54,9 @@ export default function PostDetail({
   onClose,
   onAuthPrompt,
 }: PostDetailProps) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
   const post = useQuery(
     api.posts.getPostById,
     open ? { postId, currentUserId } : "skip"
@@ -101,9 +101,8 @@ export default function PostDetail({
     }
   };
 
-  const handleDelete = async () => {
+  const handleConfirmDelete = async () => {
     if (!currentUserId) return;
-    if (!confirm("Are you sure you want to delete this post?")) return;
     try {
       await deletePost({ userId: currentUserId!, postId });
       toast.success("Post deleted");
@@ -111,14 +110,6 @@ export default function PostDetail({
     } catch {
       toast.error("Failed to delete post");
     }
-  };
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   if (post === undefined) {
@@ -150,106 +141,181 @@ export default function PostDetail({
     );
   }
 
+  const htmlContent = isHtmlContent(post.content);
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <Badge variant="secondary" className={typeColors[post.type]}>
-              {typeLabels[post.type]}
-            </Badge>
-            {post.difficulty && (
-              <Badge variant="secondary" className={difficultyColors[post.difficulty]}>
-                {post.difficulty}
+    <>
+      <Dialog open={open && !showEditDialog} onOpenChange={onClose}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <Badge variant="secondary" className={typeColors[post.type]}>
+                {typeLabels[post.type]}
               </Badge>
-            )}
-            {post.rating && (
-              <span className="flex items-center gap-0.5 text-sm text-yellow-500">
-                <Star className="h-4 w-4 fill-yellow-400" />
-                {post.rating}/5
-              </span>
-            )}
-          </div>
-          <DialogTitle className="text-lg">{post.title}</DialogTitle>
-          <Link
-            href={`/chat/${cityId}/posts/${postId}`}
-            onClick={onClose}
-            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
-          >
-            <ArrowUpRight className="h-3 w-3" />
-            Open full page
-          </Link>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            {post.author?._id ? (
-              <Link
-                href={`/profile/${post.author._id}`}
-                className="hover:text-green-600 dark:hover:text-green-400 font-medium"
-              >
-                {post.author.username}
-              </Link>
-            ) : (
-              <span className="hover:text-green-600 dark:hover:text-green-400 font-medium">
-                Unknown
-              </span>
-            )}
-            <span>{formatDate(post._creationTime)}</span>
-            {currentUserId === post.authorId && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDelete}
-                className="ml-auto text-red-500 hover:text-red-600 h-7 px-2"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
-        </DialogHeader>
+              {post.difficulty && (
+                <Badge variant="secondary" className={difficultyColors[post.difficulty]}>
+                  {post.difficulty}
+                </Badge>
+              )}
+              {post.rating && (
+                <span className="flex items-center gap-0.5 text-sm text-yellow-500">
+                  <Star className="h-4 w-4 fill-yellow-400" />
+                  {post.rating}/5
+                </span>
+              )}
+            </div>
+            <DialogTitle className="text-lg">{post.title}</DialogTitle>
+            <Link
+              href={`/chat/${cityId}/posts/${postId}`}
+              onClick={onClose}
+              className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
+            >
+              <ArrowUpRight className="h-3 w-3" />
+              Open full page
+            </Link>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              {post.author?._id ? (
+                <Link
+                  href={`/profile/${post.author._id}`}
+                  className="hover:text-green-600 dark:hover:text-green-400 font-medium"
+                >
+                  {post.author.username}
+                </Link>
+              ) : (
+                <span className="hover:text-green-600 dark:hover:text-green-400 font-medium">
+                  Unknown
+                </span>
+              )}
+              <span>{formatPostDate(post._creationTime)}</span>
+              {currentUserId === post.authorId && (
+                <div className="ml-auto flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowEditDialog(true)}
+                    aria-label="Edit post"
+                    className="text-gray-500 hover:text-green-600 h-7 px-2"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label="Delete post"
+                        className="text-red-500 hover:text-red-600 h-7 px-2"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete post?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete this post and all its comments. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleConfirmDelete}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
+            </div>
+          </DialogHeader>
 
-        {/* Images */}
-        {post.imageUrls.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto py-2">
-            {post.imageUrls.map((url, i) => (
-              <div
-                key={i}
-                className="relative w-48 h-36 rounded-lg overflow-hidden flex-shrink-0"
-              >
-                <Image
-                  src={url}
-                  alt={`${post.title} image ${i + 1}`}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-            ))}
+          {/* Images */}
+          {post.imageUrls.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto py-2">
+              {post.imageUrls.map((url, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={`View ${post.title} image ${i + 1}`}
+                  className="relative w-48 h-36 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+                  onClick={() => setLightboxIndex(i)}
+                >
+                  <Image
+                    src={url}
+                    alt={`${post.title} image ${i + 1}`}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Content */}
+          {htmlContent ? (
+            <div
+              className="prose prose-sm dark:prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+            />
+          ) : (
+            <div className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+              {post.content}
+            </div>
+          )}
+
+          {/* Like */}
+          <div className="flex items-center border-t border-b border-gray-200 dark:border-gray-700 py-1">
+            <LikeButton
+              liked={post.hasLiked}
+              count={post.likeCount}
+              onToggle={handleLike}
+            />
           </div>
-        )}
 
-        {/* Content */}
-        <div className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
-          {post.content}
-        </div>
-
-        {/* Like */}
-        <div className="flex items-center border-t border-b border-gray-200 dark:border-gray-700 py-1">
-          <LikeButton
-            liked={post.hasLiked}
-            count={post.likeCount}
-            onToggle={handleLike}
+          {/* Comments */}
+          <CommentSection
+            comments={post.comments}
+            currentUserId={currentUserId as string | undefined}
+            onAddComment={handleAddComment}
+            onDeleteComment={handleDeleteComment}
+            isAuthenticated={isAuthenticated}
+            onAuthPrompt={onAuthPrompt}
           />
-        </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Comments */}
-        <CommentSection
-          comments={post.comments}
-          currentUserId={currentUserId as string | undefined}
-          onAddComment={handleAddComment}
-          onDeleteComment={handleDeleteComment}
-          isAuthenticated={isAuthenticated}
-          onAuthPrompt={onAuthPrompt}
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={post.imageUrls}
+          initialIndex={lightboxIndex}
+          open={true}
+          onClose={() => setLightboxIndex(null)}
+          alt={post.title}
         />
-      </DialogContent>
-    </Dialog>
+      )}
+
+      {showEditDialog && currentUserId && (
+        <EditPostForm
+          cityId={cityId as Id<"cities">}
+          userId={currentUserId}
+          post={{
+            _id: postId,
+            title: post.title,
+            content: post.content,
+            type: post.type,
+            images: post.images,
+            imageUrls: post.imageUrls,
+            difficulty: post.difficulty,
+            rating: post.rating,
+          }}
+          open={showEditDialog}
+          onClose={() => setShowEditDialog(false)}
+        />
+      )}
+    </>
   );
 }

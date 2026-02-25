@@ -8,24 +8,15 @@ interface City {
   country: string;
   lat: number;
   lng: number;
+  countrySlug?: string;
 }
 
 interface ChatHeaderServerProps {
   city: City;
 }
 
-// Generate URL-safe slug from country name (same logic as backend)
-function generateCountrySlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
-}
-
 export default function ChatHeaderServer({ city }: ChatHeaderServerProps) {
-  const countrySlug = generateCountrySlug(city.country);
+  const countrySlug = city.countrySlug ?? city.country.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim();
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
