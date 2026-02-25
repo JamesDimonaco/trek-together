@@ -26,7 +26,8 @@ export function formatPostDate(timestamp: number): string {
 }
 
 export function isHtmlContent(content: string): boolean {
-  return /<[a-z][\s\S]*>/i.test(content);
+  // Match specific HTML tags that Tiptap outputs, not arbitrary angle brackets
+  return /<(?:p|h[1-6]|ul|ol|li|br|hr|blockquote|strong|em|code|pre|div|span)[\s>\/]/i.test(content);
 }
 
 export function stripHtml(html: string): string {
