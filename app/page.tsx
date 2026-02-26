@@ -20,6 +20,7 @@ import ManualLocation from "@/components/landing/ManualLocation";
 import LocationConfirmation from "@/components/landing/LocationConfirmation";
 import UsernamePrompt from "@/components/landing/UsernamePrompt";
 import CurrentCityCard from "@/components/landing/CurrentCityCard";
+import RecentActivityCarousel from "@/components/landing/RecentActivityCarousel";
 
 export default function Home() {
   const router = useRouter();
@@ -193,6 +194,7 @@ export default function Home() {
           <div className="space-y-10">
             <CurrentCityCard session={session} onFindNewCity={handleLocationRequest} />
             <HeroSection onLocationRequest={handleLocationRequest} />
+            <RecentActivityCarousel />
           </div>
         )}
 

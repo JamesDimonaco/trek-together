@@ -362,6 +362,97 @@ export const addRequestComment = mutation({
   },
 });
 
+// Get requests by a specific author (for My Activity page)
+export const getRequestsByAuthor = query({
+  args: {
+    authorId: v.id("users"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const requests = await ctx.db
+      .query("requests")
+      .withIndex("by_author", (q) => q.eq("authorId", args.authorId))
+      .order("desc")
+      .take(args.limit ?? 50);
+
+    const enriched = await Promise.all(
+      requests.map(async (req) => {
+        const city = await ctx.db.get(req.cityId);
+        const interests = await ctx.db
+          .query("request_interests")
+          .withIndex("by_request", (q) => q.eq("requestId", req._id))
+          .collect();
+        const comments = await ctx.db
+          .query("request_comments")
+          .withIndex("by_request", (q) => q.eq("requestId", req._id))
+          .collect();
+
+        return {
+          ...req,
+          city: city
+            ? { _id: city._id, name: city.name, country: city.country }
+            : null,
+          interestCount: interests.length,
+          commentCount: comments.length,
+        };
+      })
+    );
+
+    return enriched;
+  },
+});
+
+// Get recent open requests across all cities (for homepage carousel)
+export const getRecentRequests = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const requests = await ctx.db
+      .query("requests")
+      .order("desc")
+      .take((args.limit ?? 10) * 3);
+
+    // Filter to open only after fetching (no compound index for status + global order)
+    const openRequests = requests
+      .filter((req) => req.status === "open")
+      .slice(0, args.limit ?? 10);
+
+    const enriched = await Promise.all(
+      openRequests.map(async (req) => {
+        const author = await ctx.db.get(req.authorId);
+        const city = await ctx.db.get(req.cityId);
+        const interests = await ctx.db
+          .query("request_interests")
+          .withIndex("by_request", (q) => q.eq("requestId", req._id))
+          .collect();
+        const comments = await ctx.db
+          .query("request_comments")
+          .withIndex("by_request", (q) => q.eq("requestId", req._id))
+          .collect();
+
+        return {
+          ...req,
+          author: author
+            ? {
+                _id: author._id,
+                username: author.username,
+                avatarUrl: author.avatarUrl,
+              }
+            : null,
+          city: city
+            ? { _id: city._id, name: city.name, country: city.country }
+            : null,
+          interestCount: interests.length,
+          commentCount: comments.length,
+        };
+      })
+    );
+
+    return enriched;
+  },
+});
+
 // Count open requests for a city
 export const countOpenRequestsByCity = query({
   args: { cityId: v.id("cities") },

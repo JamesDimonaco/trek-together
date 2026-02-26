@@ -462,6 +462,92 @@ export const addPostComment = mutation({
   },
 });
 
+// Get posts by a specific author (for My Activity page)
+export const getPostsByAuthor = query({
+  args: {
+    authorId: v.id("users"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_author", (q) => q.eq("authorId", args.authorId))
+      .order("desc")
+      .take(args.limit ?? 50);
+
+    const enriched = await Promise.all(
+      posts.map(async (post) => {
+        const city = await ctx.db.get(post.cityId);
+        const likes = await ctx.db
+          .query("post_likes")
+          .withIndex("by_post", (q) => q.eq("postId", post._id))
+          .collect();
+        const comments = await ctx.db
+          .query("post_comments")
+          .withIndex("by_post", (q) => q.eq("postId", post._id))
+          .collect();
+
+        return {
+          ...post,
+          city: city
+            ? { _id: city._id, name: city.name, country: city.country }
+            : null,
+          likeCount: likes.length,
+          commentCount: comments.length,
+        };
+      })
+    );
+
+    return enriched;
+  },
+});
+
+// Get recent posts across all cities (for homepage carousel)
+export const getRecentPosts = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const posts = await ctx.db
+      .query("posts")
+      .order("desc")
+      .take(args.limit ?? 10);
+
+    const enriched = await Promise.all(
+      posts.map(async (post) => {
+        const author = await ctx.db.get(post.authorId);
+        const city = await ctx.db.get(post.cityId);
+        const likes = await ctx.db
+          .query("post_likes")
+          .withIndex("by_post", (q) => q.eq("postId", post._id))
+          .collect();
+        const comments = await ctx.db
+          .query("post_comments")
+          .withIndex("by_post", (q) => q.eq("postId", post._id))
+          .collect();
+
+        return {
+          ...post,
+          author: author
+            ? {
+                _id: author._id,
+                username: author.username,
+                avatarUrl: author.avatarUrl,
+              }
+            : null,
+          city: city
+            ? { _id: city._id, name: city.name, country: city.country }
+            : null,
+          likeCount: likes.length,
+          commentCount: comments.length,
+        };
+      })
+    );
+
+    return enriched;
+  },
+});
+
 // Get all post IDs with cityId and creation time (for sitemap)
 export const getAllPostIds = query({
   args: {},
