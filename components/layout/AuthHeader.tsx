@@ -147,22 +147,20 @@ export default function AuthHeader() {
                 }}
                 userProfileMode="modal"
               >
-                <UserButton.MenuItems>
-                  {currentUser && (
-                    <>
-                      <UserButton.Link
-                        label="Profile"
-                        labelIcon={<User className="h-4 w-4" />}
-                        href={`/profile/${currentUser._id}`}
-                      />
-                      <UserButton.Link
-                        label="My Activity"
-                        labelIcon={<FileText className="h-4 w-4" />}
-                        href="/my-activity"
-                      />
-                    </>
-                  )}
-                </UserButton.MenuItems>
+                {currentUser && (
+                  <UserButton.MenuItems>
+                    <UserButton.Link
+                      label="Profile"
+                      labelIcon={<User className="h-4 w-4" />}
+                      href={`/profile/${currentUser._id}`}
+                    />
+                    <UserButton.Link
+                      label="My Activity"
+                      labelIcon={<FileText className="h-4 w-4" />}
+                      href="/my-activity"
+                    />
+                  </UserButton.MenuItems>
+                )}
               </UserButton>
             </SignedIn>
           </div>
