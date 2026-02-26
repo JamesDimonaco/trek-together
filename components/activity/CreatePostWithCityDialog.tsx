@@ -72,7 +72,18 @@ export default function CreatePostWithCityDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cityId || !title.trim() || !stripHtml(content).length) return;
+    if (!cityId) {
+      toast.error("Please select a city");
+      return;
+    }
+    if (!title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (!stripHtml(content).length) {
+      toast.error("Content is required");
+      return;
+    }
 
     setIsSubmitting(true);
     try {

@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { useQuery } from "convex/react";
+import { useAuth } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,9 +11,23 @@ import RecentActivityCard from "./RecentActivityCard";
 
 export default function RecentActivityCarousel() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { userId: authUserId } = useAuth();
 
-  const recentPosts = useQuery(api.posts.getRecentPosts, { limit: 6 });
-  const recentRequests = useQuery(api.requests.getRecentRequests, { limit: 6 });
+  const currentUser = useQuery(
+    api.users.getUserByAuthId,
+    authUserId ? { authId: authUserId } : "skip"
+  );
+
+  const currentUserId = currentUser?._id;
+
+  const recentPosts = useQuery(api.posts.getRecentPosts, {
+    limit: 6,
+    currentUserId: currentUserId ?? undefined,
+  });
+  const recentRequests = useQuery(api.requests.getRecentRequests, {
+    limit: 6,
+    currentUserId: currentUserId ?? undefined,
+  });
 
   const items = useMemo(() => {
     const all = [
@@ -89,8 +104,7 @@ export default function RecentActivityCarousel() {
 
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none]"
       >
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (

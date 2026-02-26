@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { MapPin, Loader2 } from "lucide-react";
 
 interface CitySelectorProps {
   userId: Id<"users">;
@@ -27,7 +27,18 @@ export default function CitySelector({
 }: CitySelectorProps) {
   const cities = useQuery(api.users.getUserVisitedCities, { userId });
 
-  if (cities && cities.length === 0) {
+  if (cities === undefined) {
+    return (
+      <div className="space-y-2">
+        <Label>City</Label>
+        <div className="flex items-center justify-center h-10 rounded-md border border-input bg-background">
+          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
+
+  if (cities.length === 0) {
     return (
       <div className="text-center py-4 text-sm text-gray-500">
         <MapPin className="h-5 w-5 mx-auto mb-2 text-gray-400" />
@@ -41,13 +52,13 @@ export default function CitySelector({
 
   return (
     <div className="space-y-2">
-      <Label>City</Label>
+      <Label htmlFor="city-select">City</Label>
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger>
+        <SelectTrigger id="city-select">
           <SelectValue placeholder="Select a city..." />
         </SelectTrigger>
         <SelectContent>
-          {cities?.map((city) => (
+          {cities.map((city) => (
             <SelectItem key={city._id} value={city._id}>
               {city.name}, {city.country}
             </SelectItem>

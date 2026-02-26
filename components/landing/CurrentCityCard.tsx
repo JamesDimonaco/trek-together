@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { SessionData } from "@/lib/types";
-import { MessageCircle, MapPin, Compass } from "lucide-react";
+import { MessageCircle, MapPin, Compass, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,8 +27,11 @@ interface CurrentCityCardProps {
   onFindNewCity: () => void;
 }
 
+const VISIBLE_CITY_COUNT = 6;
+
 export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityCardProps) {
   const [currentCity, setCurrentCity] = useState<CurrentCity | null>(null);
+  const [showAllCities, setShowAllCities] = useState(false);
 
   const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
   const visitedCities = useQuery(
@@ -58,8 +61,12 @@ export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityC
     return null;
   }
 
-  // Filter out current city from visited cities list
-  const otherCities = visitedCities?.filter((c) => c._id !== currentCity._id) ?? [];
+  // Filter out current city, reverse for most-recent-first
+  const otherCities = (visitedCities?.filter((c) => c._id !== currentCity._id) ?? []).toReversed();
+  const visibleCities = showAllCities
+    ? otherCities
+    : otherCities.slice(0, VISIBLE_CITY_COUNT);
+  const hasMore = otherCities.length > VISIBLE_CITY_COUNT;
 
   return (
     <Card className="max-w-md mx-auto bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
@@ -93,7 +100,7 @@ export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityC
               Your Cities
             </p>
             <div className="flex flex-wrap gap-2">
-              {otherCities.map((city) => (
+              {visibleCities.map((city) => (
                 <Button
                   key={city._id}
                   variant="outline"
@@ -108,6 +115,24 @@ export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityC
                 </Button>
               ))}
             </div>
+            {hasMore && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAllCities(!showAllCities)}
+                className="w-full h-7 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                {showAllCities ? (
+                  <>
+                    Show less <ChevronUp className="h-3 w-3 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Show {otherCities.length - VISIBLE_CITY_COUNT} more <ChevronDown className="h-3 w-3 ml-1" />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         )}
 

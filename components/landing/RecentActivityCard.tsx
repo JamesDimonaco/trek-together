@@ -6,6 +6,7 @@ import { MapPin } from "lucide-react";
 import Link from "next/link";
 import { typeLabels, typeColors, stripHtml, isHtmlContent } from "@/lib/post-utils";
 import { activityColors } from "@/lib/request-utils";
+import { timeAgo } from "@/lib/time-utils";
 
 interface PostItem {
   itemType: "post";
@@ -34,21 +35,6 @@ interface RequestItem {
 type RecentActivityCardProps = {
   item: PostItem | RequestItem;
 };
-
-function timeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
 
 export default function RecentActivityCard({ item }: RecentActivityCardProps) {
   const href =
@@ -100,7 +86,7 @@ export default function RecentActivityCard({ item }: RecentActivityCardProps) {
               </span>
               {item.author && (
                 <>
-                  <span className="mx-1">·</span>
+                  <span className="mx-1">&middot;</span>
                   <span className="truncate">{item.author.username}</span>
                 </>
               )}

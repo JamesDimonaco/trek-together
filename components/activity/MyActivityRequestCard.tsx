@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, MessageCircle, Users, MapPin } from "lucide-react";
 import Link from "next/link";
 import { activityColors, formatDateRange } from "@/lib/request-utils";
+import { timeAgo } from "@/lib/time-utils";
 
 interface MyActivityRequestCardProps {
   request: {
@@ -21,21 +22,6 @@ interface MyActivityRequestCardProps {
     interestCount: number;
     commentCount: number;
   };
-}
-
-function timeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
 }
 
 export default function MyActivityRequestCard({
@@ -78,6 +64,7 @@ export default function MyActivityRequestCard({
               <span>{formatDateRange(request.dateFrom, request.dateTo)}</span>
             </div>
             <div className="flex items-center gap-3">
+              <span>{timeAgo(request._creationTime)}</span>
               <span className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
                 {request.interestCount}

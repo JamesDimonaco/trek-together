@@ -28,12 +28,12 @@ export default function MyActivityPage() {
 
   const posts = useQuery(
     api.posts.getPostsByAuthor,
-    convexUserId ? { authorId: convexUserId } : "skip"
+    convexUserId ? { userId: convexUserId, authorId: convexUserId } : "skip"
   );
 
   const requests = useQuery(
     api.requests.getRequestsByAuthor,
-    convexUserId ? { authorId: convexUserId } : "skip"
+    convexUserId ? { userId: convexUserId, authorId: convexUserId } : "skip"
   );
 
   // Redirect to sign-in if not authenticated

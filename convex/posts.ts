@@ -462,18 +462,29 @@ export const addPostComment = mutation({
   },
 });
 
-// Get posts by a specific author (for My Activity page)
+// Get posts by a specific author (for My Activity page, auth required)
 export const getPostsByAuthor = query({
   args: {
+    userId: v.id("users"),
     authorId: v.id("users"),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    // Verify caller is authenticated and is the author
+    const user = await ctx.db.get(args.userId);
+    if (!user || !user.authId) {
+      throw new Error("Authentication required");
+    }
+    if (args.userId !== args.authorId) {
+      throw new Error("You can only view your own activity");
+    }
+
+    const safeLimit = Math.max(1, Math.min(args.limit ?? 50, 50));
     const posts = await ctx.db
       .query("posts")
       .withIndex("by_author", (q) => q.eq("authorId", args.authorId))
       .order("desc")
-      .take(args.limit ?? 50);
+      .take(safeLimit);
 
     const enriched = await Promise.all(
       posts.map(async (post) => {
@@ -506,15 +517,28 @@ export const getPostsByAuthor = query({
 export const getRecentPosts = query({
   args: {
     limit: v.optional(v.number()),
+    currentUserId: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
+    const safeLimit = Math.max(1, Math.min(args.limit ?? 10, 20));
+
+    // Build blocked user set if caller is authenticated
+    let blockedUserIds = new Set<string>();
+    if (args.currentUserId) {
+      blockedUserIds = await getBlockedUserIds(ctx, args.currentUserId);
+    }
+
     const posts = await ctx.db
       .query("posts")
       .order("desc")
-      .take(args.limit ?? 10);
+      .take(safeLimit + blockedUserIds.size);
+
+    const filtered = posts.filter(
+      (post) => !blockedUserIds.has(post.authorId)
+    ).slice(0, safeLimit);
 
     const enriched = await Promise.all(
-      posts.map(async (post) => {
+      filtered.map(async (post) => {
         const author = await ctx.db.get(post.authorId);
         const city = await ctx.db.get(post.cityId);
         const likes = await ctx.db

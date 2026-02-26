@@ -56,7 +56,22 @@ export default function CreateRequestWithCityDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cityId || !title.trim() || !description.trim() || !dateFrom) return;
+    if (!cityId) {
+      toast.error("Please select a city");
+      return;
+    }
+    if (!title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (!description.trim()) {
+      toast.error("Description is required");
+      return;
+    }
+    if (!dateFrom) {
+      toast.error("Start date is required");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -111,7 +126,7 @@ export default function CreateRequestWithCityDialog({
           <div className="space-y-2">
             <Label htmlFor="req-activity-type">Activity Type</Label>
             <Select value={activityType} onValueChange={setActivityType}>
-              <SelectTrigger>
+              <SelectTrigger id="req-activity-type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

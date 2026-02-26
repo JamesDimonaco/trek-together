@@ -362,18 +362,29 @@ export const addRequestComment = mutation({
   },
 });
 
-// Get requests by a specific author (for My Activity page)
+// Get requests by a specific author (for My Activity page, auth required)
 export const getRequestsByAuthor = query({
   args: {
+    userId: v.id("users"),
     authorId: v.id("users"),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    // Verify caller is authenticated and is the author
+    const user = await ctx.db.get(args.userId);
+    if (!user || !user.authId) {
+      throw new Error("Authentication required");
+    }
+    if (args.userId !== args.authorId) {
+      throw new Error("You can only view your own activity");
+    }
+
+    const safeLimit = Math.max(1, Math.min(args.limit ?? 50, 50));
     const requests = await ctx.db
       .query("requests")
       .withIndex("by_author", (q) => q.eq("authorId", args.authorId))
       .order("desc")
-      .take(args.limit ?? 50);
+      .take(safeLimit);
 
     const enriched = await Promise.all(
       requests.map(async (req) => {
@@ -406,22 +417,51 @@ export const getRequestsByAuthor = query({
 export const getRecentRequests = query({
   args: {
     limit: v.optional(v.number()),
+    currentUserId: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
-    const requests = await ctx.db
-      .query("requests")
-      .order("desc")
-      .take((args.limit ?? 10) * 3);
+    const targetLimit = Math.max(1, Math.min(args.limit ?? 10, 20));
+    const batchSize = targetLimit * 3;
 
-    // Filter to open only after fetching (no compound index for status + global order)
-    const openRequests = requests
-      .filter((req) => req.status === "open")
-      .slice(0, args.limit ?? 10);
+    // Build blocked user set if caller is authenticated
+    let blockedUserIds = new Set<string>();
+    if (args.currentUserId) {
+      blockedUserIds = await getBlockedUserIds(ctx, args.currentUserId);
+    }
+
+    // Paginated fetch to ensure we get enough open, non-blocked requests
+    const openRequests: any[] = [];
+    let cursor: any = undefined;
+    let iterations = 0;
+    const maxIterations = 5;
+
+    while (openRequests.length < targetLimit && iterations < maxIterations) {
+      iterations++;
+      const page = await ctx.db
+        .query("requests")
+        .order("desc")
+        .paginate({ numItems: batchSize, cursor: cursor ?? null });
+
+      for (const req of page.page) {
+        if (
+          req.status === "open" &&
+          !blockedUserIds.has(req.authorId)
+        ) {
+          openRequests.push(req);
+          if (openRequests.length >= targetLimit) break;
+        }
+      }
+
+      if (page.isDone) break;
+      cursor = page.continueCursor;
+    }
 
     const enriched = await Promise.all(
       openRequests.map(async (req) => {
-        const author = await ctx.db.get(req.authorId);
-        const city = await ctx.db.get(req.cityId);
+        const authorId = req.authorId as Id<"users">;
+        const cityId = req.cityId as Id<"cities">;
+        const author = await ctx.db.get(authorId);
+        const city = await ctx.db.get(cityId);
         const interests = await ctx.db
           .query("request_interests")
           .withIndex("by_request", (q) => q.eq("requestId", req._id))
