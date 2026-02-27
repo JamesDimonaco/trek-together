@@ -362,6 +362,137 @@ export const addRequestComment = mutation({
   },
 });
 
+// Get requests by a specific author (for My Activity page, auth required)
+export const getRequestsByAuthor = query({
+  args: {
+    userId: v.id("users"),
+    authorId: v.id("users"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Verify caller is authenticated and is the author
+    const user = await ctx.db.get(args.userId);
+    if (!user || !user.authId) {
+      throw new Error("Authentication required");
+    }
+    if (args.userId !== args.authorId) {
+      throw new Error("You can only view your own activity");
+    }
+
+    const safeLimit = Math.max(1, Math.min(args.limit ?? 50, 50));
+    const requests = await ctx.db
+      .query("requests")
+      .withIndex("by_author", (q) => q.eq("authorId", args.authorId))
+      .order("desc")
+      .take(safeLimit);
+
+    const enriched = await Promise.all(
+      requests.map(async (req) => {
+        const city = await ctx.db.get(req.cityId);
+        const interests = await ctx.db
+          .query("request_interests")
+          .withIndex("by_request", (q) => q.eq("requestId", req._id))
+          .collect();
+        const comments = await ctx.db
+          .query("request_comments")
+          .withIndex("by_request", (q) => q.eq("requestId", req._id))
+          .collect();
+
+        return {
+          ...req,
+          city: city
+            ? { _id: city._id, name: city.name, country: city.country }
+            : null,
+          interestCount: interests.length,
+          commentCount: comments.length,
+        };
+      })
+    );
+
+    return enriched;
+  },
+});
+
+// Get recent open requests across all cities (for homepage carousel)
+export const getRecentRequests = query({
+  args: {
+    limit: v.optional(v.number()),
+    currentUserId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, args) => {
+    const targetLimit = Math.max(1, Math.min(args.limit ?? 10, 20));
+    const batchSize = targetLimit * 3;
+
+    // Build blocked user set if caller is authenticated
+    let blockedUserIds = new Set<string>();
+    if (args.currentUserId) {
+      blockedUserIds = await getBlockedUserIds(ctx, args.currentUserId);
+    }
+
+    // Paginated fetch to ensure we get enough open, non-blocked requests
+    const openRequests: any[] = [];
+    let cursor: any = undefined;
+    let iterations = 0;
+    const maxIterations = 5;
+
+    while (openRequests.length < targetLimit && iterations < maxIterations) {
+      iterations++;
+      const page = await ctx.db
+        .query("requests")
+        .order("desc")
+        .paginate({ numItems: batchSize, cursor: cursor ?? null });
+
+      for (const req of page.page) {
+        if (
+          req.status === "open" &&
+          !blockedUserIds.has(req.authorId)
+        ) {
+          openRequests.push(req);
+          if (openRequests.length >= targetLimit) break;
+        }
+      }
+
+      if (page.isDone) break;
+      cursor = page.continueCursor;
+    }
+
+    const enriched = await Promise.all(
+      openRequests.map(async (req) => {
+        const authorId = req.authorId as Id<"users">;
+        const cityId = req.cityId as Id<"cities">;
+        const author = await ctx.db.get(authorId);
+        const city = await ctx.db.get(cityId);
+        const interests = await ctx.db
+          .query("request_interests")
+          .withIndex("by_request", (q) => q.eq("requestId", req._id))
+          .collect();
+        const comments = await ctx.db
+          .query("request_comments")
+          .withIndex("by_request", (q) => q.eq("requestId", req._id))
+          .collect();
+
+        return {
+          ...req,
+          author: author
+            ? {
+                _id: author._id,
+                username: author.username,
+                avatarUrl: author.avatarUrl,
+              }
+            : null,
+          city: city
+            ? { _id: city._id, name: city.name, country: city.country }
+            : null,
+          interestCount: interests.length,
+          commentCount: comments.length,
+        };
+      })
+    );
+
+    return enriched;
+  },
+});
+
 // Count open requests for a city
 export const countOpenRequestsByCity = query({
   args: { cityId: v.id("cities") },

@@ -462,6 +462,134 @@ export const addPostComment = mutation({
   },
 });
 
+// Get posts by a specific author (for My Activity page, auth required)
+export const getPostsByAuthor = query({
+  args: {
+    userId: v.id("users"),
+    authorId: v.id("users"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Verify caller is authenticated and is the author
+    const user = await ctx.db.get(args.userId);
+    if (!user || !user.authId) {
+      throw new Error("Authentication required");
+    }
+    if (args.userId !== args.authorId) {
+      throw new Error("You can only view your own activity");
+    }
+
+    const safeLimit = Math.max(1, Math.min(args.limit ?? 50, 50));
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_author", (q) => q.eq("authorId", args.authorId))
+      .order("desc")
+      .take(safeLimit);
+
+    const enriched = await Promise.all(
+      posts.map(async (post) => {
+        const city = await ctx.db.get(post.cityId);
+        const likes = await ctx.db
+          .query("post_likes")
+          .withIndex("by_post", (q) => q.eq("postId", post._id))
+          .collect();
+        const comments = await ctx.db
+          .query("post_comments")
+          .withIndex("by_post", (q) => q.eq("postId", post._id))
+          .collect();
+
+        return {
+          ...post,
+          city: city
+            ? { _id: city._id, name: city.name, country: city.country }
+            : null,
+          likeCount: likes.length,
+          commentCount: comments.length,
+        };
+      })
+    );
+
+    return enriched;
+  },
+});
+
+// Get recent posts across all cities (for homepage carousel)
+export const getRecentPosts = query({
+  args: {
+    limit: v.optional(v.number()),
+    currentUserId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, args) => {
+    const safeLimit = Math.max(1, Math.min(args.limit ?? 10, 20));
+
+    // Build blocked user set if caller is authenticated
+    let blockedUserIds = new Set<string>();
+    if (args.currentUserId) {
+      blockedUserIds = await getBlockedUserIds(ctx, args.currentUserId);
+    }
+
+    // Paginated fetch to reliably fill results even if blocked posts cluster
+    const batchSize = safeLimit * 3;
+    const filtered: any[] = [];
+    let cursor: any = undefined;
+    let iterations = 0;
+    const maxIterations = 5;
+
+    while (filtered.length < safeLimit && iterations < maxIterations) {
+      iterations++;
+      const page = await ctx.db
+        .query("posts")
+        .order("desc")
+        .paginate({ numItems: batchSize, cursor: cursor ?? null });
+
+      for (const post of page.page) {
+        if (!blockedUserIds.has(post.authorId)) {
+          filtered.push(post);
+          if (filtered.length >= safeLimit) break;
+        }
+      }
+
+      if (page.isDone) break;
+      cursor = page.continueCursor;
+    }
+
+    const enriched = await Promise.all(
+      filtered.map(async (post) => {
+        const authorId = post.authorId as Id<"users">;
+        const cityId = post.cityId as Id<"cities">;
+        const author = await ctx.db.get(authorId);
+        const city = await ctx.db.get(cityId);
+        const likes = await ctx.db
+          .query("post_likes")
+          .withIndex("by_post", (q) => q.eq("postId", post._id))
+          .collect();
+        const comments = await ctx.db
+          .query("post_comments")
+          .withIndex("by_post", (q) => q.eq("postId", post._id))
+          .collect();
+
+        return {
+          ...post,
+          author: author
+            ? {
+                _id: author._id,
+                username: author.username,
+                avatarUrl: author.avatarUrl,
+              }
+            : null,
+          city: city
+            ? { _id: city._id, name: city.name, country: city.country }
+            : null,
+          likeCount: likes.length,
+          commentCount: comments.length,
+        };
+      })
+    );
+
+    return enriched;
+  },
+});
+
 // Get all post IDs with cityId and creation time (for sitemap)
 export const getAllPostIds = query({
   args: {},

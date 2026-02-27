@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { SessionData } from "@/lib/types";
-import { MessageCircle, MapPin, Compass } from "lucide-react";
+import { MessageCircle, MapPin, Compass, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,8 +27,11 @@ interface CurrentCityCardProps {
   onFindNewCity: () => void;
 }
 
+const VISIBLE_CITY_COUNT = 6;
+
 export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityCardProps) {
   const [currentCity, setCurrentCity] = useState<CurrentCity | null>(null);
+  const [showAllCities, setShowAllCities] = useState(false);
 
   const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
   const visitedCities = useQuery(
@@ -58,8 +61,14 @@ export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityC
     return null;
   }
 
-  // Filter out current city from visited cities list
-  const otherCities = visitedCities?.filter((c) => c._id !== currentCity._id) ?? [];
+  const citiesLoading = hasValidConvexUserId && visitedCities === undefined;
+
+  // Filter out current city, reverse for most-recent-first
+  const otherCities = [...(visitedCities?.filter((c) => c._id !== currentCity._id) ?? [])].reverse();
+  const visibleCities = showAllCities
+    ? otherCities
+    : otherCities.slice(0, VISIBLE_CITY_COUNT);
+  const hasMore = otherCities.length > VISIBLE_CITY_COUNT;
 
   return (
     <Card className="max-w-md mx-auto bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
@@ -87,13 +96,27 @@ export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityC
           </Link>
         </Button>
 
-        {otherCities.length > 0 && (
+        {citiesLoading ? (
           <div className="space-y-2">
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Your Cities
             </p>
             <div className="flex flex-wrap gap-2">
-              {otherCities.map((city) => (
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-7 w-20 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse"
+                />
+              ))}
+            </div>
+          </div>
+        ) : otherCities.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              Your Cities
+            </p>
+            <div id="city-list" className="flex flex-wrap gap-2">
+              {visibleCities.map((city) => (
                 <Button
                   key={city._id}
                   variant="outline"
@@ -108,8 +131,28 @@ export default function CurrentCityCard({ session, onFindNewCity }: CurrentCityC
                 </Button>
               ))}
             </div>
+            {hasMore && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAllCities(!showAllCities)}
+                aria-expanded={showAllCities}
+                aria-controls="city-list"
+                className="w-full h-7 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                {showAllCities ? (
+                  <>
+                    Show less <ChevronUp className="h-3 w-3 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Show {otherCities.length - VISIBLE_CITY_COUNT} more <ChevronDown className="h-3 w-3 ml-1" />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
-        )}
+        ) : null}
 
         <Button
           variant="outline"

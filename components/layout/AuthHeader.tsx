@@ -2,7 +2,7 @@
 
 import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Mountain, User, MessageCircle, MapPin, Users } from "lucide-react";
+import { Mountain, User, MessageCircle, MapPin, Users, FileText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -147,15 +147,20 @@ export default function AuthHeader() {
                 }}
                 userProfileMode="modal"
               >
-                <UserButton.MenuItems>
-                  {currentUser && (
+                {currentUser && (
+                  <UserButton.MenuItems>
                     <UserButton.Link
                       label="Profile"
                       labelIcon={<User className="h-4 w-4" />}
                       href={`/profile/${currentUser._id}`}
                     />
-                  )}
-                </UserButton.MenuItems>
+                    <UserButton.Link
+                      label="My Activity"
+                      labelIcon={<FileText className="h-4 w-4" />}
+                      href="/my-activity"
+                    />
+                  </UserButton.MenuItems>
+                )}
               </UserButton>
             </SignedIn>
           </div>
