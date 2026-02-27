@@ -528,19 +528,37 @@ export const getRecentPosts = query({
       blockedUserIds = await getBlockedUserIds(ctx, args.currentUserId);
     }
 
-    const posts = await ctx.db
-      .query("posts")
-      .order("desc")
-      .take(safeLimit + blockedUserIds.size);
+    // Paginated fetch to reliably fill results even if blocked posts cluster
+    const batchSize = safeLimit * 3;
+    const filtered: any[] = [];
+    let cursor: any = undefined;
+    let iterations = 0;
+    const maxIterations = 5;
 
-    const filtered = posts.filter(
-      (post) => !blockedUserIds.has(post.authorId)
-    ).slice(0, safeLimit);
+    while (filtered.length < safeLimit && iterations < maxIterations) {
+      iterations++;
+      const page = await ctx.db
+        .query("posts")
+        .order("desc")
+        .paginate({ numItems: batchSize, cursor: cursor ?? null });
+
+      for (const post of page.page) {
+        if (!blockedUserIds.has(post.authorId)) {
+          filtered.push(post);
+          if (filtered.length >= safeLimit) break;
+        }
+      }
+
+      if (page.isDone) break;
+      cursor = page.continueCursor;
+    }
 
     const enriched = await Promise.all(
       filtered.map(async (post) => {
-        const author = await ctx.db.get(post.authorId);
-        const city = await ctx.db.get(post.cityId);
+        const authorId = post.authorId as Id<"users">;
+        const cityId = post.cityId as Id<"cities">;
+        const author = await ctx.db.get(authorId);
+        const city = await ctx.db.get(cityId);
         const likes = await ctx.db
           .query("post_likes")
           .withIndex("by_post", (q) => q.eq("postId", post._id))
