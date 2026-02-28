@@ -7,6 +7,7 @@ import Link from "next/link";
 import { typeLabels, typeColors, stripHtml, isHtmlContent } from "@/lib/post-utils";
 import { activityColors } from "@/lib/request-utils";
 import { timeAgo } from "@/lib/time-utils";
+import { analytics } from "@/lib/analytics";
 
 interface PostItem {
   itemType: "post";
@@ -50,7 +51,11 @@ export default function RecentActivityCard({ item }: RecentActivityCardProps) {
       : item.description;
 
   return (
-    <Link href={href} className="block flex-shrink-0 w-[280px] snap-start">
+    <Link
+      href={href}
+      className="block flex-shrink-0 w-[280px] snap-start"
+      onClick={() => analytics.carouselCardClicked(item.itemType, item._id, item.city?.name ?? "Unknown")}
+    >
       <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
         <CardContent className="px-4 py-3 h-full flex flex-col">
           <div className="flex items-center gap-1.5 mb-2 flex-wrap">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
@@ -13,6 +13,7 @@ import MyActivityPostCard from "@/components/activity/MyActivityPostCard";
 import MyActivityRequestCard from "@/components/activity/MyActivityRequestCard";
 import CreatePostWithCityDialog from "@/components/activity/CreatePostWithCityDialog";
 import CreateRequestWithCityDialog from "@/components/activity/CreateRequestWithCityDialog";
+import { analytics } from "@/lib/analytics";
 
 export default function MyActivityPage() {
   const router = useRouter();
@@ -42,6 +43,15 @@ export default function MyActivityPage() {
       router.push("/sign-in");
     }
   }, [isLoaded, clerkUser, router]);
+
+  // Track page view once data is loaded
+  const hasTrackedView = useRef(false);
+  useEffect(() => {
+    if (posts !== undefined && requests !== undefined && !hasTrackedView.current) {
+      hasTrackedView.current = true;
+      analytics.myActivityViewed(posts.length, requests.length);
+    }
+  }, [posts, requests]);
 
   const allActivity = useMemo(() => {
     const items = [
@@ -79,7 +89,10 @@ export default function MyActivityPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+      <Tabs value={activeTab} onValueChange={(tab) => {
+        setActiveTab(tab);
+        analytics.myActivityTabChanged(tab as "all" | "posts" | "requests");
+      }} className="mb-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="posts" className="gap-1.5">
