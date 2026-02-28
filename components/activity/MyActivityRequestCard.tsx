@@ -6,6 +6,7 @@ import { Calendar, MessageCircle, Users, MapPin } from "lucide-react";
 import Link from "next/link";
 import { activityColors, formatDateRange } from "@/lib/request-utils";
 import { timeAgo } from "@/lib/time-utils";
+import { analytics } from "@/lib/analytics";
 
 interface MyActivityRequestCardProps {
   request: {
@@ -28,7 +29,10 @@ export default function MyActivityRequestCard({
   request,
 }: MyActivityRequestCardProps) {
   return (
-    <Link href={`/chat/${request.cityId}/requests/${request._id}`}>
+    <Link
+      href={`/chat/${request.cityId}/requests/${request._id}`}
+      onClick={() => analytics.activityCardClicked("request", request._id, request.cityId)}
+    >
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
         <CardContent className="px-4 py-3">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">

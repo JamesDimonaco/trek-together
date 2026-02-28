@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "convex/react";
 import { useAuth } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import RecentActivityCard from "./RecentActivityCard";
+import { analytics } from "@/lib/analytics";
 
 export default function RecentActivityCarousel() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -51,6 +52,15 @@ export default function RecentActivityCarousel() {
   };
 
   const isLoading = recentPosts === undefined || recentRequests === undefined;
+
+  // Track carousel impression once items load
+  const hasTrackedView = useRef(false);
+  useEffect(() => {
+    if (!isLoading && items.length > 0 && !hasTrackedView.current) {
+      hasTrackedView.current = true;
+      analytics.carouselViewed(items.length);
+    }
+  }, [isLoading, items.length]);
 
   if (!isLoading && items.length === 0) {
     return (

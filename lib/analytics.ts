@@ -189,6 +189,28 @@ export const analytics = {
     safeCapture("request_closed", { request_id: requestId });
   },
 
+  // My Activity
+  myActivityViewed: (postCount: number, requestCount: number) => {
+    safeCapture("my_activity_viewed", { post_count: postCount, request_count: requestCount });
+  },
+
+  myActivityTabChanged: (tab: "all" | "posts" | "requests") => {
+    safeCapture("my_activity_tab_changed", { tab });
+  },
+
+  activityCardClicked: (itemType: "post" | "request", itemId: string, cityId: string) => {
+    safeCapture("activity_card_clicked", { item_type: itemType, item_id: itemId, city_id: cityId });
+  },
+
+  // Homepage Carousel
+  carouselCardClicked: (itemType: "post" | "request", itemId: string, cityName: string) => {
+    safeCapture("carousel_card_clicked", { item_type: itemType, item_id: itemId, city_name: cityName });
+  },
+
+  carouselViewed: (itemCount: number) => {
+    safeCapture("carousel_viewed", { item_count: itemCount });
+  },
+
   // PWA
   pwaInstallPromptShown: () => {
     safeCapture("pwa_install_prompt_shown");
