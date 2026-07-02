@@ -36,10 +36,9 @@ interface RequestCardProps {
     hasExpressedInterest: boolean;
   };
   cityId: string;
+  // Parent decides what interest means for guests (email capture first)
   onToggleInterest: () => void;
   onClick: () => void;
-  isAuthenticated: boolean;
-  onAuthPrompt: () => void;
 }
 
 export default function RequestCard({
@@ -47,8 +46,6 @@ export default function RequestCard({
   cityId,
   onToggleInterest,
   onClick,
-  isAuthenticated,
-  onAuthPrompt,
 }: RequestCardProps) {
   return (
     <Card
@@ -122,13 +119,7 @@ export default function RequestCard({
                     ? "bg-green-600 hover:bg-green-700 h-7 text-xs gap-1"
                     : "h-7 text-xs gap-1"
                 }
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    onAuthPrompt();
-                    return;
-                  }
-                  onToggleInterest();
-                }}
+                onClick={onToggleInterest}
               >
                 <HandHelping className="h-3.5 w-3.5" />
                 {request.hasExpressedInterest ? "Interested" : "I'm In"}

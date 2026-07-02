@@ -16,6 +16,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/current-city(.*)",
   "/api/set-current-city(.*)",
   "/api/join-city(.*)",
+  "/api/unsubscribe(.*)",
   "/api/webhooks/clerk(.*)",
   "/cities(.*)",
   "/sitemap.xml(.*)",

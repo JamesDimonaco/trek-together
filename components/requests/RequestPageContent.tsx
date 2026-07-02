@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { SessionData } from "@/lib/types";
+import { initializeSession } from "@/lib/helpers/api";
 import { activityColors, formatDateRange } from "@/lib/request-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import CommentSection from "@/components/shared/CommentSection";
-import AuthPromptModal from "@/components/dm/AuthPromptModal";
+import GuestContactDialog from "./GuestContactDialog";
 import {
   Calendar,
   HandHelping,
@@ -45,12 +46,35 @@ export default function RequestPageContent({
   session,
 }: RequestPageContentProps) {
   const router = useRouter();
-  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [contactPurpose, setContactPurpose] = useState<
+    "interest" | "comment" | null
+  >(null);
+  // SEO visitors land here with no cookies; initialize a session so guest
+  // actions (interest, comments) have an identity to attach to
+  const [sessionId, setSessionId] = useState(session.sessionId);
+  const [username, setUsername] = useState(session.username);
+  useEffect(() => {
+    if (!session.sessionId) {
+      initializeSession().then((fresh) => {
+        if (fresh?.sessionId) {
+          setSessionId(fresh.sessionId);
+          setUsername(fresh.username);
+        }
+      });
+    }
+  }, [session.sessionId]);
 
-  const hasValidConvexUserId = session.isAuthenticated && session.userId;
-  const currentUserId = hasValidConvexUserId
+  const isAuthenticated = session.isAuthenticated && !!session.userId;
+
+  const guestContact = useQuery(
+    api.users.getGuestContact,
+    !isAuthenticated && sessionId ? { sessionId } : "skip"
+  );
+
+  const currentUserId = isAuthenticated
     ? (session.userId as Id<"users">)
-    : undefined;
+    : guestContact?.userId;
+  const canInteract = isAuthenticated || !!guestContact?.hasEmail;
 
   const request = useQuery(api.requests.getRequestById, {
     requestId: requestId as Id<"requests">,
@@ -63,18 +87,33 @@ export default function RequestPageContent({
   const addComment = useMutation(api.requests.addRequestComment);
   const deleteComment = useMutation(api.requests.deleteRequestComment);
   const deleteRequest = useMutation(api.requests.deleteRequest);
+  const setGuestEmail = useMutation(api.users.setGuestEmail);
 
-  const handleToggleInterest = async () => {
-    if (!hasValidConvexUserId || !currentUserId) {
-      setShowAuthPrompt(true);
+  const identityArgs = ():
+    | { userId: Id<"users"> }
+    | { sessionId: string; username?: string } => {
+    if (isAuthenticated) {
+      return { userId: session.userId as Id<"users"> };
+    }
+    if (!sessionId) throw new Error("Could not start a session");
+    return { sessionId, username };
+  };
+
+  const handleToggleInterest = async (email?: string) => {
+    if (!canInteract && !email) {
+      setContactPurpose("interest");
       return;
     }
     try {
       const result = await toggleInterest({
-        userId: currentUserId,
+        ...identityArgs(),
+        email,
         requestId: requestId as Id<"requests">,
       });
       analytics.requestInterested(requestId, result.interested);
+      if (result.interested && !isAuthenticated) {
+        toast.success("You're in! We'll email you when they reply.");
+      }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to toggle interest"
@@ -83,10 +122,9 @@ export default function RequestPageContent({
   };
 
   const handleClose = async () => {
-    if (!currentUserId) return;
     try {
       await closeRequest({
-        userId: currentUserId,
+        ...identityArgs(),
         requestId: requestId as Id<"requests">,
       });
       analytics.requestClosed(requestId);
@@ -97,10 +135,9 @@ export default function RequestPageContent({
   };
 
   const handleReopen = async () => {
-    if (!currentUserId) return;
     try {
       await reopenRequest({
-        userId: currentUserId,
+        ...identityArgs(),
         requestId: requestId as Id<"requests">,
       });
       toast.success("Request reopened");
@@ -110,9 +147,8 @@ export default function RequestPageContent({
   };
 
   const handleAddComment = async (content: string) => {
-    if (!currentUserId) return;
     await addComment({
-      userId: currentUserId,
+      ...identityArgs(),
       requestId: requestId as Id<"requests">,
       content,
     });
@@ -120,10 +156,9 @@ export default function RequestPageContent({
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!currentUserId) return;
     try {
       await deleteComment({
-        userId: currentUserId,
+        ...identityArgs(),
         commentId: commentId as Id<"request_comments">,
       });
     } catch {
@@ -132,10 +167,9 @@ export default function RequestPageContent({
   };
 
   const handleConfirmDelete = async () => {
-    if (!currentUserId) return;
     try {
       await deleteRequest({
-        userId: currentUserId,
+        ...identityArgs(),
         requestId: requestId as Id<"requests">,
       });
       toast.success("Request deleted");
@@ -223,7 +257,7 @@ export default function RequestPageContent({
                   ? "bg-green-600 hover:bg-green-700 gap-1.5"
                   : "gap-1.5"
               }
-              onClick={handleToggleInterest}
+              onClick={() => handleToggleInterest()}
             >
               <HandHelping className="h-4 w-4" />
               {request.hasExpressedInterest ? "Interested" : "I'm In"}
@@ -319,14 +353,26 @@ export default function RequestPageContent({
           currentUserId={currentUserId as string | undefined}
           onAddComment={handleAddComment}
           onDeleteComment={handleDeleteComment}
-          isAuthenticated={!!hasValidConvexUserId}
-          onAuthPrompt={() => setShowAuthPrompt(true)}
+          isAuthenticated={canInteract}
+          onAuthPrompt={() => setContactPurpose("comment")}
+          placeholder={
+            canInteract ? "Add a comment..." : "Reply — no account needed"
+          }
         />
       </div>
 
-      <AuthPromptModal
-        isOpen={showAuthPrompt}
-        onClose={() => setShowAuthPrompt(false)}
+      {/* Guest email capture, then complete the action they started */}
+      <GuestContactDialog
+        open={contactPurpose !== null}
+        onClose={() => setContactPurpose(null)}
+        purpose="when someone replies"
+        onSubmit={async (email) => {
+          if (contactPurpose === "interest") {
+            await handleToggleInterest(email);
+          } else if (sessionId) {
+            await setGuestEmail({ sessionId, email });
+          }
+        }}
       />
     </>
   );

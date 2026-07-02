@@ -26,8 +26,10 @@ interface CommentSectionProps {
   currentUserId?: string;
   onAddComment: (content: string) => Promise<void>;
   onDeleteComment: (commentId: string) => Promise<void>;
+  // Whether the user can comment directly (auth user, or guest with contact)
   isAuthenticated: boolean;
   onAuthPrompt: () => void;
+  placeholder?: string;
 }
 
 export default function CommentSection({
@@ -37,6 +39,7 @@ export default function CommentSection({
   onDeleteComment,
   isAuthenticated,
   onAuthPrompt,
+  placeholder,
 }: CommentSectionProps) {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -125,7 +128,8 @@ export default function CommentSection({
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder={
-            isAuthenticated ? "Add a comment..." : "Sign in to comment"
+            placeholder ??
+            (isAuthenticated ? "Add a comment..." : "Sign in to comment")
           }
           className="min-h-[36px] h-9 resize-none text-sm"
           onFocus={() => {
