@@ -15,9 +15,10 @@ interface ChatClientProps {
   cityId: Id<"cities">;
   cityName: string;
   session: SessionData;
+  onShowRequests?: () => void;
 }
 
-export default function ChatClient({ cityId, cityName, session }: ChatClientProps) {
+export default function ChatClient({ cityId, cityName, session, onShowRequests }: ChatClientProps) {
   const hasValidConvexUserId = session.isAuthenticated && session.userId;
 
   const messages = useQuery(
@@ -55,6 +56,7 @@ export default function ChatClient({ cityId, cityName, session }: ChatClientProp
         currentUserId={
           hasValidConvexUserId ? (session.userId as Id<"users">) : undefined
         }
+        onShowRequests={onShowRequests}
       />
 
       <TypingIndicator

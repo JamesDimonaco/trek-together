@@ -26,7 +26,8 @@ export default function HeroSection({ onLocationRequest }: HeroSectionProps) {
             <span className="block text-green-600 dark:text-green-400">wherever you travel</span>
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-            Join city-based chat rooms to connect with trekkers, plan adventures, and explore together.
+            Post your trek plan for any city — it stays up while you travel,
+            and we email you when a trekker wants to join.
           </p>
         </div>
 

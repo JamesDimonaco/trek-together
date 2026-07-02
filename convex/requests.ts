@@ -1,6 +1,17 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
+import { resolveActor } from "./lib/guests";
+import {
+  appUrl,
+  isValidEmail,
+  notifyUser,
+  notifyFounder,
+  interestEmailBody,
+  commentEmailBody,
+  founderAlertBody,
+  truncate,
+} from "./lib/notify";
 
 // Helper: get blocked user IDs (bidirectional)
 async function getBlockedUserIds(
@@ -19,15 +30,6 @@ async function getBlockedUserIds(
     ...blockedByMe.map((b: any) => b.blockedId),
     ...blockedMe.map((b: any) => b.blockerId),
   ]);
-}
-
-// Helper: verify caller identity and return their user record
-async function authenticateCaller(ctx: { auth: any; db: any }, userId: Id<"users">) {
-  const user = await ctx.db.get(userId);
-  if (!user || !user.authId) {
-    throw new Error("Authentication required");
-  }
-  return user;
 }
 
 // Get requests for a city with author info, interest/comment counts
@@ -203,10 +205,15 @@ export const getRequestById = query({
   },
 });
 
-// Create a request (server-side auth)
+// Create a request. Open to guests: they identify via sessionId and must
+// provide an email so responses can reach them (the whole point of a request).
 export const createRequest = mutation({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.string()),
+    username: v.optional(v.string()),
+    email: v.optional(v.string()),
+    notifyByEmail: v.optional(v.boolean()),
     cityId: v.id("cities"),
     title: v.string(),
     description: v.string(),
@@ -221,7 +228,27 @@ export const createRequest = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx, args.userId);
+    const user = await resolveActor(ctx, args);
+
+    // Guests must leave an email - a request nobody can answer is dead weight
+    const isGuest = !user.authId;
+    if (isGuest && !user.email) {
+      const email = args.email?.trim().toLowerCase();
+      if (!email || !isValidEmail(email)) {
+        throw new Error(
+          "Please add a valid email so trekkers can reach you when they respond"
+        );
+      }
+      await ctx.db.patch(user._id, { email, emailNotifications: true });
+    } else if (isGuest && args.email) {
+      const email = args.email.trim().toLowerCase();
+      if (isValidEmail(email)) {
+        await ctx.db.patch(user._id, { email, emailNotifications: true });
+      }
+    } else if (!isGuest && args.notifyByEmail && user.email) {
+      // Auth user explicitly asked to be emailed about responses
+      await ctx.db.patch(user._id, { emailNotifications: true });
+    }
 
     if (!args.title.trim()) {
       throw new Error("Title is required");
@@ -251,7 +278,7 @@ export const createRequest = mutation({
       }
     }
 
-    return await ctx.db.insert("requests", {
+    const requestId = await ctx.db.insert("requests", {
       cityId: args.cityId,
       authorId: user._id,
       title: args.title.trim(),
@@ -261,17 +288,42 @@ export const createRequest = mutation({
       activityType: args.activityType,
       status: "open",
     });
+
+    const city = await ctx.db.get(args.cityId);
+    await notifyFounder(
+      ctx,
+      `[TrekTogether] New request: ${truncate(args.title.trim(), 60)}`,
+      founderAlertBody({
+        what: `New ${args.activityType} request by ${user.username}`,
+        content: `${args.title.trim()}\n\n${args.description.trim()}`,
+        where: city ? `${city.name}, ${city.country}` : "unknown city",
+        url: `${appUrl()}/chat/${args.cityId}/requests/${requestId}`,
+      })
+    );
+
+    return requestId;
   },
 });
 
-// Toggle interest on a request (auth required)
+// Toggle interest on a request. Open to guests (sessionId); providing an
+// email opts them into reply notifications so the match can complete async.
 export const toggleInterest = mutation({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.string()),
+    username: v.optional(v.string()),
+    email: v.optional(v.string()),
     requestId: v.id("requests"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx, args.userId);
+    const user = await resolveActor(ctx, args);
+
+    if (!user.authId && args.email) {
+      const email = args.email.trim().toLowerCase();
+      if (isValidEmail(email)) {
+        await ctx.db.patch(user._id, { email, emailNotifications: true });
+      }
+    }
 
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
@@ -294,19 +346,50 @@ export const toggleInterest = mutation({
         requestId: args.requestId,
         userId: user._id,
       });
+
+      // Tell the author someone's in - once per (interested user, request),
+      // so toggling on/off can't be used to spam them
+      const author = await ctx.db.get(request.authorId);
+      if (author) {
+        const requestUrl = `${appUrl()}/chat/${request.cityId}/requests/${request._id}`;
+        await notifyUser(ctx, {
+          user: author,
+          kind: "req_interest",
+          key: `${request._id}:${user._id}`,
+          cooldown: "once",
+          subject: `${user.username} wants to join your trek`,
+          bodyHtml: interestEmailBody({
+            actorName: user.username,
+            requestTitle: request.title,
+            requestUrl,
+          }),
+        });
+        await notifyFounder(
+          ctx,
+          `[TrekTogether] Interest: ${user.username} → "${truncate(request.title, 50)}"`,
+          founderAlertBody({
+            what: `${user.username} expressed interest`,
+            content: request.title,
+            where: `request by ${author.username}`,
+            url: requestUrl,
+          })
+        );
+      }
+
       return { interested: true };
     }
   },
 });
 
-// Close a request (auth required, author only)
+// Close a request (author only; guests verify via sessionId)
 export const closeRequest = mutation({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.string()),
     requestId: v.id("requests"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx, args.userId);
+    const user = await resolveActor(ctx, args);
 
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
@@ -318,14 +401,15 @@ export const closeRequest = mutation({
   },
 });
 
-// Reopen a request (auth required, author only)
+// Reopen a request (author only; guests verify via sessionId)
 export const reopenRequest = mutation({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.string()),
     requestId: v.id("requests"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx, args.userId);
+    const user = await resolveActor(ctx, args);
 
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");
@@ -337,15 +421,27 @@ export const reopenRequest = mutation({
   },
 });
 
-// Add a comment to a request (auth required)
+// Add a comment to a request. Open to guests (sessionId + optional email).
+// Notifies everyone in the thread (author, interested users, prior commenters)
+// so two people who have never been online together can still make a plan.
 export const addRequestComment = mutation({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.string()),
+    username: v.optional(v.string()),
+    email: v.optional(v.string()),
     requestId: v.id("requests"),
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx, args.userId);
+    const user = await resolveActor(ctx, args);
+
+    if (!user.authId && args.email) {
+      const email = args.email.trim().toLowerCase();
+      if (isValidEmail(email)) {
+        await ctx.db.patch(user._id, { email, emailNotifications: true });
+      }
+    }
 
     if (!args.content.trim()) {
       throw new Error("Comment is required");
@@ -354,11 +450,67 @@ export const addRequestComment = mutation({
       throw new Error("Comment must be 1000 characters or less");
     }
 
-    return await ctx.db.insert("request_comments", {
+    const content = args.content.trim();
+    const commentId = await ctx.db.insert("request_comments", {
       requestId: args.requestId,
       authorId: user._id,
-      content: args.content.trim(),
+      content,
     });
+
+    const request = await ctx.db.get(args.requestId);
+    if (request) {
+      const requestUrl = `${appUrl()}/chat/${request.cityId}/requests/${request._id}`;
+
+      // Recipients: request author + interested users + prior commenters
+      const interests = await ctx.db
+        .query("request_interests")
+        .withIndex("by_request", (q) => q.eq("requestId", args.requestId))
+        .collect();
+      const comments = await ctx.db
+        .query("request_comments")
+        .withIndex("by_request", (q) => q.eq("requestId", args.requestId))
+        .collect();
+
+      const recipientIds = new Set<Id<"users">>([
+        request.authorId,
+        ...interests.map((i) => i.userId),
+        ...comments.map((c) => c.authorId),
+      ]);
+      recipientIds.delete(user._id);
+
+      for (const recipientId of recipientIds) {
+        const recipient = await ctx.db.get(recipientId);
+        if (!recipient) continue;
+        // Max one email per recipient per request per hour to keep threads
+        // from turning into inbox floods
+        await notifyUser(ctx, {
+          user: recipient,
+          kind: "req_comment",
+          key: `${request._id}`,
+          cooldown: 60 * 60 * 1000,
+          subject: `New reply on "${truncate(request.title, 60)}"`,
+          bodyHtml: commentEmailBody({
+            actorName: user.username,
+            requestTitle: request.title,
+            requestUrl,
+            commentPreview: content,
+          }),
+        });
+      }
+
+      await notifyFounder(
+        ctx,
+        `[TrekTogether] Comment by ${user.username} on "${truncate(request.title, 50)}"`,
+        founderAlertBody({
+          what: `New comment by ${user.username}`,
+          content,
+          where: `request "${request.title}"`,
+          url: requestUrl,
+        })
+      );
+    }
+
+    return commentId;
   },
 });
 
@@ -524,14 +676,15 @@ export const getAllRequestIds = query({
   },
 });
 
-// Delete a comment (auth required, author only)
+// Delete a comment (author only; guests verify via sessionId)
 export const deleteRequestComment = mutation({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.string()),
     commentId: v.id("request_comments"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx, args.userId);
+    const user = await resolveActor(ctx, args);
 
     const comment = await ctx.db.get(args.commentId);
     if (!comment) throw new Error("Comment not found");
@@ -543,14 +696,15 @@ export const deleteRequestComment = mutation({
   },
 });
 
-// Delete a request (auth required, author only, cascade deletes)
+// Delete a request (author only; guests verify via sessionId, cascade deletes)
 export const deleteRequest = mutation({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.string()),
     requestId: v.id("requests"),
   },
   handler: async (ctx, args) => {
-    const user = await authenticateCaller(ctx, args.userId);
+    const user = await resolveActor(ctx, args);
 
     const request = await ctx.db.get(args.requestId);
     if (!request) throw new Error("Request not found");

@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { SessionData } from "@/lib/types";
+import { initializeSession } from "@/lib/helpers/api";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CommentSection from "@/components/shared/CommentSection";
+import GuestContactDialog from "./GuestContactDialog";
 import {
   Calendar,
   HandHelping,
@@ -28,22 +32,30 @@ import { activityColors, formatDateRange } from "@/lib/request-utils";
 interface RequestDetailProps {
   requestId: Id<"requests">;
   cityId: string;
+  session: SessionData;
   currentUserId?: Id<"users">;
-  isAuthenticated: boolean;
+  guestHasEmail: boolean;
   open: boolean;
   onClose: () => void;
-  onAuthPrompt: () => void;
 }
 
 export default function RequestDetail({
   requestId,
   cityId,
+  session,
   currentUserId,
-  isAuthenticated,
+  guestHasEmail,
   open,
   onClose,
-  onAuthPrompt,
 }: RequestDetailProps) {
+  // Why the guest email dialog opened: completes that action on submit
+  const [contactPurpose, setContactPurpose] = useState<
+    "interest" | "comment" | null
+  >(null);
+
+  const isAuthenticated = session.isAuthenticated && !!session.userId;
+  const canInteract = isAuthenticated || guestHasEmail;
+
   const request = useQuery(
     api.requests.getRequestById,
     open ? { requestId, currentUserId } : "skip"
@@ -54,15 +66,40 @@ export default function RequestDetail({
   const addComment = useMutation(api.requests.addRequestComment);
   const deleteComment = useMutation(api.requests.deleteRequestComment);
   const deleteRequest = useMutation(api.requests.deleteRequest);
+  const setGuestEmail = useMutation(api.users.setGuestEmail);
 
-  const handleToggleInterest = async () => {
-    if (!isAuthenticated || !currentUserId) {
-      onAuthPrompt();
+  // Resolve identity args for mutations: auth users pass userId, guests
+  // pass sessionId (created on the fly if the visitor has no cookie yet)
+  const identityArgs = async (): Promise<
+    | { userId: Id<"users"> }
+    | { sessionId: string; username?: string }
+  > => {
+    if (isAuthenticated) {
+      return { userId: session.userId as Id<"users"> };
+    }
+    let sessionId: string | undefined = session.sessionId;
+    let username: string | undefined = session.username;
+    if (!sessionId) {
+      const fresh = await initializeSession();
+      sessionId = fresh?.sessionId;
+      username = fresh?.username;
+    }
+    if (!sessionId) throw new Error("Could not start a session");
+    return { sessionId, username };
+  };
+
+  const handleToggleInterest = async (email?: string) => {
+    if (!canInteract && !email) {
+      setContactPurpose("interest");
       return;
     }
     try {
-      const result = await toggleInterest({ userId: currentUserId!, requestId });
+      const identity = await identityArgs();
+      const result = await toggleInterest({ ...identity, email, requestId });
       analytics.requestInterested(requestId as string, result.interested);
+      if (result.interested && !isAuthenticated) {
+        toast.success("You're in! We'll email you when they reply.");
+      }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to toggle interest"
@@ -71,9 +108,9 @@ export default function RequestDetail({
   };
 
   const handleClose = async () => {
-    if (!currentUserId) return;
     try {
-      await closeRequest({ userId: currentUserId!, requestId });
+      const identity = await identityArgs();
+      await closeRequest({ ...identity, requestId });
       analytics.requestClosed(requestId as string);
       toast.success("Request closed");
     } catch {
@@ -82,9 +119,9 @@ export default function RequestDetail({
   };
 
   const handleReopen = async () => {
-    if (!currentUserId) return;
     try {
-      await reopenRequest({ userId: currentUserId!, requestId });
+      const identity = await identityArgs();
+      await reopenRequest({ ...identity, requestId });
       toast.success("Request reopened");
     } catch {
       toast.error("Failed to reopen request");
@@ -92,16 +129,16 @@ export default function RequestDetail({
   };
 
   const handleAddComment = async (content: string) => {
-    if (!currentUserId) return;
-    await addComment({ userId: currentUserId!, requestId, content });
+    const identity = await identityArgs();
+    await addComment({ ...identity, requestId, content });
     analytics.requestCommented(requestId as string);
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!currentUserId) return;
     try {
+      const identity = await identityArgs();
       await deleteComment({
-        userId: currentUserId!,
+        ...identity,
         commentId: commentId as Id<"request_comments">,
       });
     } catch {
@@ -110,10 +147,10 @@ export default function RequestDetail({
   };
 
   const handleDelete = async () => {
-    if (!currentUserId) return;
     if (!confirm("Are you sure you want to delete this request?")) return;
     try {
-      await deleteRequest({ userId: currentUserId!, requestId });
+      const identity = await identityArgs();
+      await deleteRequest({ ...identity, requestId });
       toast.success("Request deleted");
       onClose();
     } catch {
@@ -150,7 +187,7 @@ export default function RequestDetail({
     );
   }
 
-  const isAuthor = currentUserId === request.authorId;
+  const isAuthor = !!currentUserId && currentUserId === request.authorId;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -216,7 +253,7 @@ export default function RequestDetail({
                   ? "bg-green-600 hover:bg-green-700 gap-1.5"
                   : "gap-1.5"
               }
-              onClick={handleToggleInterest}
+              onClick={() => handleToggleInterest()}
             >
               <HandHelping className="h-4 w-4" />
               {request.hasExpressedInterest ? "Interested" : "I'm In"}
@@ -292,8 +329,28 @@ export default function RequestDetail({
           currentUserId={currentUserId as string | undefined}
           onAddComment={handleAddComment}
           onDeleteComment={handleDeleteComment}
-          isAuthenticated={isAuthenticated}
-          onAuthPrompt={onAuthPrompt}
+          isAuthenticated={canInteract}
+          onAuthPrompt={() => setContactPurpose("comment")}
+          placeholder={
+            canInteract ? "Add a comment..." : "Reply — no account needed"
+          }
+        />
+
+        {/* Guest email capture, then complete the action they started */}
+        <GuestContactDialog
+          open={contactPurpose !== null}
+          onClose={() => setContactPurpose(null)}
+          purpose="when someone replies"
+          onSubmit={async (email) => {
+            if (contactPurpose === "interest") {
+              await handleToggleInterest(email);
+            } else {
+              const identity = await identityArgs();
+              if ("sessionId" in identity) {
+                await setGuestEmail({ sessionId: identity.sessionId, email });
+              }
+            }
+          }}
         />
       </DialogContent>
     </Dialog>

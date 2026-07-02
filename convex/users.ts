@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { isValidEmail } from "./lib/notify";
 
 // Create or update user (for authenticated users)
 export const upsertUser = mutation({
@@ -525,10 +526,82 @@ export const getUserProfile = query({
     // Filter out any null cities (in case of deleted cities)
     const validCities = cities.filter((city) => city !== null);
 
+    // Strip private fields - this query feeds the public profile page
+    const {
+      email: _email,
+      sessionId: _sessionId,
+      unsubscribeToken: _unsubscribeToken,
+      ...publicUser
+    } = user;
+
     return {
-      ...user,
+      ...publicUser,
       cities: validCities,
     };
+  },
+});
+
+// Unsubscribe from all email notifications via emailed token link
+export const unsubscribeByToken = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    if (!args.token) return { success: false };
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_unsubscribe_token", (q) =>
+        q.eq("unsubscribeToken", args.token)
+      )
+      .first();
+
+    if (!user) return { success: false };
+
+    await ctx.db.patch(user._id, { emailNotifications: false });
+    return { success: true };
+  },
+});
+
+// Check whether a guest session already has a contact email stored
+// (lets the UI skip the email prompt on repeat interactions)
+export const getGuestContact = query({
+  args: { sessionId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_session_id", (q) => q.eq("sessionId", args.sessionId))
+      .first();
+
+    if (!user) return null;
+
+    return {
+      userId: user._id,
+      username: user.username,
+      hasEmail: !!user.email && user.emailNotifications === true,
+    };
+  },
+});
+
+// Store a guest's contact email (explicit opt-in to notifications)
+export const setGuestEmail = mutation({
+  args: {
+    sessionId: v.string(),
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.trim().toLowerCase();
+    if (!isValidEmail(email)) {
+      throw new Error("Please enter a valid email address");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_session_id", (q) => q.eq("sessionId", args.sessionId))
+      .first();
+
+    if (!user) throw new Error("Session not found");
+
+    await ctx.db.patch(user._id, { email, emailNotifications: true });
+    return user._id;
   },
 });
 

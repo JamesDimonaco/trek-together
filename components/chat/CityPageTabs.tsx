@@ -22,6 +22,9 @@ interface CityPageTabsProps {
 export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
   const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
+  // Requests first: they work asynchronously, so an empty room still has a
+  // useful primary action ("post your trek plan")
+  const [activeTab, setActiveTab] = useState("requests");
   const updateLastSeen = useMutation(api.users.updateLastSeen);
   const [suggestedShown, setSuggestedShown] = useState(false);
   const postCount = useQuery(api.posts.countPostsByCity, { cityId });
@@ -36,10 +39,16 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
 
   const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
 
-  // Get session from API
+  // Initialize session (POST creates the cookie + guest identity if missing,
+  // so guests can post requests and leave contact emails)
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/session", { signal: controller.signal })
+    fetch("/api/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "initialize" }),
+      signal: controller.signal,
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Session fetch failed: ${res.status}`);
@@ -125,11 +134,28 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
   }
 
   return (
-    <Tabs defaultValue="chat" className="flex-1 flex flex-col min-h-0">
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      className="flex-1 flex flex-col min-h-0"
+    >
       {/* Info bar */}
       <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between text-sm">
           <TabsList className="h-8 bg-transparent p-0 gap-1">
+            <TabsTrigger
+              value="requests"
+              className="h-7 px-2.5 text-xs data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
+            >
+              <HandHelping className="h-3.5 w-3.5 mr-1" />
+              Requests
+              {requestCount !== undefined && requestCount > 0 && (
+                <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-[10px] font-medium min-w-[18px] text-center">
+                  {requestCount}
+                  <span className="sr-only"> open requests</span>
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger
               value="chat"
               className="h-7 px-2.5 text-xs data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
@@ -150,19 +176,6 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger
-              value="requests"
-              className="h-7 px-2.5 text-xs data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
-            >
-              <HandHelping className="h-3.5 w-3.5 mr-1" />
-              Requests
-              {requestCount !== undefined && requestCount > 0 && (
-                <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-[10px] font-medium min-w-[18px] text-center">
-                  {requestCount}
-                  <span className="sr-only"> open requests</span>
-                </span>
-              )}
-            </TabsTrigger>
           </TabsList>
           <span className="text-gray-600 dark:text-gray-300 text-xs">
             {session.username || "Anonymous"}
@@ -171,7 +184,12 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
       </div>
 
       <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 mt-0">
-        <ChatClient cityId={cityId} cityName={cityName} session={session} />
+        <ChatClient
+          cityId={cityId}
+          cityName={cityName}
+          session={session}
+          onShowRequests={() => setActiveTab("requests")}
+        />
       </TabsContent>
 
       <TabsContent value="posts" className="flex-1 flex flex-col min-h-0 mt-0 overflow-y-auto">

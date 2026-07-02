@@ -18,12 +18,14 @@ export default defineSchema({
     // Notification preferences
     emailNotifications: v.optional(v.boolean()), // receive email notifications for DMs
     browserNotifications: v.optional(v.boolean()), // receive browser notifications
+    unsubscribeToken: v.optional(v.string()), // token for one-click email unsubscribe links
   })
     .index("by_auth_id", ["authId"])
     .index("by_session_id", ["sessionId"])
     .index("by_current_city", ["currentCityId"])
     .index("by_last_seen", ["lastSeen"])
-    .index("by_email", ["email"]),
+    .index("by_email", ["email"])
+    .index("by_unsubscribe_token", ["unsubscribeToken"]),
 
   countries: defineTable({
     name: v.string(),           // "Peru", "Colombia"
@@ -188,4 +190,13 @@ export default defineSchema({
     content: v.string(),
   })
     .index("by_request", ["requestId"]),
+
+  // Log of notification emails sent, for dedupe and cooldowns
+  notification_log: defineTable({
+    userId: v.id("users"),   // recipient
+    kind: v.string(),        // e.g. "req_interest", "req_comment", "city_chat", "dm"
+    key: v.string(),         // dedupe/cooldown key within the kind (e.g. requestId)
+    sentAt: v.number(),
+  })
+    .index("by_user_kind_key", ["userId", "kind", "key"]),
 });

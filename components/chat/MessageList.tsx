@@ -17,6 +17,8 @@ interface MessageListProps {
   currentSessionId: string;
   currentUserId?: Id<"users">;
   messageType?: "city_message" | "dm" | "country_message";
+  // When set, the empty state offers a jump to the Requests tab
+  onShowRequests?: () => void;
 }
 
 export default function MessageList({
@@ -24,6 +26,7 @@ export default function MessageList({
   currentSessionId,
   currentUserId,
   messageType = "city_message",
+  onShowRequests,
 }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
@@ -61,11 +64,25 @@ export default function MessageList({
   if (!messages?.length) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="text-4xl mb-4">🏔️</div>
+        <div className="text-center space-y-3">
+          <div className="text-4xl">🏔️</div>
           <p className="text-gray-500 dark:text-gray-400">
             No messages yet. Start the conversation!
           </p>
+          {onShowRequests && (
+            <div className="space-y-1">
+              <p className="text-xs text-gray-400 dark:text-gray-500 max-w-xs mx-auto">
+                Chat is quiet when nobody&apos;s online — trek plans stick
+                around and get answered later.
+              </p>
+              <button
+                onClick={onShowRequests}
+                className="text-sm text-green-600 dark:text-green-400 hover:underline font-medium"
+              >
+                See trek plans instead →
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { appUrl, notifyUser, dmEmailBody, truncate } from "./lib/notify";
 
 // Send a DM
 export const sendDM = mutation({
@@ -40,12 +41,28 @@ export const sendDM = mutation({
       throw new Error("Cannot send message to blocked user");
     }
 
-    return await ctx.db.insert("dms", {
+    const dmId = await ctx.db.insert("dms", {
       senderId: args.senderId,
       receiverId: args.receiverId,
       content: args.content,
       read: false, // Mark as unread by default
     });
+
+    // Email the receiver if they opted in - max one per sender per hour
+    await notifyUser(ctx, {
+      user: receiver,
+      kind: "dm",
+      key: `${args.senderId}`,
+      cooldown: 60 * 60 * 1000,
+      subject: `New message from ${sender.username}`,
+      bodyHtml: dmEmailBody({
+        senderName: sender.username,
+        preview: truncate(args.content, 100),
+        dmUrl: `${appUrl()}/dm/${args.senderId}`,
+      }),
+    });
+
+    return dmId;
   },
 });
 

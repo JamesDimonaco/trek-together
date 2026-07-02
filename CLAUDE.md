@@ -310,7 +310,12 @@ export default defineSchema({
 - `/api/geocode` - Google Maps geocoding (lat/lng ↔ address)
 - `/api/join-city` - Join or create city and redirect to chat
 - `/api/webhooks/clerk` - Clerk user sync webhook
-- `/api/notifications/send-dm-email` - Send email notification for new DM (via Resend)
+- `/api/unsubscribe` - One-click email unsubscribe (token-based, RFC 8058)
+
+Email notifications are sent server-side from Convex mutations via
+`convex/lib/notify.ts` → `notifications:deliver` internal action → Resend HTTP API.
+Requires Convex env vars: `RESEND_API_KEY`, `APP_URL`, `FOUNDER_ALERT_EMAIL`
+(optional `EMAIL_FROM`).
 
 ### Special Routes
 

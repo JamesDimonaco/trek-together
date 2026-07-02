@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { SessionData } from "@/lib/types";
+import { initializeSession } from "@/lib/helpers/api";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -28,12 +31,18 @@ import { analytics } from "@/lib/analytics";
 
 interface CreateRequestFormProps {
   cityId: Id<"cities">;
-  userId: Id<"users">;
+  session: SessionData;
+  // Whether this guest already left an email (skips the email field)
+  guestHasEmail?: boolean;
+  // Optional custom trigger (e.g. a large CTA in the empty state)
+  trigger?: React.ReactNode;
 }
 
 export default function CreateRequestForm({
   cityId,
-  userId,
+  session,
+  guestHasEmail = false,
+  trigger,
 }: CreateRequestFormProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -41,9 +50,14 @@ export default function CreateRequestForm({
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [activityType, setActivityType] = useState<string>("trekking");
+  const [email, setEmail] = useState("");
+  const [notifyByEmail, setNotifyByEmail] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createRequest = useMutation(api.requests.createRequest);
+
+  const isAuthenticated = session.isAuthenticated && !!session.userId;
+  const needsEmail = !isAuthenticated && !guestHasEmail;
 
   const resetForm = () => {
     setTitle("");
@@ -51,16 +65,17 @@ export default function CreateRequestForm({
     setDateFrom("");
     setDateTo("");
     setActivityType("trekking");
+    setEmail("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim() || !dateFrom) return;
+    if (needsEmail && !email.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await createRequest({
-        userId,
+      const common = {
         cityId,
         title: title.trim(),
         description: description.trim(),
@@ -72,10 +87,42 @@ export default function CreateRequestForm({
           | "climbing"
           | "camping"
           | "other",
-      });
+      };
+
+      if (isAuthenticated) {
+        await createRequest({
+          ...common,
+          userId: session.userId as Id<"users">,
+          notifyByEmail,
+        });
+      } else {
+        // Guests may arrive without a session cookie (e.g. straight from
+        // a search result) - initialize one so the request has an owner
+        let sessionId: string | undefined = session.sessionId;
+        let username: string | undefined = session.username;
+        if (!sessionId) {
+          const fresh = await initializeSession();
+          sessionId = fresh?.sessionId;
+          username = fresh?.username;
+        }
+        if (!sessionId) {
+          throw new Error("Could not start a session, please try again");
+        }
+
+        await createRequest({
+          ...common,
+          sessionId,
+          username,
+          email: email.trim() || undefined,
+        });
+      }
 
       analytics.requestCreated(cityId, activityType);
-      toast.success("Request created!");
+      toast.success(
+        needsEmail
+          ? "Request posted! We'll email you when someone responds."
+          : "Request created!"
+      );
       resetForm();
       setOpen(false);
     } catch (error) {
@@ -90,14 +137,16 @@ export default function CreateRequestForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5">
-          <Plus className="h-4 w-4" />
-          New Request
-        </Button>
+        {trigger ?? (
+          <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5">
+            <Plus className="h-4 w-4" />
+            Post a trek plan
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Find Trek Buddies</DialogTitle>
+          <DialogTitle>Post your trek plan</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -165,14 +214,49 @@ export default function CreateRequestForm({
             </div>
           </div>
 
+          {needsEmail && (
+            <div className="space-y-2">
+              <Label htmlFor="req-email">Your email</Label>
+              <Input
+                id="req-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+              <p className="text-xs text-gray-400">
+                We&apos;ll email you when someone wants to join — one-click
+                unsubscribe, nothing else. No account needed.
+              </p>
+            </div>
+          )}
+
+          {isAuthenticated && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="req-notify"
+                checked={notifyByEmail}
+                onCheckedChange={(checked) => setNotifyByEmail(checked === true)}
+              />
+              <Label htmlFor="req-notify" className="text-sm font-normal">
+                Email me when someone responds
+              </Label>
+            </div>
+          )}
+
           <Button
             type="submit"
             disabled={
-              isSubmitting || !title.trim() || !description.trim() || !dateFrom
+              isSubmitting ||
+              !title.trim() ||
+              !description.trim() ||
+              !dateFrom ||
+              (needsEmail && !email.trim())
             }
             className="w-full bg-green-600 hover:bg-green-700"
           >
-            {isSubmitting ? "Creating..." : "Create Request"}
+            {isSubmitting ? "Posting..." : "Post trek plan"}
           </Button>
         </form>
       </DialogContent>
