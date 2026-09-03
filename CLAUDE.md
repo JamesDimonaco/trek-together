@@ -610,3 +610,29 @@ Requires Convex env vars: `RESEND_API_KEY`, `APP_URL`, `FOUNDER_ALERT_EMAIL`
 - Multi-language support (i18n)
 - Message search functionality
 - Export conversation history
+
+---
+
+## Data access (verified 2026-09-03)
+
+**Convex prod** — run `cvx personal` first (the CLI defaults to the dama profile and will
+fail with "you don't have access to the selected project"). Then read prod tables directly:
+`npx convex data <table> --prod --limit 500`. `.env.local` points at the *dev* deployment
+(`quixotic-scorpion-92`), so `--prod` is not optional when you want real numbers.
+
+**PostHog** — project **261197** ("Trek Together", US region, key `phc_dvZ4…`).
+`phog personal` does NOT hit it — that helper is pinned to project 400245 (MyEtAl).
+Query TrekTogether by POSTing HogQL to
+`https://us.posthog.com/api/projects/261197/query/` with `PH_PERSONAL_KEY` from
+`~/.config/posthog-accounts.env`. Keep windows to ~30 days; 90-day `$exception` scans
+time out.
+
+### Reading the analytics honestly
+
+Most traffic is bots. Filter before drawing conclusions: single-pageview `$direct` visitors
+on Chrome/Windows are crawlers, and they were ~98% of the last 90 days. Genuine referred
+traffic is only bing.com / google.com / chatgpt.com, in the low tens per month.
+
+The `$exception` "Object Not Found Matching Id:N, MethodName:update, ParamCount:4" is an
+Outlook SafeLinks scanner artefact, not a bug — ignore it. Direct hits on
+`/chat/*/requests/*` are the same scanners following notification-email links, not SEO wins.

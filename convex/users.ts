@@ -31,13 +31,16 @@ export const upsertUser = mutation({
       return existing._id;
     }
 
-    // Create new user - only include defined optional fields, disable email notifications by default (opt-in required)
+    // Create new user - only include defined optional fields.
+    // Email notifications default ON: signing up hands us an email for a service
+    // whose entire point is being told when someone answers you. Every email
+    // carries a one-click unsubscribe and /settings has a toggle.
     const newUser: any = {
       authId: args.authId,
       username: args.username,
       citiesVisited: [],
-      emailNotifications: false, // Disabled by default (opt-in required for compliance)
-      browserNotifications: false, // Disabled by default (requires permission)
+      emailNotifications: true,
+      browserNotifications: false, // Off by default (needs a browser permission prompt)
     };
 
     if (args.avatarUrl !== undefined) newUser.avatarUrl = args.avatarUrl;
@@ -260,9 +263,11 @@ export const migrateToAuthenticated = mutation({
       // Keep existing data: citiesVisited, currentCityId, etc.
       // Remove sessionId since user is now authenticated
       sessionId: undefined,
-      // Disable email notifications by default (opt-in required for compliance)
-      emailNotifications: false,
-      browserNotifications: false,
+      // Carry the guest's choice over rather than resetting it - a guest who
+      // gave us an email to be notified has already opted in, and signing up
+      // shouldn't silently revoke that.
+      emailNotifications: anonymousUser.emailNotifications ?? true,
+      browserNotifications: anonymousUser.browserNotifications ?? false,
     };
 
     // Only add optional fields if defined
