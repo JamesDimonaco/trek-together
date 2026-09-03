@@ -98,7 +98,7 @@ export default function RequestDetail({
       const result = await toggleInterest({ ...identity, email, requestId });
       analytics.requestInterested(requestId as string, result.interested);
       if (result.interested && !isAuthenticated) {
-        toast.success("You're in! We'll email you when they reply.");
+        toast.success("You're in! Confirm your email and we'll tell you when they reply.");
       }
     } catch (error) {
       toast.error(

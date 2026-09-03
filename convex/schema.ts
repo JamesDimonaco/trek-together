@@ -200,5 +200,6 @@ export default defineSchema({
     key: v.string(),         // dedupe/cooldown key within the kind (e.g. requestId)
     sentAt: v.number(),
   })
-    .index("by_user_kind_key", ["userId", "kind", "key"]),
+    .index("by_user_kind_key", ["userId", "kind", "key"])
+    .index("by_kind_key", ["kind", "key"]),
 });

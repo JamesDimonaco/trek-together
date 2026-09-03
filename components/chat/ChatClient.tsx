@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -43,6 +43,24 @@ export default function ChatClient({ cityId, cityName, session, onShowRequests }
   const setGuestEmail = useMutation(api.users.setGuestEmail);
   const [askForEmail, setAskForEmail] = useState(false);
   const [alreadyAsked, setAlreadyAsked] = useState(false);
+  const [hasPosted, setHasPosted] = useState(false);
+
+  // Watch the query rather than reading it inside the send handler. A guest has
+  // no users row until their first message creates one, so the handler's closure
+  // still holds null at that point - which is exactly the person we need to ask.
+  useEffect(() => {
+    if (
+      hasPosted &&
+      !alreadyAsked &&
+      !session.isAuthenticated &&
+      session.sessionId &&
+      guestContact &&
+      !guestContact.hasEmailAddress
+    ) {
+      setAlreadyAsked(true);
+      setAskForEmail(true);
+    }
+  }, [hasPosted, alreadyAsked, guestContact, session]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -56,17 +74,7 @@ export default function ChatClient({ cityId, cityName, session, onShowRequests }
         username: session.username || "Anonymous",
       });
       analytics.messageSent("city", cityId);
-
-      if (
-        !session.isAuthenticated &&
-        session.sessionId &&
-        guestContact &&
-        !guestContact.hasEmailAddress &&
-        !alreadyAsked
-      ) {
-        setAlreadyAsked(true);
-        setAskForEmail(true);
-      }
+      setHasPosted(true);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to send message"

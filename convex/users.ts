@@ -257,6 +257,10 @@ export const migrateToAuthenticated = mutation({
         mergeUpdates.email = anonymousUser.email;
         mergeUpdates.emailNotifications =
           anonymousUser.emailNotifications ?? true;
+        // Carry the pending confirmation too. The guest row is deleted below,
+        // so without this a token issued before they signed in would match no
+        // user and the address could never be confirmed.
+        mergeUpdates.emailConfirmToken = anonymousUser.emailConfirmToken;
       }
 
       await ctx.db.patch(existingAuthUser._id, mergeUpdates);
