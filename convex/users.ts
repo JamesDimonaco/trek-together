@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { isValidEmail } from "./lib/notify";
+import { captureEmail, isValidEmail } from "./lib/notify";
 
 // Create or update user (for authenticated users)
 export const upsertUser = mutation({
@@ -577,6 +577,30 @@ export const unsubscribeByToken = mutation({
   },
 });
 
+// Confirm a pending email address (double opt-in). Turning consent on only
+// here is what stops someone subscribing a third party by typing their address.
+export const confirmEmailByToken = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    if (!args.token) return { success: false };
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email_confirm_token", (q) =>
+        q.eq("emailConfirmToken", args.token)
+      )
+      .first();
+
+    if (!user || !user.email) return { success: false };
+
+    await ctx.db.patch(user._id, {
+      emailNotifications: true,
+      emailConfirmToken: undefined,
+    });
+    return { success: true };
+  },
+});
+
 // Check whether a guest session already has a contact email stored
 // (lets the UI skip the email prompt on repeat interactions)
 export const getGuestContact = query({
@@ -619,7 +643,7 @@ export const setGuestEmail = mutation({
 
     if (!user) throw new Error("Session not found");
 
-    await ctx.db.patch(user._id, { email, emailNotifications: true });
+    await captureEmail(ctx, user, email);
     return user._id;
   },
 });

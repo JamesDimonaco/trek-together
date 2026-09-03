@@ -109,7 +109,7 @@ export default function ChatClient({ cityId, cityName, session, onShowRequests }
         onSubmit={async (email) => {
           if (!session.sessionId) return;
           await setGuestEmail({ sessionId: session.sessionId, email });
-          toast.success("We'll email you when someone replies");
+          toast.success("Check your inbox to confirm - then we'll email you replies");
         }}
       />
     </div>

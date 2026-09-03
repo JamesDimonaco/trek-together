@@ -84,6 +84,41 @@ export interface NotifyOptions {
   bodyHtml: string;
 }
 
+// Store a contact address and ask its owner to confirm it before anything else
+// is sent. Consent stays off until they click, so typing a stranger's address
+// into a chat box subscribes nobody - it sends them one mail they can ignore.
+// Returns false only when the address is malformed.
+export async function captureEmail(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  rawEmail: string
+): Promise<boolean> {
+  const email = rawEmail.trim().toLowerCase();
+  if (!isValidEmail(email)) return false;
+
+  // Already confirmed for this address - don't make them do it twice
+  if (user.email === email && user.emailNotifications === true) return true;
+
+  const token = generateToken();
+  await ctx.db.patch(user._id, {
+    email,
+    emailNotifications: false,
+    emailConfirmToken: token,
+  });
+
+  await ctx.scheduler.runAfter(0, internal.notifications.deliver, {
+    to: email,
+    subject: "Confirm your TrekTogether notifications",
+    html: renderLayout(
+      `<p style="font-size:15px;">Someone entered this address on TrekTogether so we can tell you when a trekker answers you.</p>
+       <p style="font-size:15px;">If that was you, confirm it below. If it wasn't, ignore this - nothing else will be sent.</p>
+       ${ctaButton(`${appUrl()}/api/confirm?token=${token}`, "Yes, email me replies")}`
+    ),
+  });
+
+  return true;
+}
+
 // Send a notification email to a user, respecting consent, dedupe, and cooldowns.
 // Returns true if an email was scheduled.
 export async function notifyUser(
