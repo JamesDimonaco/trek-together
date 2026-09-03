@@ -61,7 +61,7 @@ export default function ChatClient({ cityId, cityName, session, onShowRequests }
         !session.isAuthenticated &&
         session.sessionId &&
         guestContact &&
-        !guestContact.hasEmail &&
+        !guestContact.hasEmailAddress &&
         !alreadyAsked
       ) {
         setAlreadyAsked(true);

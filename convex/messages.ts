@@ -9,6 +9,7 @@ import {
   founderAlertBody,
   truncate,
 } from "./lib/notify";
+import { getOrCreateGuestUser } from "./lib/guests";
 
 // Send message to city chat
 export const sendMessage = mutation({
@@ -25,6 +26,17 @@ export const sendMessage = mutation({
       await ctx.db.patch(args.userId, {
         lastSeen: Date.now(),
       });
+    } else if (args.sessionId) {
+      // Guests need a users row as well. It is what lets us ask them for an
+      // email and reach them once the room finally has someone else in it,
+      // and without it the "not online right now" guard below treats every
+      // guest as permanently away and mails them mid-conversation.
+      const guest = await getOrCreateGuestUser(
+        ctx,
+        args.sessionId,
+        args.username
+      );
+      await ctx.db.patch(guest._id, { lastSeen: Date.now() });
     }
 
     const messageId = await ctx.db.insert("city_messages", {

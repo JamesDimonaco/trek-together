@@ -244,11 +244,22 @@ export const migrateToAuthenticated = mutation({
         ...anonymousUser.citiesVisited
       ]));
       
-      await ctx.db.patch(existingAuthUser._id, {
+      const mergeUpdates: any = {
         citiesVisited: mergedCitiesVisited,
         // Update current city if anonymous user had one and auth user doesn't
         currentCityId: existingAuthUser.currentCityId || anonymousUser.currentCityId,
-      });
+      };
+
+      // Don't drop an email the guest gave us to be reachable - otherwise
+      // signing into an existing account silently cancels the replies they
+      // asked for.
+      if (!existingAuthUser.email && anonymousUser.email) {
+        mergeUpdates.email = anonymousUser.email;
+        mergeUpdates.emailNotifications =
+          anonymousUser.emailNotifications ?? true;
+      }
+
+      await ctx.db.patch(existingAuthUser._id, mergeUpdates);
       
       // Delete the anonymous user record since data has been merged
       await ctx.db.delete(args.userId);
@@ -582,6 +593,9 @@ export const getGuestContact = query({
       userId: user._id,
       username: user.username,
       hasEmail: !!user.email && user.emailNotifications === true,
+      // Separate from hasEmail on purpose: someone who unsubscribed still has
+      // an address on file, and re-prompting them would quietly undo it.
+      hasEmailAddress: !!user.email,
     };
   },
 });
