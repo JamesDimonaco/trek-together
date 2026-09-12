@@ -4,6 +4,7 @@ import { Id } from "./_generated/dataModel";
 import { resolveActor } from "./lib/guests";
 import {
   appUrl,
+  captureEmail,
   isValidEmail,
   notifyUser,
   notifyFounder,
@@ -239,13 +240,12 @@ export const createRequest = mutation({
           "Please add a valid email so trekkers can reach you when they respond"
         );
       }
-      await ctx.db.patch(user._id, { email, emailNotifications: true });
+      await captureEmail(ctx, user, email);
     } else if (isGuest && args.email) {
-      const email = args.email.trim().toLowerCase();
-      if (isValidEmail(email)) {
-        await ctx.db.patch(user._id, { email, emailNotifications: true });
-      }
+      await captureEmail(ctx, user, args.email);
     } else if (!isGuest && args.notifyByEmail && user.email) {
+      // Clerk already verified this address and they ticked the box themselves,
+      // so there is nothing left for a confirmation click to prove.
       // Auth user explicitly asked to be emailed about responses
       await ctx.db.patch(user._id, { emailNotifications: true });
     }
@@ -319,10 +319,7 @@ export const toggleInterest = mutation({
     const user = await resolveActor(ctx, args);
 
     if (!user.authId && args.email) {
-      const email = args.email.trim().toLowerCase();
-      if (isValidEmail(email)) {
-        await ctx.db.patch(user._id, { email, emailNotifications: true });
-      }
+      await captureEmail(ctx, user, args.email);
     }
 
     const request = await ctx.db.get(args.requestId);
@@ -437,10 +434,7 @@ export const addRequestComment = mutation({
     const user = await resolveActor(ctx, args);
 
     if (!user.authId && args.email) {
-      const email = args.email.trim().toLowerCase();
-      if (isValidEmail(email)) {
-        await ctx.db.patch(user._id, { email, emailNotifications: true });
-      }
+      await captureEmail(ctx, user, args.email);
     }
 
     if (!args.content.trim()) {

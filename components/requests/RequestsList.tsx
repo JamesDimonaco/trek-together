@@ -86,14 +86,14 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
     });
     analytics.requestInterested(requestId as string, result.interested);
     if (result.interested) {
-      toast.success("You're in! We'll email you when they reply.");
+      toast.success("You're in! Confirm your email and we'll tell you when they reply.");
     }
   };
 
   const handleToggleInterest = async (requestId: Id<"requests">) => {
     // Guests without a stored email give one first, so the author's reply
     // can actually reach them
-    if (!isAuthenticated && !guestContact?.hasEmail) {
+    if (!isAuthenticated && !guestContact?.hasEmailAddress) {
       setPendingInterestId(requestId);
       return;
     }
@@ -123,7 +123,7 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
         <CreateRequestForm
           cityId={cityId}
           session={session}
-          guestHasEmail={!!guestContact?.hasEmail}
+          guestHasEmail={!!guestContact?.hasEmailAddress}
         />
       </div>
 
@@ -150,7 +150,7 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
                 <CreateRequestForm
                   cityId={cityId}
                   session={session}
-                  guestHasEmail={!!guestContact?.hasEmail}
+                  guestHasEmail={!!guestContact?.hasEmailAddress}
                   trigger={
                     <Button className="mt-4 bg-green-600 hover:bg-green-700 gap-1.5">
                       <Plus className="h-4 w-4" />
@@ -192,7 +192,7 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
           cityId={cityId as string}
           session={session}
           currentUserId={currentUserId}
-          guestHasEmail={!!guestContact?.hasEmail}
+          guestHasEmail={!!guestContact?.hasEmailAddress}
           open={!!selectedRequestId}
           onClose={() => setSelectedRequestId(null)}
         />

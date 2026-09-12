@@ -9,6 +9,7 @@ import {
   founderAlertBody,
   truncate,
 } from "./lib/notify";
+import { getOrCreateGuestUser } from "./lib/guests";
 
 // Send message to city chat
 export const sendMessage = mutation({
@@ -25,6 +26,17 @@ export const sendMessage = mutation({
       await ctx.db.patch(args.userId, {
         lastSeen: Date.now(),
       });
+    } else if (args.sessionId) {
+      // Guests need a users row as well. It is what lets us ask them for an
+      // email and reach them once the room finally has someone else in it,
+      // and without it the "not online right now" guard below treats every
+      // guest as permanently away and mails them mid-conversation.
+      const guest = await getOrCreateGuestUser(
+        ctx,
+        args.sessionId,
+        args.username
+      );
+      await ctx.db.patch(guest._id, { lastSeen: Date.now() });
     }
 
     const messageId = await ctx.db.insert("city_messages", {
@@ -38,16 +50,32 @@ export const sendMessage = mutation({
     const city = await ctx.db.get(args.cityId);
     const chatUrl = `${appUrl()}/chat/${args.cityId}`;
 
-    await notifyFounder(
-      ctx,
-      `[TrekTogether] ${args.username} in ${city?.name ?? "unknown"}: ${truncate(args.content, 50)}`,
-      founderAlertBody({
-        what: `New chat message by ${args.username}`,
-        content: args.content,
-        where: city ? `${city.name}, ${city.country}` : "unknown city",
-        url: chatUrl,
-      })
+    // Only alert on the first message in a quiet city. notifyFounder has no
+    // cooldown of its own, and sendMessage is unauthenticated, so without this
+    // a single loop mails the founder without limit and burns the send quota.
+    const previous = await ctx.db
+      .query("city_messages")
+      .withIndex("by_city", (q) => q.eq("cityId", args.cityId))
+      .order("desc")
+      .take(2);
+    const priorRecently = previous.some(
+      (m) =>
+        m._id !== messageId &&
+        Date.now() - m._creationTime < 60 * 60 * 1000
     );
+
+    if (!priorRecently) {
+      await notifyFounder(
+        ctx,
+        `[TrekTogether] ${args.username} in ${city?.name ?? "unknown"}: ${truncate(args.content, 50)}`,
+        founderAlertBody({
+          what: `New chat message by ${args.username}`,
+          content: args.content,
+          where: city ? `${city.name}, ${city.country}` : "unknown city",
+          url: chatUrl,
+        })
+      );
+    }
 
     // Email past participants of this city chat who opted in but aren't
     // online right now - the async version of "someone answered your hello"

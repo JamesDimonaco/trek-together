@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { isValidEmail } from "./lib/notify";
+import { captureEmail, isValidEmail } from "./lib/notify";
 
 // Create or update user (for authenticated users)
 export const upsertUser = mutation({
@@ -31,13 +31,16 @@ export const upsertUser = mutation({
       return existing._id;
     }
 
-    // Create new user - only include defined optional fields, disable email notifications by default (opt-in required)
+    // Create new user - only include defined optional fields.
+    // Email notifications default ON: signing up hands us an email for a service
+    // whose entire point is being told when someone answers you. Every email
+    // carries a one-click unsubscribe and /settings has a toggle.
     const newUser: any = {
       authId: args.authId,
       username: args.username,
       citiesVisited: [],
-      emailNotifications: false, // Disabled by default (opt-in required for compliance)
-      browserNotifications: false, // Disabled by default (requires permission)
+      emailNotifications: true,
+      browserNotifications: false, // Off by default (needs a browser permission prompt)
     };
 
     if (args.avatarUrl !== undefined) newUser.avatarUrl = args.avatarUrl;
@@ -241,11 +244,26 @@ export const migrateToAuthenticated = mutation({
         ...anonymousUser.citiesVisited
       ]));
       
-      await ctx.db.patch(existingAuthUser._id, {
+      const mergeUpdates: any = {
         citiesVisited: mergedCitiesVisited,
         // Update current city if anonymous user had one and auth user doesn't
         currentCityId: existingAuthUser.currentCityId || anonymousUser.currentCityId,
-      });
+      };
+
+      // Don't drop an email the guest gave us to be reachable - otherwise
+      // signing into an existing account silently cancels the replies they
+      // asked for.
+      if (!existingAuthUser.email && anonymousUser.email) {
+        mergeUpdates.email = anonymousUser.email;
+        mergeUpdates.emailNotifications =
+          anonymousUser.emailNotifications ?? true;
+        // Carry the pending confirmation too. The guest row is deleted below,
+        // so without this a token issued before they signed in would match no
+        // user and the address could never be confirmed.
+        mergeUpdates.emailConfirmToken = anonymousUser.emailConfirmToken;
+      }
+
+      await ctx.db.patch(existingAuthUser._id, mergeUpdates);
       
       // Delete the anonymous user record since data has been merged
       await ctx.db.delete(args.userId);
@@ -260,9 +278,11 @@ export const migrateToAuthenticated = mutation({
       // Keep existing data: citiesVisited, currentCityId, etc.
       // Remove sessionId since user is now authenticated
       sessionId: undefined,
-      // Disable email notifications by default (opt-in required for compliance)
-      emailNotifications: false,
-      browserNotifications: false,
+      // Carry the guest's choice over rather than resetting it - a guest who
+      // gave us an email to be notified has already opted in, and signing up
+      // shouldn't silently revoke that.
+      emailNotifications: anonymousUser.emailNotifications ?? true,
+      browserNotifications: anonymousUser.browserNotifications ?? false,
     };
 
     // Only add optional fields if defined
@@ -561,6 +581,30 @@ export const unsubscribeByToken = mutation({
   },
 });
 
+// Confirm a pending email address (double opt-in). Turning consent on only
+// here is what stops someone subscribing a third party by typing their address.
+export const confirmEmailByToken = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    if (!args.token) return { success: false };
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email_confirm_token", (q) =>
+        q.eq("emailConfirmToken", args.token)
+      )
+      .first();
+
+    if (!user || !user.email) return { success: false };
+
+    await ctx.db.patch(user._id, {
+      emailNotifications: true,
+      emailConfirmToken: undefined,
+    });
+    return { success: true };
+  },
+});
+
 // Check whether a guest session already has a contact email stored
 // (lets the UI skip the email prompt on repeat interactions)
 export const getGuestContact = query({
@@ -577,6 +621,9 @@ export const getGuestContact = query({
       userId: user._id,
       username: user.username,
       hasEmail: !!user.email && user.emailNotifications === true,
+      // Separate from hasEmail on purpose: someone who unsubscribed still has
+      // an address on file, and re-prompting them would quietly undo it.
+      hasEmailAddress: !!user.email,
     };
   },
 });
@@ -600,7 +647,7 @@ export const setGuestEmail = mutation({
 
     if (!user) throw new Error("Session not found");
 
-    await ctx.db.patch(user._id, { email, emailNotifications: true });
+    await captureEmail(ctx, user, email);
     return user._id;
   },
 });

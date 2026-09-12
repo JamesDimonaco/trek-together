@@ -84,6 +84,71 @@ export interface NotifyOptions {
   bodyHtml: string;
 }
 
+const EMAIL_CONFIRM_KIND = "email_confirm";
+
+// Store a contact address and ask its owner to confirm it before anything else
+// is sent. Consent stays off until they click, so typing a stranger's address
+// into a chat box subscribes nobody - it sends them one mail they can ignore.
+// Returns false only when the address is malformed.
+export async function captureEmail(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  rawEmail: string
+): Promise<boolean> {
+  const email = rawEmail.trim().toLowerCase();
+  if (!isValidEmail(email)) return false;
+
+  // Already confirmed for this address - don't make them do it twice
+  if (user.email === email && user.emailNotifications === true) return true;
+
+  // Every caller is an unauthenticated public mutation, and a script can mint
+  // unlimited sessionIds, so the rate limit is keyed on the address rather than
+  // the user. Without it, looping setGuestEmail with someone else's address
+  // mails them without limit from our own domain.
+  const recent = await ctx.db
+    .query("notification_log")
+    .withIndex("by_kind_key", (q) =>
+      q.eq("kind", EMAIL_CONFIRM_KIND).eq("key", email)
+    )
+    .order("desc")
+    .first();
+
+  if (recent && Date.now() - recent.sentAt < 24 * 60 * 60 * 1000) {
+    // Store the address against this user, but leave any existing token alone -
+    // reissuing it would break the link in the mail we already sent.
+    if (user.email !== email) {
+      await ctx.db.patch(user._id, { email, emailNotifications: false });
+    }
+    return true;
+  }
+
+  const token = generateToken();
+  await ctx.db.patch(user._id, {
+    email,
+    emailNotifications: false,
+    emailConfirmToken: token,
+  });
+
+  await ctx.db.insert("notification_log", {
+    userId: user._id,
+    kind: EMAIL_CONFIRM_KIND,
+    key: email,
+    sentAt: Date.now(),
+  });
+
+  await ctx.scheduler.runAfter(0, internal.notifications.deliver, {
+    to: email,
+    subject: "Confirm your TrekTogether notifications",
+    html: renderLayout(
+      `<p style="font-size:15px;">Someone entered this address on TrekTogether so we can tell you when a trekker answers you.</p>
+       <p style="font-size:15px;">If that was you, confirm it below. If it wasn't, ignore this - nothing else will be sent.</p>
+       ${ctaButton(`${appUrl()}/api/confirm?token=${token}`, "Yes, email me replies")}`
+    ),
+  });
+
+  return true;
+}
+
 // Send a notification email to a user, respecting consent, dedupe, and cooldowns.
 // Returns true if an email was scheduled.
 export async function notifyUser(

@@ -120,7 +120,7 @@ export default function CreateRequestForm({
       analytics.requestCreated(cityId, activityType);
       toast.success(
         needsEmail
-          ? "Request posted! We'll email you when someone responds."
+          ? "Request posted! Confirm your email and we'll tell you when someone responds."
           : "Request created!"
       );
       resetForm();

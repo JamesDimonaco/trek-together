@@ -74,7 +74,7 @@ export default function RequestPageContent({
   const currentUserId = isAuthenticated
     ? (session.userId as Id<"users">)
     : guestContact?.userId;
-  const canInteract = isAuthenticated || !!guestContact?.hasEmail;
+  const canInteract = isAuthenticated || !!guestContact?.hasEmailAddress;
 
   const request = useQuery(api.requests.getRequestById, {
     requestId: requestId as Id<"requests">,
@@ -112,7 +112,7 @@ export default function RequestPageContent({
       });
       analytics.requestInterested(requestId, result.interested);
       if (result.interested && !isAuthenticated) {
-        toast.success("You're in! We'll email you when they reply.");
+        toast.success("You're in! Confirm your email and we'll tell you when they reply.");
       }
     } catch (error) {
       toast.error(

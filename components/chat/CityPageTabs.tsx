@@ -39,8 +39,9 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
 
   const hasValidConvexUserId = session?.isAuthenticated && session?.userId;
 
-  // Initialize session (POST creates the cookie + guest identity if missing,
-  // so guests can post requests and leave contact emails)
+  // Initialize session (POST sets the cookies only). The Convex users row for
+  // a guest is created lazily by the first mutation they run - see
+  // getOrCreateGuestUser - so don't assume one exists here.
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/session", {
