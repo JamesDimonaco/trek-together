@@ -135,6 +135,18 @@ export default function AuthHeader() {
             </SignedOut>
 
             <SignedIn>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="h-9 w-9 sm:w-auto px-0 sm:px-3"
+              >
+                <Link href="/my-treks" aria-label="My Treks" className="flex items-center justify-center">
+                  <Mountain className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">My Treks</span>
+                </Link>
+              </Button>
+
               {/* Messages - Icon only on mobile with unread badge */}
               <MessagesNavLink />
 

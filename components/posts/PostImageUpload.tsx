@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ export default function PostImageUpload({
   onImagesChange,
   maxImages = 5,
 }: PostImageUploadProps) {
+  const inputId = useId();
   const [isUploading, setIsUploading] = useState(false);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const objectUrlsRef = useRef<string[]>([]);
@@ -133,14 +134,14 @@ export default function PostImageUpload({
             multiple
             onChange={handleUpload}
             className="hidden"
-            id="post-image-upload"
+            id={inputId}
             disabled={isUploading}
           />
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => document.getElementById("post-image-upload")?.click()}
+            onClick={() => document.getElementById(inputId)?.click()}
             disabled={isUploading}
             className="gap-1.5"
           >

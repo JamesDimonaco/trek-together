@@ -92,6 +92,9 @@ CLERK_WEBHOOK_SECRET=your_webhook_secret
 
 # Google Maps API
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+# Browser key for the trek place picker (Maps JavaScript API + Places API (New)).
+# Restrict it to your domains by HTTP referrer in Google Cloud.
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_browser_maps_key
 ```
 
 ### 3. Database Setup

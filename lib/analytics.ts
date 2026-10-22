@@ -189,6 +189,15 @@ export const analytics = {
     safeCapture("request_closed", { request_id: requestId });
   },
 
+  // Trek log
+  trekCreated: (isPublic: boolean, usedGooglePlace: boolean) => {
+    safeCapture("trek_created", { is_public: isPublic, used_google_place: usedGooglePlace });
+  },
+
+  trekDayAdded: (dayNumber: number) => {
+    safeCapture("trek_day_added", { day_number: dayNumber });
+  },
+
   // My Activity
   myActivityViewed: (postCount: number, requestCount: number) => {
     safeCapture("my_activity_viewed", { post_count: postCount, request_count: requestCount });

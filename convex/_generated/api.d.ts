@@ -15,11 +15,13 @@ import type * as dms from "../dms.js";
 import type * as files from "../files.js";
 import type * as lib_guests from "../lib/guests.js";
 import type * as lib_notify from "../lib/notify.js";
+import type * as lib_treks from "../lib/treks.js";
 import type * as messages from "../messages.js";
 import type * as notifications from "../notifications.js";
 import type * as posts from "../posts.js";
 import type * as requests from "../requests.js";
 import type * as safety from "../safety.js";
+import type * as treks from "../treks.js";
 import type * as typing from "../typing.js";
 import type * as users from "../users.js";
 
@@ -37,11 +39,13 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   "lib/guests": typeof lib_guests;
   "lib/notify": typeof lib_notify;
+  "lib/treks": typeof lib_treks;
   messages: typeof messages;
   notifications: typeof notifications;
   posts: typeof posts;
   requests: typeof requests;
   safety: typeof safety;
+  treks: typeof treks;
   typing: typeof typing;
   users: typeof users;
 }>;

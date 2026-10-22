@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { analytics } from "@/lib/analytics";
+import ProfileTreks from "@/components/treks/ProfileTreks";
 
 // Calculate age from date of birth
 function calculateAge(dateOfBirth: string): number {
@@ -192,6 +193,8 @@ export default function ProfileView({ userId }: ProfileViewProps) {
           </CardContent>
         )}
       </Card>
+
+      <ProfileTreks profileUserId={profile._id} isOwnProfile={isOwnProfile} />
 
       {/* Cities Visited */}
       {profile.cities && profile.cities.length > 0 && (

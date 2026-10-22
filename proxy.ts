@@ -19,6 +19,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/unsubscribe(.*)",
   "/api/webhooks/clerk(.*)",
   "/cities(.*)",
+  "/treks(.*)", // Public trek pages; /my-treks stays protected
   "/sitemap.xml(.*)",
   "/offline(.*)",
   "/manifest.json",
