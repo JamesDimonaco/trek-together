@@ -13,6 +13,17 @@ interface TrekPageProps {
   params: Promise<{ trekId: string }>;
 }
 
+// Prerender known public treks; unknown ids still render on demand (dynamicParams default).
+export async function generateStaticParams() {
+  try {
+    const treks = await convex.query(api.treks.getPublicTrekIds);
+    return treks.map((trek) => ({ trekId: trek._id }));
+  } catch (error) {
+    console.error("Could not list public treks at build time:", error);
+    return [];
+  }
+}
+
 const getPublicTrek = cache(async (trekId: string) => {
   if (!/^[0-9a-z]{28,34}$/i.test(trekId)) return null;
   return await convex.query(api.treks.getTrek, { trekId: trekId as Id<"treks"> });

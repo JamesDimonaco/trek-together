@@ -3,6 +3,7 @@ import {
   canViewTrek,
   computeTrekTotals,
   nextDayDate,
+  validateCompanions,
   validateDayFields,
   validateTrekFields,
 } from "../convex/lib/treks";
@@ -154,6 +155,42 @@ describe("validateDayFields", () => {
 
   it("rejects an impossible day date", () => {
     expect(() => validateDayFields({ date: "2026-13-01" })).toThrow();
+  });
+});
+
+describe("validateCompanions", () => {
+  const user = (userId: string) => ({ kind: "user" as const, userId });
+  const name = (value: string) => ({ kind: "name" as const, name: value });
+
+  it("returns trimmed names and keeps linked users as they are", () => {
+    expect(validateCompanions([user("u2"), name("  Ana  ")], "owner")).toEqual([
+      user("u2"),
+      name("Ana"),
+    ]);
+  });
+
+  it("caps the list at ten so a trek page cannot be stuffed with names", () => {
+    const ten = Array.from({ length: 10 }, (_, i) => name(`Friend ${i}`));
+    expect(() => validateCompanions(ten, "owner")).not.toThrow();
+    expect(() => validateCompanions([...ten, name("One more")], "owner")).toThrow();
+  });
+
+  it("rejects the same linked user twice", () => {
+    expect(() => validateCompanions([user("u2"), user("u2")], "owner")).toThrow();
+  });
+
+  it("rejects the same plain name twice, ignoring case and spacing, so a double-click cannot duplicate a chip", () => {
+    expect(() => validateCompanions([name("Ana"), name(" ana ")], "owner")).toThrow();
+    expect(() => validateCompanions([name("Ana"), name("Anna")], "owner")).not.toThrow();
+  });
+
+  it("rejects the owner listing themself as a companion", () => {
+    expect(() => validateCompanions([user("owner")], "owner")).toThrow();
+  });
+
+  it("rejects blank or oversized names", () => {
+    expect(() => validateCompanions([name("   ")], "owner")).toThrow();
+    expect(() => validateCompanions([name("x".repeat(101))], "owner")).toThrow();
   });
 });
 

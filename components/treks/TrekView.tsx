@@ -17,6 +17,10 @@ interface TrekViewDay {
   photos: { storageId: string; url: string }[];
 }
 
+export type TrekViewCompanion =
+  | { kind: "user"; userId: string; username: string }
+  | { kind: "name"; name: string };
+
 export interface TrekViewData {
   name: string;
   placeName: string;
@@ -24,6 +28,7 @@ export interface TrekViewData {
   lng: number;
   startDate: string;
   owner: { _id: string; username: string } | null;
+  companions: TrekViewCompanion[];
   days: TrekViewDay[];
   totals: Parameters<typeof summarizeStats>[0];
 }
@@ -62,6 +67,26 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
           {trek.days.length > 1 && ` · ${trek.days.length} days`}
           {totals.length > 0 && ` · ${totals.join(" · ")}`}
         </p>
+        {trek.companions.length > 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            With{" "}
+            {trek.companions.map((companion, index) => (
+              <span key={companion.kind === "user" ? companion.userId : `name-${index}`}>
+                {index > 0 && ", "}
+                {companion.kind === "user" ? (
+                  <Link
+                    href={`/profile/${companion.userId}`}
+                    className="text-green-600 hover:underline"
+                  >
+                    {companion.username}
+                  </Link>
+                ) : (
+                  companion.name
+                )}
+              </span>
+            ))}
+          </p>
+        )}
       </header>
 
       {trek.days.map((day, index) => {

@@ -27,6 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { revalidateTrekPage } from "@/app/treks/actions";
 import { analytics } from "@/lib/analytics";
 import { formatTrekDate, summarizeStats } from "@/lib/trek-utils";
+import CompanionEditor from "./CompanionEditor";
 import DayCard from "./DayCard";
 
 interface TrekManagerProps {
@@ -68,8 +69,10 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
     try {
       await action();
       refreshPublicPage();
+      return true;
     } catch (error) {
       toast.error(error instanceof Error ? error.message : failure);
+      return false;
     }
   }
 
@@ -162,6 +165,14 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
               }
             />
           </div>
+
+          <CompanionEditor
+            ownerId={userId}
+            companions={trek.companions}
+            onChange={(companions) =>
+              run(() => updateTrek({ userId, trekId, companions }), "Could not save companions")
+            }
+          />
 
           <div className="flex items-center justify-between">
             {isPublic ? (

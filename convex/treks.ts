@@ -5,6 +5,7 @@ import {
   canViewTrek,
   computeTrekTotals,
   nextDayDate,
+  validateCompanions,
   validateDayFields,
   validateTrekFields,
 } from "./lib/treks";
@@ -12,6 +13,15 @@ import {
 const visibility = v.union(v.literal("public"), v.literal("private"));
 const clearableString = v.union(v.string(), v.null());
 const clearableNumber = v.union(v.number(), v.null());
+const companion = v.union(
+  v.object({ kind: v.literal("user"), userId: v.id("users") }),
+  v.object({ kind: v.literal("name"), name: v.string() })
+);
+type Companion = NonNullable<Doc<"treks">["companions"]>[number];
+
+const PUBLIC_LIST_SIZE = 50;
+// Search filters in memory, so it scans a bounded window of the newest treks only.
+const PUBLIC_SEARCH_WINDOW = 500;
 
 // Same trust model as the rest of the app: the client passes its own userId.
 // Moving to Clerk-verified identity later means changing only this function.
@@ -74,6 +84,52 @@ async function assertStoredFiles(ctx: MutationCtx, storageIds: string[]) {
   }
 }
 
+async function checkCompanions(
+  ctx: QueryCtx,
+  ownerId: Id<"users">,
+  companions: Companion[]
+) {
+  const checked = validateCompanions(companions, ownerId);
+  for (const entry of checked) {
+    if (entry.kind !== "user") continue;
+    const user = await ctx.db.get(entry.userId);
+    // One message for missing, guest and blocked, so it never reveals who blocked whom.
+    if (!user || !user.authId || (await isBlockedEitherWay(ctx, ownerId, user._id))) {
+      throw new Error("Companion not found");
+    }
+  }
+  return checked;
+}
+
+async function isBlockedEitherWay(ctx: QueryCtx, a: Id<"users">, b: Id<"users">) {
+  const lookup = (blockerId: Id<"users">, blockedId: Id<"users">) =>
+    ctx.db
+      .query("blocked_users")
+      .withIndex("by_blocker_and_blocked", (q) =>
+        q.eq("blockerId", blockerId).eq("blockedId", blockedId)
+      )
+      .first();
+  const [ab, ba] = await Promise.all([lookup(a, b), lookup(b, a)]);
+  return ab !== null || ba !== null;
+}
+
+// A linked user who deleted their account is dropped rather than shown as a broken link.
+async function resolveCompanions(ctx: QueryCtx, companions: Companion[] = []) {
+  const resolved = await Promise.all(
+    companions.map(async (entry) => {
+      if (entry.kind === "name") return entry;
+      const user = await ctx.db.get(entry.userId);
+      return user ? { ...entry, username: user.username } : null;
+    })
+  );
+  return resolved.filter((entry) => entry !== null);
+}
+
+async function withSummary(ctx: QueryCtx, trek: Doc<"treks">) {
+  const days = await listDays(ctx, trek._id);
+  return { ...trek, dayCount: days.length, totals: computeTrekTotals(days) };
+}
+
 async function syncStartDate(ctx: MutationCtx, trek: Doc<"treks">) {
   const [earliest] = await listDays(ctx, trek._id);
   if (earliest && earliest.date !== trek.startDate) {
@@ -91,6 +147,7 @@ export const createTrek = mutation({
     googlePlaceId: v.optional(v.string()),
     startDate: v.string(),
     visibility: v.optional(visibility),
+    companions: v.optional(v.array(companion)),
   },
   handler: async (ctx, args) => {
     await requireMember(ctx, args.userId);
@@ -102,12 +159,16 @@ export const createTrek = mutation({
       startDate: args.startDate,
     };
     validateTrekFields(fields);
+    const companions = args.companions
+      ? await checkCompanions(ctx, args.userId, args.companions)
+      : undefined;
 
     const trekId = await ctx.db.insert("treks", {
       userId: args.userId,
       ...fields,
       googlePlaceId: args.googlePlaceId,
       visibility: args.visibility ?? "public",
+      companions,
     });
     await ctx.db.insert("trek_days", {
       trekId,
@@ -125,6 +186,7 @@ export const updateTrek = mutation({
     name: v.optional(v.string()),
     placeName: v.optional(v.string()),
     visibility: v.optional(visibility),
+    companions: v.optional(v.array(companion)),
   },
   handler: async (ctx, args) => {
     const trek = await getOwnedTrek(ctx, args.userId, args.trekId);
@@ -136,11 +198,15 @@ export const updateTrek = mutation({
       startDate: trek.startDate,
     };
     validateTrekFields(fields);
+    const companions = args.companions
+      ? await checkCompanions(ctx, args.userId, args.companions)
+      : undefined;
 
     await ctx.db.patch(trek._id, {
       name: fields.name,
       placeName: fields.placeName,
       ...(args.visibility && { visibility: args.visibility }),
+      ...(companions && { companions }),
     });
   },
 });
@@ -251,6 +317,7 @@ export const getTrek = query({
       owner: owner
         ? { _id: owner._id, username: owner.username }
         : null,
+      companions: await resolveCompanions(ctx, trek.companions),
       days,
       totals: computeTrekTotals(days),
     };
@@ -269,10 +336,51 @@ export const getUserTreks = query({
     return await Promise.all(
       treks
         .filter((trek) => canViewTrek(trek, args.viewerId))
-        .map(async (trek) => {
-          const days = await listDays(ctx, trek._id);
-          return { ...trek, dayCount: days.length, totals: computeTrekTotals(days) };
-        })
+        .map((trek) => withSummary(ctx, trek))
     );
+  },
+});
+
+export const getPublicTreks = query({
+  args: { search: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const term = args.search?.trim().toLowerCase() ?? "";
+    const newest = await ctx.db
+      .query("treks")
+      .withIndex("by_visibility_start", (q) => q.eq("visibility", "public"))
+      .order("desc")
+      .take(term ? PUBLIC_SEARCH_WINDOW : PUBLIC_LIST_SIZE);
+
+    const matching = newest
+      .filter(
+        (trek) =>
+          term === "" ||
+          trek.placeName.toLowerCase().includes(term) ||
+          trek.name.toLowerCase().includes(term)
+      )
+      .slice(0, PUBLIC_LIST_SIZE);
+
+    return await Promise.all(
+      matching.map(async (trek) => {
+        const owner = await ctx.db.get(trek.userId);
+        return {
+          ...(await withSummary(ctx, trek)),
+          owner: owner ? { _id: owner._id, username: owner.username } : null,
+        };
+      })
+    );
+  },
+});
+
+// For the sitemap and static params; private treks must never be listed.
+export const getPublicTrekIds = query({
+  args: {},
+  handler: async (ctx) => {
+    const treks = await ctx.db
+      .query("treks")
+      .withIndex("by_visibility_start", (q) => q.eq("visibility", "public"))
+      .order("desc")
+      .take(10000);
+    return treks.map((trek) => ({ _id: trek._id, _creationTime: trek._creationTime }));
   },
 });

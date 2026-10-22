@@ -11,7 +11,13 @@ export const TREK_LIMITS = {
   elevationGainMetersMax: 20_000,
   maxElevationMetersMin: -500,
   maxElevationMetersMax: 9_000,
+  companionsMax: 10,
+  companionNameMax: 100,
 } as const;
+
+export type TrekCompanion =
+  | { kind: "user"; userId: string }
+  | { kind: "name"; name: string };
 
 export interface DayStats {
   distanceMeters?: number;
@@ -90,6 +96,34 @@ export function validateTrekFields(fields: {
     throw new Error("Longitude must be between -180 and 180");
   }
   if (!isIsoDate(fields.startDate)) throw new Error("Invalid date");
+}
+
+// Returns the list with names trimmed. Whether a linked user exists is checked by the caller.
+export function validateCompanions<T extends TrekCompanion>(
+  companions: T[],
+  ownerId: string
+): T[] {
+  if (companions.length > TREK_LIMITS.companionsMax) {
+    throw new Error(`At most ${TREK_LIMITS.companionsMax} companions`);
+  }
+  const seen = new Set<string>();
+  const addOnce = (key: string) => {
+    if (seen.has(key)) throw new Error("Companion already added");
+    seen.add(key);
+  };
+  return companions.map((companion) => {
+    if (companion.kind === "name") {
+      const name = companion.name.trim();
+      requireText("Companion name", name, TREK_LIMITS.companionNameMax);
+      addOnce(`name:${name.toLowerCase()}`);
+      return { ...companion, name };
+    }
+    if (companion.userId === ownerId) {
+      throw new Error("You cannot add yourself as a companion");
+    }
+    addOnce(`user:${companion.userId}`);
+    return companion;
+  });
 }
 
 // A null value means "clear this field", so there is nothing to check.

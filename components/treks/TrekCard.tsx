@@ -13,9 +13,10 @@ interface TrekCardProps {
     dayCount: number;
     totals: Parameters<typeof summarizeStats>[0];
   };
+  ownerUsername?: string;
 }
 
-export default function TrekCard({ href, trek }: TrekCardProps) {
+export default function TrekCard({ href, trek, ownerUsername }: TrekCardProps) {
   const stats = summarizeStats(trek.totals);
   return (
     <Link href={href} className="block">
@@ -34,6 +35,7 @@ export default function TrekCard({ href, trek }: TrekCardProps) {
             <span className="truncate">{trek.placeName}</span>
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
+            {ownerUsername && `${ownerUsername} · `}
             {formatTrekDate(trek.startDate)}
             {trek.dayCount > 1 && ` · ${trek.dayCount} days`}
             {stats.length > 0 && ` · ${stats.join(" · ")}`}

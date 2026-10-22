@@ -291,6 +291,215 @@ describe("deleteTrek", () => {
   });
 });
 
+describe("public trek browsing", () => {
+  async function setupWithThreeTreks() {
+    const { t, owner, stranger } = await setupWithOwnerAndStranger();
+    await t.mutation(api.treks.createTrek, {
+      userId: owner,
+      ...place,
+      name: "Older",
+      startDate: "2026-01-05",
+    });
+    await t.mutation(api.treks.createTrek, {
+      userId: stranger,
+      ...place,
+      name: "Newer",
+      placeName: "Huayhuash Circuit",
+      startDate: "2026-06-20",
+    });
+    const privateId = await t.mutation(api.treks.createTrek, {
+      userId: owner,
+      ...place,
+      name: "Secret",
+      startDate: "2026-09-01",
+      visibility: "private",
+    });
+    return { t, owner, stranger, privateId };
+  }
+
+  it("lists public treks newest first, with the owner's username, and leaves private treks out", async () => {
+    const { t } = await setupWithThreeTreks();
+
+    const treks = await t.query(api.treks.getPublicTreks, {});
+
+    expect(treks.map((x) => x.name)).toEqual(["Newer", "Older"]);
+    expect(treks.map((x) => x.owner?.username)).toEqual(["stranger", "owner"]);
+  });
+
+  it("matches the place name case-insensitively and never surfaces a private trek", async () => {
+    const { t } = await setupWithThreeTreks();
+
+    expect(
+      (await t.query(api.treks.getPublicTreks, { search: "torres DEL" })).map((x) => x.name)
+    ).toEqual(["Older"]);
+    expect(
+      (await t.query(api.treks.getPublicTreks, { search: "secret" })).map((x) => x.name)
+    ).toEqual([]);
+  });
+
+  it("leaves private treks out of the sitemap and static-params id list", async () => {
+    const { t, privateId } = await setupWithThreeTreks();
+
+    const ids = await t.query(api.treks.getPublicTrekIds, {});
+
+    expect(ids).toHaveLength(2);
+    expect(ids.map((x) => x._id)).not.toContain(privateId);
+  });
+});
+
+describe("companions", () => {
+  async function setupWithFriend() {
+    const { t, owner, stranger } = await setupWithOwnerAndStranger();
+    const friend = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "friend", authId: "clerk_friend", citiesVisited: [] })
+    );
+    return { t, owner, stranger, friend };
+  }
+
+  it("resolves linked users to usernames and keeps plain names", async () => {
+    const { t, owner, friend } = await setupWithFriend();
+
+    const trekId = await t.mutation(api.treks.createTrek, {
+      userId: owner,
+      ...place,
+      companions: [
+        { kind: "user", userId: friend },
+        { kind: "name", name: "Ana" },
+      ],
+    });
+
+    const trek = await t.query(api.treks.getTrek, { trekId });
+    expect(trek?.companions).toEqual([
+      { kind: "user", userId: friend, username: "friend" },
+      { kind: "name", name: "Ana" },
+    ]);
+  });
+
+  it("rejects a guest session row as a companion, since it has no profile to link to", async () => {
+    const { t, owner } = await setupWithFriend();
+    const guest = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "curious-otter-43", citiesVisited: [] })
+    );
+
+    await expect(
+      t.mutation(api.treks.createTrek, {
+        userId: owner,
+        ...place,
+        companions: [{ kind: "user", userId: guest }],
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects a companion the owner has blocked, so blocking cannot be undone from a trek", async () => {
+    const { t, owner, friend } = await setupWithFriend();
+    await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: owner, blockedId: friend })
+    );
+
+    await expect(
+      t.mutation(api.treks.createTrek, {
+        userId: owner,
+        ...place,
+        companions: [{ kind: "user", userId: friend }],
+      })
+    ).rejects.toThrow("Companion not found");
+  });
+
+  it("rejects a companion who blocked the owner, without revealing the block", async () => {
+    const { t, owner, friend } = await setupWithFriend();
+    await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: friend, blockedId: owner })
+    );
+
+    await expect(
+      t.mutation(api.treks.createTrek, {
+        userId: owner,
+        ...place,
+        companions: [{ kind: "user", userId: friend }],
+      })
+    ).rejects.toThrow("Companion not found");
+  });
+
+  it("rejects a linked user that does not exist, so a profile link can never dangle", async () => {
+    const { t, owner, friend } = await setupWithFriend();
+    await t.run((ctx) => ctx.db.delete(friend));
+
+    await expect(
+      t.mutation(api.treks.createTrek, {
+        userId: owner,
+        ...place,
+        companions: [{ kind: "user", userId: friend }],
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects the owner as a companion and a blank name on update, keeping the old list", async () => {
+    const { t, owner, friend } = await setupWithFriend();
+    const trekId = await t.mutation(api.treks.createTrek, {
+      userId: owner,
+      ...place,
+      companions: [{ kind: "user", userId: friend }],
+    });
+
+    await expect(
+      t.mutation(api.treks.updateTrek, {
+        userId: owner,
+        trekId,
+        companions: [{ kind: "user", userId: owner }],
+      })
+    ).rejects.toThrow();
+    await expect(
+      t.mutation(api.treks.updateTrek, {
+        userId: owner,
+        trekId,
+        companions: [{ kind: "name", name: "  " }],
+      })
+    ).rejects.toThrow();
+
+    const trek = await t.query(api.treks.getTrek, { trekId });
+    expect(trek?.companions).toEqual([{ kind: "user", userId: friend, username: "friend" }]);
+  });
+
+  it("replaces the whole list on update, and leaves it alone when the field is absent", async () => {
+    const { t, owner, friend } = await setupWithFriend();
+    const trekId = await t.mutation(api.treks.createTrek, {
+      userId: owner,
+      ...place,
+      companions: [{ kind: "user", userId: friend }],
+    });
+
+    await t.mutation(api.treks.updateTrek, { userId: owner, trekId, name: "Renamed" });
+    expect((await t.query(api.treks.getTrek, { trekId }))?.companions).toEqual([
+      { kind: "user", userId: friend, username: "friend" },
+    ]);
+
+    await t.mutation(api.treks.updateTrek, {
+      userId: owner,
+      trekId,
+      companions: [{ kind: "name", name: "Ana" }],
+    });
+    expect((await t.query(api.treks.getTrek, { trekId }))?.companions).toEqual([
+      { kind: "name", name: "Ana" },
+    ]);
+  });
+
+  it("drops a companion whose account was deleted instead of breaking the trek page", async () => {
+    const { t, owner, friend } = await setupWithFriend();
+    const trekId = await t.mutation(api.treks.createTrek, {
+      userId: owner,
+      ...place,
+      companions: [
+        { kind: "user", userId: friend },
+        { kind: "name", name: "Ana" },
+      ],
+    });
+    await t.run((ctx) => ctx.db.delete(friend));
+
+    const trek = await t.query(api.treks.getTrek, { trekId });
+    expect(trek?.companions).toEqual([{ kind: "name", name: "Ana" }]);
+  });
+});
+
 describe("trek day photos", () => {
   async function dayWithPhotos() {
     const { t, owner } = await setupWithOwnerAndStranger();
