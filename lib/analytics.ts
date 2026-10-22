@@ -211,13 +211,9 @@ export const analytics = {
     safeCapture("activity_card_clicked", { item_type: itemType, item_id: itemId, city_id: cityId });
   },
 
-  // Homepage Carousel
+  // Recent activity cards (GlobalRequestsStrip)
   carouselCardClicked: (itemType: "post" | "request", itemId: string, cityName: string) => {
     safeCapture("carousel_card_clicked", { item_type: itemType, item_id: itemId, city_name: cityName });
-  },
-
-  carouselViewed: (itemCount: number) => {
-    safeCapture("carousel_viewed", { item_count: itemCount });
   },
 
   // PWA

@@ -3,7 +3,7 @@ import { BASE_URL } from "@/lib/convex-server";
 import TrekBrowser from "@/components/treks/TrekBrowser";
 
 export const metadata: Metadata = {
-  title: "Trek logs | TrekTogether",
+  title: "Trek logs",
   description:
     "Browse treks logged by TrekTogether members: routes, daily stats, notes and photos from trails around the world.",
   alternates: { canonical: `${BASE_URL}/treks` },

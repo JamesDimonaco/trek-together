@@ -97,7 +97,7 @@ export default function MessagesClient() {
                   Start a conversation by visiting a user&apos;s profile
                 </p>
                 <Button asChild>
-                  <Link href="/">Browse Cities</Link>
+                  <Link href="/cities">Browse Cities</Link>
                 </Button>
               </div>
             </Card>

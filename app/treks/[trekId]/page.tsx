@@ -32,9 +32,9 @@ const getPublicTrek = cache(async (trekId: string) => {
 export async function generateMetadata({ params }: TrekPageProps): Promise<Metadata> {
   const { trekId } = await params;
   const trek = await getPublicTrek(trekId);
-  if (!trek) return { title: "Trek not found | TrekTogether", robots: { index: false } };
+  if (!trek) return { title: "Trek not found", robots: { index: false } };
 
-  const title = `${trek.name} - trek in ${trek.placeName} | TrekTogether`;
+  const title = `${trek.name} - trek in ${trek.placeName}`;
   const stats = summarizeStats(trek.totals);
   const firstNotes = trek.days.find((day) => day.notes)?.notes;
   const description = truncateAtWord(
@@ -53,14 +53,14 @@ export async function generateMetadata({ params }: TrekPageProps): Promise<Metad
     title,
     description,
     openGraph: {
-      title,
+      title: `${title} | TrekTogether`,
       description,
       type: "article",
       url: canonicalUrl,
       siteName: "TrekTogether",
       images: [{ url: "/og-image.png", width: 1200, height: 630, alt: trek.name }],
     },
-    twitter: { card: "summary_large_image", title, description, images: ["/og-image.png"] },
+    twitter: { card: "summary_large_image", title: `${title} | TrekTogether`, description, images: ["/og-image.png"] },
     alternates: { canonical: canonicalUrl },
   };
 }

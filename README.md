@@ -24,7 +24,7 @@ TrekTogether is a location-based chat application that helps outdoor adventurers
 
 - **Current city tracking** - always return to your active chat
 - **Quick access** from header navigation
-- **Continue chat prompts** on homepage for returning users
+- **Continue chat link** in the header Community menu
 - **Seamless city switching** with automatic updates
 
 ### 🔐 **Robust Authentication**
@@ -177,7 +177,7 @@ trail-meet/
 
 ### Anonymous User Journey
 
-1. **Landing** → Location permission or manual entry
+1. **Cities page** → "Find cities near me": location permission or manual entry
 2. **City Detection** → Google Maps geocoding
 3. **Username Selection** → Optional custom name or stay anonymous
 4. **Chat Access** → Immediate participation in city chat
