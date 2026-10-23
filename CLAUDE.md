@@ -287,7 +287,9 @@ export default defineSchema({
 
 ### Public Routes
 
-- `/` - Landing page with location detection
+- `/` - Your logbook when signed in; "Log your treks" landing when signed out
+- `/treks` - Public trek browse
+- `/my-treks` - Your logbook (auth required)
 - `/sign-in` - Clerk sign-in page
 - `/sign-up` - Clerk sign-up page
 - `/chat/[cityId]` - City chat room (public access)

@@ -199,4 +199,42 @@ export default defineSchema({
     sentAt: v.number(),
   })
     .index("by_user_kind_key", ["userId", "kind", "key"]),
+
+  // Trek log: one row per trip, with one trek_days row per day of the trip
+  treks: defineTable({
+    userId: v.id("users"),
+    name: v.string(),
+    placeName: v.string(),
+    lat: v.float64(),
+    lng: v.float64(),
+    googlePlaceId: v.optional(v.string()), // absent for a manually dropped pin
+    startDate: v.string(),                 // ISO date, kept equal to the earliest day
+    visibility: v.union(v.literal("public"), v.literal("private")),
+    // Who came along: a linked account or just a typed name. Max 10.
+    companions: v.optional(
+      v.array(
+        v.union(
+          v.object({ kind: v.literal("user"), userId: v.id("users") }),
+          v.object({ kind: v.literal("name"), name: v.string() })
+        )
+      )
+    ),
+  })
+    .index("by_user_start", ["userId", "startDate"])
+    .index("by_visibility_start", ["visibility", "startDate"]),
+
+  // Metric values are whole numbers: metres, minutes
+  trek_days: defineTable({
+    trekId: v.id("treks"),
+    date: v.string(),                      // ISO date
+    notes: v.optional(v.string()),
+    placeNote: v.optional(v.string()),     // free text like "Camp 2"
+    weather: v.optional(v.string()),
+    distanceMeters: v.optional(v.number()),
+    durationMinutes: v.optional(v.number()),
+    elevationGainMeters: v.optional(v.number()),
+    maxElevationMeters: v.optional(v.number()),
+    images: v.array(v.string()),           // Storage IDs
+  })
+    .index("by_trek", ["trekId"]),
 });

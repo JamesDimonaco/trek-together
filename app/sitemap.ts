@@ -15,11 +15,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // Fetch all cities, countries, posts, and requests from Convex
-    const [cities, countries, postIds, requestIds] = await Promise.all([
+    const [cities, countries, postIds, requestIds, trekIds] = await Promise.all([
       convex.query(api.cities.getCities),
       convex.query(api.countries.getAllCountries),
       convex.query(api.posts.getAllPostIds),
       convex.query(api.requests.getAllRequestIds),
+      convex.query(api.treks.getPublicTrekIds),
     ]);
 
     // Generate city pages
@@ -54,7 +55,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }));
 
-    // Return sitemap with homepage + cities page + all city pages + all country pages + posts + requests
+    const trekPages = trekIds.map((trek) => ({
+      url: `${baseUrl}/treks/${trek._id}`,
+      lastModified: new Date(trek._creationTime),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    }));
+
     return [
       {
         url: baseUrl,
@@ -68,10 +75,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "daily",
         priority: 0.9,
       },
+      {
+        url: `${baseUrl}/treks`,
+        lastModified: new Date(),
+        changeFrequency: "daily",
+        priority: 0.8,
+      },
       ...cityPages,
       ...countryPages,
       ...postPages,
       ...requestPages,
+      ...trekPages,
     ];
   } catch (error) {
     console.error("Failed to generate sitemap:", error);

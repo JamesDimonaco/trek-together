@@ -82,11 +82,11 @@ export default function AboutPage() {
               Find your city, join the chat, and start connecting with fellow trekkers today.
             </p>
             <Link
-              href="/"
+              href="/cities"
               className="inline-flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors"
             >
               <Mountain className="h-5 w-5 mr-2" />
-              Find Trekkers Near You
+              Find Your City
             </Link>
           </section>
         </CardContent>
