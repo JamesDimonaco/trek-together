@@ -42,6 +42,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
   const deleteTrek = useMutation(api.treks.deleteTrek);
   const addDay = useMutation(api.treks.addTrekDay);
 
+  const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState<{ name: string; placeName: string } | null>(null);
 
   const refreshPublicPage = () => void revalidateTrekPage(trekId);
@@ -66,6 +67,8 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
   }
 
   async function run(action: () => Promise<unknown>, failure: string) {
+    if (busy) return false;
+    setBusy(true);
     try {
       await action();
       refreshPublicPage();
@@ -73,6 +76,8 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : failure);
       return false;
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -105,6 +110,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
                 <Button
                   type="button"
                   className="bg-green-600 hover:bg-green-700"
+                  disabled={busy}
                   onClick={() =>
                     run(async () => {
                       await updateTrek({ userId, trekId, ...draft });
@@ -157,6 +163,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
             <Switch
               id="trek-visibility"
               checked={isPublic}
+              disabled={busy}
               onCheckedChange={(checked) =>
                 run(
                   () => updateTrek({ userId, trekId, visibility: checked ? "public" : "private" }),
@@ -229,6 +236,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
         type="button"
         variant="outline"
         className="w-full gap-1.5"
+        disabled={busy}
         onClick={() =>
           run(async () => {
             await addDay({ userId, trekId });

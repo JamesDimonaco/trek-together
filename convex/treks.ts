@@ -2,6 +2,7 @@ import { mutation, query, MutationCtx, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
 import {
+  TREK_LIMITS,
   canViewTrek,
   computeTrekTotals,
   nextDayDate,
@@ -228,6 +229,9 @@ export const addTrekDay = mutation({
   handler: async (ctx, args) => {
     const trek = await getOwnedTrek(ctx, args.userId, args.trekId);
     const days = await listDays(ctx, trek._id);
+    if (days.length >= TREK_LIMITS.daysMax) {
+      throw new Error(`At most ${TREK_LIMITS.daysMax} days per trek`);
+    }
     const latest = days[days.length - 1];
     return await ctx.db.insert("trek_days", {
       trekId: trek._id,

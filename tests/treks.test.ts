@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "../convex/schema";
 import { api } from "../convex/_generated/api";
+import { TREK_LIMITS } from "../convex/lib/treks";
 
 const modules = import.meta.glob("../convex/**/*.*s");
 
@@ -542,5 +543,20 @@ describe("trek day photos", () => {
     await t.mutation(api.treks.deleteTrek, { userId: owner, trekId });
 
     expect(await t.query(api.treks.getTrek, { trekId, viewerId: owner })).toBeNull();
+  });
+});
+
+describe("addTrekDay limit", () => {
+  it("stops at the per-trek day limit so listing queries stay within read limits", async () => {
+    const { t, owner } = await setupWithOwnerAndStranger();
+    const trekId = await t.mutation(api.treks.createTrek, { userId: owner, ...place });
+
+    for (let day = 2; day <= TREK_LIMITS.daysMax; day++) {
+      await t.mutation(api.treks.addTrekDay, { userId: owner, trekId });
+    }
+
+    await expect(
+      t.mutation(api.treks.addTrekDay, { userId: owner, trekId })
+    ).rejects.toThrow(/days per trek/);
   });
 });

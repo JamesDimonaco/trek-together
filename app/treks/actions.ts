@@ -7,4 +7,5 @@ import { revalidatePath } from "next/cache";
 export async function revalidateTrekPage(trekId: string) {
   if (!/^[0-9a-z]{28,34}$/i.test(trekId)) return;
   revalidatePath(`/treks/${trekId}`);
+  revalidatePath("/sitemap.xml");
 }

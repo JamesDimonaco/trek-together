@@ -183,6 +183,10 @@ export default function FindNearbyCity() {
         />
       )}
 
+      {step === "confirming" && error && (
+        <p className="text-center text-sm text-red-500">{error}</p>
+      )}
+
       {step === "username" && locationData && (
         <UsernamePrompt
           locationData={locationData}
