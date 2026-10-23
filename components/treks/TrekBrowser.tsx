@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { Loader2, Mountain, Search } from "lucide-react";
 import { api } from "@/convex/_generated/api";
@@ -9,7 +9,15 @@ import TrekCard from "./TrekCard";
 
 export default function TrekBrowser() {
   const [search, setSearch] = useState("");
-  const treks = useQuery(api.treks.getPublicTreks, { search: search.trim() || undefined });
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const treks = useQuery(api.treks.getPublicTreks, {
+    search: debouncedSearch.trim() || undefined,
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

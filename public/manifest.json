@@ -1,7 +1,7 @@
 {
   "name": "TrekTogether",
   "short_name": "TrekTogether",
-  "description": "Find hiking & trekking buddies in your city",
+  "description": "Log your treks and meet trekkers worldwide",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
