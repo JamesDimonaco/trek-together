@@ -878,3 +878,84 @@ describe("trek views", () => {
     expect(await rows()).toEqual([]);
   });
 });
+
+describe("profile stats", () => {
+  async function setupWithTreks() {
+    const { t, owner, stranger } = await setupWithOwnerAndStranger();
+    const logTrek = async (
+      visibility: "public" | "private",
+      days: { distanceMeters?: number; elevationGainMeters?: number }[]
+    ) => {
+      const trekId = await t.mutation(api.treks.createTrek, { userId: owner, ...place, visibility });
+      const [first] = await t.run((ctx) =>
+        ctx.db.query("trek_days").withIndex("by_trek", (q) => q.eq("trekId", trekId)).collect()
+      );
+      for (const [index, stats] of days.entries()) {
+        const dayId =
+          index === 0 ? first._id : await t.mutation(api.treks.addTrekDay, { userId: owner, trekId });
+        await t.mutation(api.treks.updateTrekDay, { userId: owner, dayId, ...stats });
+      }
+      return trekId;
+    };
+    const statsFor = (viewerId?: typeof owner) =>
+      t.query(api.treks.getUserTrekStats, { userId: owner, viewerId });
+    return { owner, stranger, logTrek, statsFor };
+  }
+
+  it("excludes private treks from a visitor's totals, so a private log cannot leak through the numbers", async () => {
+    const { stranger, logTrek, statsFor } = await setupWithTreks();
+    await logTrek("public", [{ distanceMeters: 1000, elevationGainMeters: 100 }]);
+    await logTrek("private", [{ distanceMeters: 5000, elevationGainMeters: 500 }]);
+
+    const asStranger = await statsFor(stranger);
+    const asGuest = await statsFor();
+
+    const expected = { trekCount: 1, dayCount: 1, distanceMeters: 1000, elevationGainMeters: 100 };
+    expect(asStranger).toEqual(expected);
+    expect(asGuest).toEqual(expected);
+  });
+
+  it("includes private treks in the owner's totals, so their own record is complete", async () => {
+    const { owner, logTrek, statsFor } = await setupWithTreks();
+    await logTrek("public", [{ distanceMeters: 1000, elevationGainMeters: 100 }]);
+    await logTrek("private", [{ distanceMeters: 5000, elevationGainMeters: 500 }]);
+
+    expect(await statsFor(owner)).toEqual({
+      trekCount: 2,
+      dayCount: 2,
+      distanceMeters: 6000,
+      elevationGainMeters: 600,
+    });
+  });
+
+  it("returns zeros for a user with no treks, so the profile can render without null checks", async () => {
+    const { owner, statsFor } = await setupWithTreks();
+
+    expect(await statsFor(owner)).toEqual({
+      trekCount: 0,
+      dayCount: 0,
+      distanceMeters: 0,
+      elevationGainMeters: 0,
+    });
+  });
+
+  it("sums across treks and days, counting days without stats and leaving no field undefined", async () => {
+    const { owner, logTrek, statsFor } = await setupWithTreks();
+    await logTrek("public", [
+      { distanceMeters: 12_000, elevationGainMeters: 800 },
+      { distanceMeters: 9_500 },
+      {},
+    ]);
+    await logTrek("public", [
+      { elevationGainMeters: 1_200 },
+      { distanceMeters: 4_000, elevationGainMeters: 300 },
+    ]);
+
+    expect(await statsFor(owner)).toEqual({
+      trekCount: 2,
+      dayCount: 5,
+      distanceMeters: 25_500,
+      elevationGainMeters: 2_300,
+    });
+  });
+});

@@ -538,20 +538,42 @@ export const recordTrekView = mutation({
   },
 });
 
+// The owner sees all their treks; everyone else sees public ones only.
+async function listVisibleTreks(
+  ctx: QueryCtx,
+  userId: Id<"users">,
+  viewerId: Id<"users"> | undefined
+) {
+  const treks = await ctx.db
+    .query("treks")
+    .withIndex("by_user_start", (q) => q.eq("userId", userId))
+    .order("desc")
+    .take(200);
+  return treks.filter((trek) => canViewTrek(trek, viewerId));
+}
+
 export const getUserTreks = query({
   args: { userId: v.id("users"), viewerId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
-    const treks = await ctx.db
-      .query("treks")
-      .withIndex("by_user_start", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .take(200);
+    const treks = await listVisibleTreks(ctx, args.userId, args.viewerId);
+    return await Promise.all(treks.map((trek) => withSummary(ctx, trek)));
+  },
+});
 
-    return await Promise.all(
-      treks
-        .filter((trek) => canViewTrek(trek, args.viewerId))
-        .map((trek) => withSummary(ctx, trek))
-    );
+export const getUserTrekStats = query({
+  args: { userId: v.id("users"), viewerId: v.optional(v.id("users")) },
+  handler: async (ctx, args) => {
+    const treks = await listVisibleTreks(ctx, args.userId, args.viewerId);
+    const days = (
+      await Promise.all(treks.map((trek) => listDays(ctx, trek._id)))
+    ).flat();
+    const totals = computeTrekTotals(days);
+    return {
+      trekCount: treks.length,
+      dayCount: days.length,
+      distanceMeters: totals.distanceMeters ?? 0,
+      elevationGainMeters: totals.elevationGainMeters ?? 0,
+    };
   },
 });
 
