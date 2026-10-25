@@ -475,6 +475,10 @@ export const toggleTrekLike = mutation({
     const user = await requireMember(ctx, args.userId);
     const trek = await ctx.db.get(args.trekId);
     if (!trek || trek.visibility !== "public") throw new Error("Trek not found");
+    // Same message as a missing trek, so a blocked user learns nothing.
+    if (await isBlockedEitherWay(ctx, trek.userId, user._id)) {
+      throw new Error("Trek not found");
+    }
 
     const existing = await ctx.db
       .query("trek_likes")

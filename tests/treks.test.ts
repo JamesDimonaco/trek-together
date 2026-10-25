@@ -724,7 +724,25 @@ describe("trek likes", () => {
     const { stranger, like, setVisibility } = await setupWithPublicTrek();
     await setVisibility("private");
 
-    await expect(like(stranger)).rejects.toThrow();
+    await expect(like(stranger)).rejects.toThrow("Trek not found");
+  });
+
+  it("blocked users cannot like in either direction, so a block holds on every trek", async () => {
+    const { t, owner, stranger, like } = await setupWithPublicTrek();
+    const rows = () => t.run((ctx) => ctx.db.query("trek_likes").collect());
+
+    const block = await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: owner, blockedId: stranger })
+    );
+    await expect(like(stranger)).rejects.toThrow("Trek not found");
+    expect(await rows()).toEqual([]);
+
+    await t.run(async (ctx) => {
+      await ctx.db.delete(block);
+      await ctx.db.insert("blocked_users", { blockerId: stranger, blockedId: owner });
+    });
+    await expect(like(stranger)).rejects.toThrow("Trek not found");
+    expect(await rows()).toEqual([]);
   });
 
   it("rejects a guest, who has no account to like from", async () => {
