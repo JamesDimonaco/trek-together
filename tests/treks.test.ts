@@ -561,6 +561,29 @@ describe("addTrekDay limit", () => {
   });
 });
 
+describe("createTrek limit", () => {
+  it("stops at the per-account trek limit so profile totals stay within read limits", async () => {
+    const { t, owner } = await setupWithOwnerAndStranger();
+    await t.run(async (ctx) => {
+      for (let i = 0; i < TREK_LIMITS.treksMax; i++) {
+        await ctx.db.insert("treks", {
+          userId: owner,
+          name: `Trek ${i}`,
+          placeName: place.placeName,
+          lat: place.lat,
+          lng: place.lng,
+          startDate: place.startDate,
+          visibility: "public",
+        });
+      }
+    });
+
+    await expect(
+      t.mutation(api.treks.createTrek, { userId: owner, ...place })
+    ).rejects.toThrow(/treks per account/);
+  });
+});
+
 describe("trek comments", () => {
   async function setupWithPublicTrek() {
     const { t, owner, stranger } = await setupWithOwnerAndStranger();

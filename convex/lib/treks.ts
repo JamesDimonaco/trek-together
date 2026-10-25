@@ -7,6 +7,7 @@ export const TREK_LIMITS = {
   shortTextMax: 100,
   imagesMax: 5,
   daysMax: 60,
+  treksMax: 500,
   distanceMetersMax: 500_000,
   durationMinutesMax: 24 * 60,
   elevationGainMetersMax: 20_000,

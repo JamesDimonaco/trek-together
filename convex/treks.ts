@@ -253,6 +253,13 @@ export const createTrek = mutation({
       startDate: args.startDate,
     };
     validateTrekFields(fields);
+    const existing = await ctx.db
+      .query("treks")
+      .withIndex("by_user_start", (q) => q.eq("userId", args.userId))
+      .take(TREK_LIMITS.treksMax);
+    if (existing.length >= TREK_LIMITS.treksMax) {
+      throw new Error(`At most ${TREK_LIMITS.treksMax} treks per account`);
+    }
     const companions = args.companions
       ? await checkCompanions(ctx, args.userId, args.companions)
       : undefined;
