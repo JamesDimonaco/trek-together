@@ -136,6 +136,8 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {formatTrekDate(trek.startDate)}
                   {stats.length > 0 && ` · ${stats.join(" · ")}`}
+                  {typeof trek.viewCount === "number" &&
+                    ` · ${trek.viewCount} ${trek.viewCount === 1 ? "view" : "views"}`}
                 </p>
               </div>
               <Button

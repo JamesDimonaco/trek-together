@@ -201,6 +201,23 @@ async function visibleLikes(
   };
 }
 
+async function listViews(ctx: QueryCtx, trekId: Id<"treks">) {
+  return await ctx.db
+    .query("trek_views")
+    .withIndex("by_trek", (q) => q.eq("trekId", trekId))
+    .collect();
+}
+
+// Owner only: views are feedback for the author, never a public popularity signal.
+async function ownerViewCount(
+  ctx: QueryCtx,
+  trek: Doc<"treks">,
+  viewerId: Id<"users"> | undefined
+) {
+  if (viewerId !== trek.userId) return {};
+  return { viewCount: (await listViews(ctx, trek._id)).length };
+}
+
 async function withSummary(ctx: QueryCtx, trek: Doc<"treks">) {
   const days = await listDays(ctx, trek._id);
   const { likeCount } = await visibleLikes(ctx, trek, undefined);
@@ -301,6 +318,9 @@ export const deleteTrek = mutation({
     }
     for (const like of await listLikes(ctx, trek._id)) {
       await ctx.db.delete(like._id);
+    }
+    for (const view of await listViews(ctx, trek._id)) {
+      await ctx.db.delete(view._id);
     }
     await ctx.db.delete(trek._id);
   },
@@ -408,6 +428,7 @@ export const getTrek = query({
       totals: computeTrekTotals(days),
       comments: await listVisibleComments(ctx, trek, args.viewerId),
       ...(await visibleLikes(ctx, trek, args.viewerId)),
+      ...(await ownerViewCount(ctx, trek, args.viewerId)),
     };
   },
 });
@@ -493,6 +514,27 @@ export const toggleTrekLike = mutation({
     }
     await ctx.db.insert("trek_likes", { trekId: trek._id, userId: user._id });
     return { liked: true };
+  },
+});
+
+// A no-op rather than an error for the owner and for private treks: the page
+// calls this on mount and should never surface a failure for a harmless visit.
+export const recordTrekView = mutation({
+  args: { userId: v.id("users"), trekId: v.id("treks") },
+  handler: async (ctx, args) => {
+    const viewer = await requireMember(ctx, args.userId);
+    const trek = await ctx.db.get(args.trekId);
+    if (!trek || trek.visibility !== "public" || trek.userId === viewer._id) return;
+
+    const day = new Date().toISOString().slice(0, 10);
+    const existing = await ctx.db
+      .query("trek_views")
+      .withIndex("by_trek_viewer_day", (q) =>
+        q.eq("trekId", trek._id).eq("viewerId", viewer._id).eq("day", day)
+      )
+      .first();
+    if (existing) return;
+    await ctx.db.insert("trek_views", { trekId: trek._id, viewerId: viewer._id, day });
   },
 });
 

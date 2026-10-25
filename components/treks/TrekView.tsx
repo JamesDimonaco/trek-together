@@ -6,6 +6,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { formatTrekDate, summarizeStats } from "@/lib/trek-utils";
 import TrekComments from "./TrekComments";
 import TrekLikeButton from "./TrekLikeButton";
+import TrekViewRecorder from "./TrekViewRecorder";
 
 interface TrekViewDay {
   _id: string;
@@ -152,6 +153,7 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
       })}
 
       <TrekComments trekId={trek._id} />
+      <TrekViewRecorder trekId={trek._id} />
     </article>
   );
 }

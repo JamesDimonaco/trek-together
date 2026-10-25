@@ -801,3 +801,73 @@ describe("trek likes", () => {
     expect(left).toEqual([]);
   });
 });
+
+describe("trek views", () => {
+  async function setupWithPublicTrek() {
+    const { t, owner, stranger } = await setupWithOwnerAndStranger();
+    const trekId = await t.mutation(api.treks.createTrek, { userId: owner, ...place });
+    const view = (userId: typeof owner) =>
+      t.mutation(api.treks.recordTrekView, { userId, trekId });
+    const viewCountFor = (viewerId?: typeof owner) =>
+      t.query(api.treks.getTrek, { trekId, viewerId }).then((trek) => trek?.viewCount);
+    const rows = () => t.run((ctx) => ctx.db.query("trek_views").collect());
+    const setVisibility = (visibility: "public" | "private") =>
+      t.mutation(api.treks.updateTrek, { userId: owner, trekId, visibility });
+    return { t, owner, stranger, trekId, view, viewCountFor, rows, setVisibility };
+  }
+
+  it("counts the same viewer once per day, so a refresh cannot inflate the number", async () => {
+    const { owner, stranger, view, viewCountFor } = await setupWithPublicTrek();
+
+    await view(stranger);
+    await view(stranger);
+
+    expect(await viewCountFor(owner)).toBe(1);
+  });
+
+  it("does not count the owner's own visit, so the number is honest", async () => {
+    const { owner, view, viewCountFor, rows } = await setupWithPublicTrek();
+
+    await view(owner);
+
+    expect(await rows()).toEqual([]);
+    expect(await viewCountFor(owner)).toBe(0);
+  });
+
+  it("records nothing on a private trek, so a private log gains no data through the API", async () => {
+    const { stranger, view, rows, setVisibility } = await setupWithPublicTrek();
+    await setVisibility("private");
+
+    await view(stranger);
+
+    expect(await rows()).toEqual([]);
+  });
+
+  it("returns the count to the owner only, so views are not a public popularity signal", async () => {
+    const { owner, stranger, view, viewCountFor } = await setupWithPublicTrek();
+    await view(stranger);
+
+    expect(await viewCountFor(owner)).toBe(1);
+    expect(await viewCountFor(stranger)).toBeUndefined();
+    expect(await viewCountFor()).toBeUndefined();
+  });
+
+  it("deletes the views with the trek, so no orphan rows remain", async () => {
+    const { t, owner, stranger, trekId, view, rows } = await setupWithPublicTrek();
+    await view(stranger);
+
+    await t.mutation(api.treks.deleteTrek, { userId: owner, trekId });
+
+    expect(await rows()).toEqual([]);
+  });
+
+  it("rejects a guest, who has no account to view from", async () => {
+    const { t, view, rows } = await setupWithPublicTrek();
+    const guest = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "curious-otter-43", citiesVisited: [] })
+    );
+
+    await expect(view(guest)).rejects.toThrow("Authentication required");
+    expect(await rows()).toEqual([]);
+  });
+});
