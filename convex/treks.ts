@@ -1,6 +1,7 @@
 import { mutation, query, MutationCtx, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
+import { appUrl, commentEmailBody, notifyUser, truncate } from "./lib/notify";
 import {
   TREK_LIMITS,
   canViewTrek,
@@ -126,6 +127,55 @@ async function resolveCompanions(ctx: QueryCtx, companions: Companion[] = []) {
   return resolved.filter((entry) => entry !== null);
 }
 
+// Both directions, like the post and request helpers: a block hides each side from the other.
+async function blockedUserIds(ctx: QueryCtx, userId: Id<"users">) {
+  const [byMe, ofMe] = await Promise.all([
+    ctx.db
+      .query("blocked_users")
+      .withIndex("by_blocker", (q) => q.eq("blockerId", userId))
+      .collect(),
+    ctx.db
+      .query("blocked_users")
+      .withIndex("by_blocked", (q) => q.eq("blockedId", userId))
+      .collect(),
+  ]);
+  return new Set<Id<"users">>([
+    ...byMe.map((b) => b.blockedId),
+    ...ofMe.map((b) => b.blockerId),
+  ]);
+}
+
+async function listComments(ctx: QueryCtx, trekId: Id<"treks">) {
+  return await ctx.db
+    .query("trek_comments")
+    .withIndex("by_trek", (q) => q.eq("trekId", trekId))
+    .order("asc")
+    .collect();
+}
+
+async function listVisibleComments(
+  ctx: QueryCtx,
+  trek: Doc<"treks">,
+  viewerId: Id<"users"> | undefined
+) {
+  if (trek.visibility !== "public") return [];
+  const blocked = viewerId ? await blockedUserIds(ctx, viewerId) : new Set<Id<"users">>();
+  const comments = (await listComments(ctx, trek._id)).filter(
+    (comment) => !blocked.has(comment.authorId)
+  );
+  return await Promise.all(
+    comments.map(async (comment) => {
+      const author = await ctx.db.get(comment.authorId);
+      return {
+        ...comment,
+        author: author
+          ? { _id: author._id, username: author.username, avatarUrl: author.avatarUrl }
+          : null,
+      };
+    })
+  );
+}
+
 async function withSummary(ctx: QueryCtx, trek: Doc<"treks">) {
   const days = await listDays(ctx, trek._id);
   return { ...trek, dayCount: days.length, totals: computeTrekTotals(days) };
@@ -219,6 +269,9 @@ export const deleteTrek = mutation({
     for (const day of await listDays(ctx, trek._id)) {
       await deleteStoredImages(ctx, day.images);
       await ctx.db.delete(day._id);
+    }
+    for (const comment of await listComments(ctx, trek._id)) {
+      await ctx.db.delete(comment._id);
     }
     await ctx.db.delete(trek._id);
   },
@@ -324,7 +377,65 @@ export const getTrek = query({
       companions: await resolveCompanions(ctx, trek.companions),
       days,
       totals: computeTrekTotals(days),
+      comments: await listVisibleComments(ctx, trek, args.viewerId),
     };
+  },
+});
+
+export const addTrekComment = mutation({
+  args: { userId: v.id("users"), trekId: v.id("treks"), content: v.string() },
+  handler: async (ctx, args) => {
+    const author = await requireMember(ctx, args.userId);
+    const trek = await ctx.db.get(args.trekId);
+    if (!trek || trek.visibility !== "public") throw new Error("Trek not found");
+    if (await isBlockedEitherWay(ctx, trek.userId, author._id)) {
+      throw new Error("Cannot comment on this trek");
+    }
+    const content = args.content.trim();
+    if (content.length === 0) throw new Error("Comment is required");
+    if (content.length > TREK_LIMITS.commentMax) {
+      throw new Error(`Comment must be ${TREK_LIMITS.commentMax} characters or less`);
+    }
+
+    const commentId = await ctx.db.insert("trek_comments", {
+      trekId: trek._id,
+      authorId: author._id,
+      content,
+    });
+
+    const owner = trek.userId === author._id ? null : await ctx.db.get(trek.userId);
+    if (owner) {
+      // At most one email per trek per hour, so a busy thread cannot flood the owner.
+      await notifyUser(ctx, {
+        user: owner,
+        kind: "trek_comment",
+        key: trek._id,
+        cooldown: 60 * 60 * 1000,
+        subject: `New comment on "${truncate(trek.name, 60)}"`,
+        bodyHtml: commentEmailBody({
+          actorName: author.username,
+          requestTitle: trek.name,
+          requestUrl: `${appUrl()}/treks/${trek._id}`,
+          commentPreview: content,
+        }),
+      });
+    }
+    return commentId;
+  },
+});
+
+export const deleteTrekComment = mutation({
+  args: { userId: v.id("users"), commentId: v.id("trek_comments") },
+  handler: async (ctx, args) => {
+    await requireMember(ctx, args.userId);
+    const comment = await ctx.db.get(args.commentId);
+    if (!comment) throw new Error("Comment not found");
+    const trek = await ctx.db.get(comment.trekId);
+    const isOwner = trek?.userId === args.userId;
+    if (!isOwner && comment.authorId !== args.userId) {
+      throw new Error("Only the author or the trek owner can delete this comment");
+    }
+    await ctx.db.delete(comment._id);
   },
 });
 

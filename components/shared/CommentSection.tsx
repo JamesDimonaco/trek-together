@@ -24,6 +24,8 @@ interface Comment {
 interface CommentSectionProps {
   comments: Comment[];
   currentUserId?: string;
+  // Lets a page owner remove any comment, not only their own
+  canDeleteAny?: boolean;
   onAddComment: (content: string) => Promise<void>;
   onDeleteComment: (commentId: string) => Promise<void>;
   // Whether the user can comment directly (auth user, or guest with contact)
@@ -35,6 +37,7 @@ interface CommentSectionProps {
 export default function CommentSection({
   comments,
   currentUserId,
+  canDeleteAny = false,
   onAddComment,
   onDeleteComment,
   isAuthenticated,
@@ -104,7 +107,7 @@ export default function CommentSection({
                   <span className="text-xs text-gray-400">
                     {formatTime(comment._creationTime)}
                   </span>
-                  {currentUserId === comment.authorId && (
+                  {(canDeleteAny || currentUserId === comment.authorId) && (
                     <button
                       onClick={() => onDeleteComment(comment._id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"

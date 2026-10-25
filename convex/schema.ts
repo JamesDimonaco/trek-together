@@ -237,4 +237,12 @@ export default defineSchema({
     images: v.array(v.string()),           // Storage IDs
   })
     .index("by_trek", ["trekId"]),
+
+  // Flat thread on a public trek; rows stay when the trek goes private
+  trek_comments: defineTable({
+    trekId: v.id("treks"),
+    authorId: v.id("users"),
+    content: v.string(),
+  })
+    .index("by_trek", ["trekId"]),
 });

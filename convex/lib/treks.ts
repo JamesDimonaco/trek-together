@@ -14,6 +14,7 @@ export const TREK_LIMITS = {
   maxElevationMetersMax: 9_000,
   companionsMax: 10,
   companionNameMax: 100,
+  commentMax: 1000,
 } as const;
 
 export type TrekCompanion =

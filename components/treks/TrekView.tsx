@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { CloudSun, ExternalLink, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Id } from "@/convex/_generated/dataModel";
 import { formatTrekDate, summarizeStats } from "@/lib/trek-utils";
+import TrekComments from "./TrekComments";
 
 interface TrekViewDay {
   _id: string;
@@ -22,6 +24,7 @@ export type TrekViewCompanion =
   | { kind: "name"; name: string };
 
 export interface TrekViewData {
+  _id: Id<"treks">;
   name: string;
   placeName: string;
   lat: number;
@@ -143,6 +146,8 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
           </Card>
         );
       })}
+
+      <TrekComments trekId={trek._id} />
     </article>
   );
 }
