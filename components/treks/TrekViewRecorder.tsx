@@ -10,12 +10,12 @@ import { useCurrentUser } from "@/lib/hooks/use-current-user";
 export default function TrekViewRecorder({ trekId }: { trekId: Id<"treks"> }) {
   const { userId, isLoading } = useCurrentUser();
   const recordView = useMutation(api.treks.recordTrekView);
-  const recorded = useRef(false);
+  const recordedFor = useRef<Id<"treks"> | null>(null);
 
   useEffect(() => {
-    // The ref stops strict mode's double effect run from firing twice.
-    if (isLoading || !userId || recorded.current) return;
-    recorded.current = true;
+    // The ref stops strict mode's double effect run from firing twice per trek.
+    if (isLoading || !userId || recordedFor.current === trekId) return;
+    recordedFor.current = trekId;
     // A failed view record is not the reader's problem; never surface it.
     recordView({ userId, trekId }).catch(() => {});
   }, [isLoading, userId, trekId, recordView]);

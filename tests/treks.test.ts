@@ -808,21 +808,28 @@ describe("trek views", () => {
     const trekId = await t.mutation(api.treks.createTrek, { userId: owner, ...place });
     const view = (userId: typeof owner) =>
       t.mutation(api.treks.recordTrekView, { userId, trekId });
-    const viewCountFor = (viewerId?: typeof owner) =>
-      t.query(api.treks.getTrek, { trekId, viewerId }).then((trek) => trek?.viewCount);
+    const viewCountFor = async (viewerId?: typeof owner) => {
+      const trek = await t.query(api.treks.getTrek, { trekId, viewerId });
+      expect(trek).not.toBeNull();
+      return trek?.viewCount;
+    };
     const rows = () => t.run((ctx) => ctx.db.query("trek_views").collect());
     const setVisibility = (visibility: "public" | "private") =>
       t.mutation(api.treks.updateTrek, { userId: owner, trekId, visibility });
     return { t, owner, stranger, trekId, view, viewCountFor, rows, setVisibility };
   }
 
-  it("counts the same viewer once per day, so a refresh cannot inflate the number", async () => {
-    const { owner, stranger, view, viewCountFor } = await setupWithPublicTrek();
+  it("counts the same viewer once per day but again on a later day, so a refresh cannot inflate the number", async () => {
+    const { t, owner, stranger, trekId, view, viewCountFor, rows } = await setupWithPublicTrek();
+    await t.run((ctx) =>
+      ctx.db.insert("trek_views", { trekId, viewerId: stranger, day: "2000-01-01" })
+    );
 
     await view(stranger);
     await view(stranger);
 
-    expect(await viewCountFor(owner)).toBe(1);
+    expect(await viewCountFor(owner)).toBe(2);
+    expect((await rows()).map((row) => row.day)).toContain("2000-01-01");
   });
 
   it("does not count the owner's own visit, so the number is honest", async () => {
