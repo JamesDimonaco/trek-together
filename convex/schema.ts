@@ -245,4 +245,11 @@ export default defineSchema({
     content: v.string(),
   })
     .index("by_trek", ["trekId"]),
+
+  trek_likes: defineTable({
+    trekId: v.id("treks"),
+    userId: v.id("users"),
+  })
+    .index("by_trek", ["trekId"])
+    .index("by_user_trek", ["userId", "trekId"]),
 });

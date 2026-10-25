@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Id } from "@/convex/_generated/dataModel";
 import { formatTrekDate, summarizeStats } from "@/lib/trek-utils";
 import TrekComments from "./TrekComments";
+import TrekLikeButton from "./TrekLikeButton";
 
 interface TrekViewDay {
   _id: string;
@@ -43,7 +44,10 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
   return (
     <article className="space-y-4">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{trek.name}</h1>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{trek.name}</h1>
+          <TrekLikeButton trekId={trek._id} />
+        </div>
         <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span>{trek.placeName}</span>

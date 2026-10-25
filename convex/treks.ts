@@ -180,9 +180,31 @@ async function listVisibleComments(
   );
 }
 
+async function listLikes(ctx: QueryCtx, trekId: Id<"treks">) {
+  return await ctx.db
+    .query("trek_likes")
+    .withIndex("by_trek", (q) => q.eq("trekId", trekId))
+    .collect();
+}
+
+// Rows stay when the trek goes private; they are hidden, not lost.
+async function visibleLikes(
+  ctx: QueryCtx,
+  trek: Doc<"treks">,
+  viewerId: Id<"users"> | undefined
+) {
+  if (trek.visibility !== "public") return { likeCount: 0, hasLiked: false };
+  const likes = await listLikes(ctx, trek._id);
+  return {
+    likeCount: likes.length,
+    hasLiked: viewerId !== undefined && likes.some((like) => like.userId === viewerId),
+  };
+}
+
 async function withSummary(ctx: QueryCtx, trek: Doc<"treks">) {
   const days = await listDays(ctx, trek._id);
-  return { ...trek, dayCount: days.length, totals: computeTrekTotals(days) };
+  const { likeCount } = await visibleLikes(ctx, trek, undefined);
+  return { ...trek, dayCount: days.length, totals: computeTrekTotals(days), likeCount };
 }
 
 async function syncStartDate(ctx: MutationCtx, trek: Doc<"treks">) {
@@ -276,6 +298,9 @@ export const deleteTrek = mutation({
     }
     for (const comment of await listComments(ctx, trek._id)) {
       await ctx.db.delete(comment._id);
+    }
+    for (const like of await listLikes(ctx, trek._id)) {
+      await ctx.db.delete(like._id);
     }
     await ctx.db.delete(trek._id);
   },
@@ -382,6 +407,7 @@ export const getTrek = query({
       days,
       totals: computeTrekTotals(days),
       comments: await listVisibleComments(ctx, trek, args.viewerId),
+      ...(await visibleLikes(ctx, trek, args.viewerId)),
     };
   },
 });
@@ -440,6 +466,28 @@ export const deleteTrekComment = mutation({
       throw new Error("Only the author or the trek owner can delete this comment");
     }
     await ctx.db.delete(comment._id);
+  },
+});
+
+export const toggleTrekLike = mutation({
+  args: { userId: v.id("users"), trekId: v.id("treks") },
+  handler: async (ctx, args) => {
+    const user = await requireMember(ctx, args.userId);
+    const trek = await ctx.db.get(args.trekId);
+    if (!trek || trek.visibility !== "public") throw new Error("Trek not found");
+
+    const existing = await ctx.db
+      .query("trek_likes")
+      .withIndex("by_user_trek", (q) =>
+        q.eq("userId", user._id).eq("trekId", trek._id)
+      )
+      .first();
+    if (existing) {
+      await ctx.db.delete(existing._id);
+      return { liked: false };
+    }
+    await ctx.db.insert("trek_likes", { trekId: trek._id, userId: user._id });
+    return { liked: true };
   },
 });
 
