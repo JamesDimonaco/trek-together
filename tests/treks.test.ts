@@ -745,6 +745,20 @@ describe("trek likes", () => {
     expect(await rows()).toEqual([]);
   });
 
+  it("a like given before a block can still be removed, so a block cannot lock it in place", async () => {
+    const { t, owner, stranger, like } = await setupWithPublicTrek();
+    const rows = () => t.run((ctx) => ctx.db.query("trek_likes").collect());
+
+    expect(await like(stranger)).toEqual({ liked: true });
+    await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: owner, blockedId: stranger })
+    );
+
+    expect(await like(stranger)).toEqual({ liked: false });
+    expect(await rows()).toEqual([]);
+    await expect(like(stranger)).rejects.toThrow("Trek not found");
+  });
+
   it("rejects a guest, who has no account to like from", async () => {
     const { t, like } = await setupWithPublicTrek();
     const guest = await t.run((ctx) =>

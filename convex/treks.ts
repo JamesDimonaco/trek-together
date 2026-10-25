@@ -475,11 +475,8 @@ export const toggleTrekLike = mutation({
     const user = await requireMember(ctx, args.userId);
     const trek = await ctx.db.get(args.trekId);
     if (!trek || trek.visibility !== "public") throw new Error("Trek not found");
-    // Same message as a missing trek, so a blocked user learns nothing.
-    if (await isBlockedEitherWay(ctx, trek.userId, user._id)) {
-      throw new Error("Trek not found");
-    }
 
+    // Removing an own like is always allowed, so a block cannot lock it in place.
     const existing = await ctx.db
       .query("trek_likes")
       .withIndex("by_user_trek", (q) =>
@@ -489,6 +486,10 @@ export const toggleTrekLike = mutation({
     if (existing) {
       await ctx.db.delete(existing._id);
       return { liked: false };
+    }
+    // Same message as a missing trek, so a blocked user learns nothing.
+    if (await isBlockedEitherWay(ctx, trek.userId, user._id)) {
+      throw new Error("Trek not found");
     }
     await ctx.db.insert("trek_likes", { trekId: trek._id, userId: user._id });
     return { liked: true };
