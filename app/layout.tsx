@@ -27,11 +27,11 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_APP_URL || "https://trektogether.app"
   ),
   title: {
-    default: "TrekTogether - Find Hiking & Trekking Buddies in Your City",
+    default: "TrekTogether - Log Your Treks",
     template: "%s | TrekTogether",
   },
   description:
-    "Connect with fellow trekkers and hikers worldwide. Join city-based chats, find adventure buddies, and explore the outdoors together. Real-time communities for travelers and outdoor enthusiasts.",
+    "Keep a logbook of every trek you walk: days, distance, notes and photos. Share treks publicly, and meet fellow trekkers in city chats.",
   keywords: [
     "trekking",
     "hiking",
@@ -57,9 +57,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "/",
     siteName: "TrekTogether",
-    title: "TrekTogether - Find Hiking & Trekking Buddies in Your City",
+    title: "TrekTogether - Log Your Treks",
     description:
-      "Connect with fellow trekkers and hikers worldwide. Join city-based chats, find adventure buddies, and explore the outdoors together.",
+      "Keep a logbook of every trek you walk. Share treks publicly, and meet fellow trekkers in city chats.",
     images: [
       {
         url: "/og-image.png",
@@ -71,9 +71,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TrekTogether - Find Hiking & Trekking Buddies in Your City",
+    title: "TrekTogether - Log Your Treks",
     description:
-      "Connect with fellow trekkers and hikers worldwide. Join city-based chats and explore the outdoors together.",
+      "Keep a logbook of every trek you walk. Share treks publicly, and meet fellow trekkers in city chats.",
     images: ["/og-image.png"],
   },
   robots: {

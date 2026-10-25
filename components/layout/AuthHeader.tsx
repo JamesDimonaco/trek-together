@@ -2,7 +2,22 @@
 
 import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Mountain, User, MessageCircle, MapPin, Users, FileText } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Mountain,
+  User,
+  MessageCircle,
+  MapPin,
+  Users,
+  FileText,
+  Route,
+  ChevronDown,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -20,7 +35,6 @@ export default function AuthHeader() {
   const { userId: authUserId } = useAuth();
   const pathname = usePathname();
   const [currentCity, setCurrentCity] = useState<CurrentCity | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Get current user's Convex ID
   const currentUser = useQuery(
@@ -32,7 +46,6 @@ export default function AuthHeader() {
     const controller = new AbortController();
 
     const fetchCurrentCity = async () => {
-      setIsLoading(true);
       try {
         const response = await fetch("/api/current-city", {
           signal: controller.signal,
@@ -46,10 +59,6 @@ export default function AuthHeader() {
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch current city:", error);
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
       }
     };
 
@@ -72,52 +81,76 @@ export default function AuthHeader() {
             </span>
           </Link>
 
-          {/* Center - Current City Quick Access (Hidden on mobile) */}
-          <div className="hidden md:flex flex-1 justify-center">
-            {currentCity && !isLoading ? (
-              <Button variant="ghost" size="sm" asChild>
-                <Link
-                  href={`/chat/${currentCity._id}`}
-                  className="flex items-center space-x-2"
-                >
-                  <MessageCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm">{currentCity.name} Chat</span>
-                </Link>
-              </Button>
-            ) : null}
-          </div>
-
           {/* Navigation & Auth Buttons */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {/* Cities - Always visible */}
+            {/* Treks - public browse, always visible */}
             <Button
               variant="ghost"
               size="sm"
               asChild
               className="h-9 w-9 sm:w-auto px-0 sm:px-3"
             >
-              <Link href="/cities" className="flex items-center justify-center">
-                <MapPin className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Cities</span>
+              <Link href="/treks" aria-label="Treks" className="flex items-center justify-center">
+                <Route className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Treks</span>
               </Link>
             </Button>
 
-            {/* Users - Always visible */}
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="h-9 w-9 sm:w-auto px-0 sm:px-3"
-            >
-              <Link href="/users" className="flex items-center justify-center">
-                <Users className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Trekkers</span>
-              </Link>
-            </Button>
+            <SignedIn>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="h-9 w-9 sm:w-auto px-0 sm:px-3"
+              >
+                <Link href="/my-treks" aria-label="My Treks" className="flex items-center justify-center">
+                  <Mountain className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">My Treks</span>
+                </Link>
+              </Button>
+            </SignedIn>
+
+            {/* Community - city chats, cities and trekker search */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Community"
+                  className="h-9 w-9 sm:w-auto px-0 sm:px-3"
+                >
+                  <Users className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Community</span>
+                  <ChevronDown className="hidden sm:inline h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {currentCity && (
+                  <DropdownMenuItem asChild>
+                    <Link href={`/chat/${currentCity._id}`}>
+                      <MessageCircle className="text-green-600" />
+                      {currentCity.name} Chat
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem asChild>
+                  <Link href="/cities">
+                    <MapPin />
+                    Cities
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/users">
+                    <Users />
+                    Trekkers
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <SignedOut>
               <Button variant="ghost" size="sm" asChild className="h-9 px-3">
-                <Link href="/sign-in" className="flex items-center">
+                <Link href="/sign-in" aria-label="Sign In" className="flex items-center">
                   <User className="h-4 w-4 sm:mr-1" />
                   <span className="hidden sm:inline">Sign In</span>
                 </Link>

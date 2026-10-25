@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Globe } from "lucide-react";
-import RecentActivityCard from "@/components/landing/RecentActivityCard";
+import RecentActivityCard from "@/components/requests/RecentActivityCard";
 
 interface GlobalRequestsStripProps {
   // Hide requests from this city (they're already shown locally)

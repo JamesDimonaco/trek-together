@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, Globe } from "lucide-react";
 import { CountrySection } from "@/components/cities/CountrySection";
+import FindNearbyCity from "@/components/cities/FindNearbyCity";
 import { useEffect } from "react";
 
 export default function CitiesPage() {
@@ -89,6 +90,10 @@ export default function CitiesPage() {
               className="pl-10"
             />
           </div>
+        </div>
+
+        <div className="mb-6">
+          <FindNearbyCity />
         </div>
 
         {/* Loading state */}
