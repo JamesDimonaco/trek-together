@@ -198,12 +198,17 @@ trail-meet/
 3. Add environment variables
 4. Deploy automatically
 
+`vercel.json` sets the build command to `pnpm build:vercel`. On production
+builds it pushes the Convex functions and schema first, then builds Next.
+Preview builds only build Next, against the deployment in
+`NEXT_PUBLIC_CONVEX_URL`.
+
 ### Environment Variables for Production
 
 ```bash
-# Production URLs
+# Production Convex: a deploy key from the Convex dashboard (Settings → Deploy keys)
+CONVEX_DEPLOY_KEY=prod:your-deployment-id|...
 NEXT_PUBLIC_CONVEX_URL=https://your-convex-deployment.convex.cloud
-CONVEX_DEPLOYMENT=prod:your-deployment-id
 
 # Same Clerk and Google Maps keys work for production
 ```

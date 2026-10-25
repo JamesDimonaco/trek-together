@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev ",
     "build": "next build --turbopack",
+    "build:vercel": "if [ \"$VERCEL_ENV\" = \"production\" ]; then npx convex deploy --cmd 'pnpm build'; else pnpm build; fi",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
