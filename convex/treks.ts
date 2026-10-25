@@ -159,7 +159,11 @@ async function listVisibleComments(
   viewerId: Id<"users"> | undefined
 ) {
   if (trek.visibility !== "public") return [];
-  const blocked = viewerId ? await blockedUserIds(ctx, viewerId) : new Set<Id<"users">>();
+  // The owner sees every comment, blocked authors included, so they can still delete them.
+  const blocked =
+    viewerId && viewerId !== trek.userId
+      ? await blockedUserIds(ctx, viewerId)
+      : new Set<Id<"users">>();
   const comments = (await listComments(ctx, trek._id)).filter(
     (comment) => !blocked.has(comment.authorId)
   );

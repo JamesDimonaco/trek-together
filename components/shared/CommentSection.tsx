@@ -58,8 +58,8 @@ export default function CommentSection({
     try {
       await onAddComment(newComment.trim());
       setNewComment("");
-    } catch {
-      toast.error("Failed to add comment");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add comment");
     } finally {
       setIsSubmitting(false);
     }

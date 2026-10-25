@@ -19,21 +19,18 @@ export default function TrekComments({ trekId }: { trekId: Id<"treks"> }) {
 
   if (!trek) return null;
 
+  // Errors propagate so CommentSection keeps the draft and shows the reason.
   const handleAddComment = async (content: string) => {
     if (!userId) return;
-    try {
-      await addComment({ userId, trekId, content });
-    } catch {
-      toast.error("Failed to add comment");
-    }
+    await addComment({ userId, trekId, content });
   };
 
   const handleDeleteComment = async (commentId: string) => {
     if (!userId) return;
     try {
       await deleteComment({ userId, commentId: commentId as Id<"trek_comments"> });
-    } catch {
-      toast.error("Failed to delete comment");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete comment");
     }
   };
 

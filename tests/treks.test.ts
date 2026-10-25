@@ -646,6 +646,24 @@ describe("trek comments", () => {
     expect((await commentsOf()).map((c) => c.author?.username)).toEqual(["stranger", "owner"]);
   });
 
+  it("owner still sees comments from a user they blocked so they can delete them", async () => {
+    const { t, owner, stranger, comment, commentsOf } = await setupWithPublicTrek();
+    const third = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "third", authId: "clerk_third", citiesVisited: [] })
+    );
+    const commentId = await comment(stranger);
+    await t.run(async (ctx) => {
+      await ctx.db.insert("blocked_users", { blockerId: owner, blockedId: stranger });
+      await ctx.db.insert("blocked_users", { blockerId: third, blockedId: stranger });
+    });
+
+    expect((await commentsOf(owner)).map((c) => c._id)).toEqual([commentId]);
+    expect(await commentsOf(third)).toEqual([]);
+
+    await t.mutation(api.treks.deleteTrekComment, { userId: owner, commentId });
+    expect(await commentsOf(owner)).toEqual([]);
+  });
+
   it("rejects empty and over-limit comments, so the thread stays readable", async () => {
     const { stranger, comment, commentsOf } = await setupWithPublicTrek();
 
