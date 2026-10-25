@@ -904,8 +904,10 @@ describe("profile stats", () => {
 
   it("excludes private treks from a visitor's totals, so a private log cannot leak through the numbers", async () => {
     const { stranger, logTrek, statsFor } = await setupWithTreks();
+    // The public trek is the oldest, so newer private treks sit ahead of it in the index.
     await logTrek("public", [{ distanceMeters: 1000, elevationGainMeters: 100 }]);
     await logTrek("private", [{ distanceMeters: 5000, elevationGainMeters: 500 }]);
+    await logTrek("private", [{ distanceMeters: 7000, elevationGainMeters: 700 }]);
 
     const asStranger = await statsFor(stranger);
     const asGuest = await statsFor();

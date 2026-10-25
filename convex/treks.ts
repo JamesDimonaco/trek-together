@@ -539,23 +539,27 @@ export const recordTrekView = mutation({
 });
 
 // The owner sees all their treks; everyone else sees public ones only.
+// The limit applies before the visibility filter, so callers that need
+// every visible trek must pass none.
 async function listVisibleTreks(
   ctx: QueryCtx,
   userId: Id<"users">,
-  viewerId: Id<"users"> | undefined
+  viewerId: Id<"users"> | undefined,
+  limit?: number
 ) {
-  const treks = await ctx.db
+  const newestFirst = ctx.db
     .query("treks")
     .withIndex("by_user_start", (q) => q.eq("userId", userId))
-    .order("desc")
-    .take(200);
+    .order("desc");
+  const treks =
+    limit === undefined ? await newestFirst.collect() : await newestFirst.take(limit);
   return treks.filter((trek) => canViewTrek(trek, viewerId));
 }
 
 export const getUserTreks = query({
   args: { userId: v.id("users"), viewerId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
-    const treks = await listVisibleTreks(ctx, args.userId, args.viewerId);
+    const treks = await listVisibleTreks(ctx, args.userId, args.viewerId, 200);
     return await Promise.all(treks.map((trek) => withSummary(ctx, trek)));
   },
 });

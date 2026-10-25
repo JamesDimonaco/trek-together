@@ -63,10 +63,15 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   });
 
   const isOwnProfile = profile?.authId === currentAuthUserId;
-  const trekStats = useQuery(api.treks.getUserTrekStats, {
-    userId: userId as Id<"users">,
-    viewerId: isOwnProfile ? (userId as Id<"users">) : undefined,
-  });
+  const trekStats = useQuery(
+    api.treks.getUserTrekStats,
+    profile
+      ? {
+          userId: profile._id,
+          viewerId: isOwnProfile ? profile._id : undefined,
+        }
+      : "skip"
+  );
 
   // Track profile view - must be before early returns to maintain hook order
   useEffect(() => {
@@ -134,7 +139,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                     <Mountain className="h-4 w-4" />
                     <span>{profile.citiesVisited.length} cities</span>
                   </div>
-                  {trekStats && (
+                  {trekStats && trekStats.trekCount > 0 && (
                     <>
                       <div className="flex items-center space-x-1">
                         <Route className="h-4 w-4" />
