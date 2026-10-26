@@ -245,4 +245,20 @@ export default defineSchema({
     content: v.string(),
   })
     .index("by_trek", ["trekId"]),
+
+  trek_likes: defineTable({
+    trekId: v.id("treks"),
+    userId: v.id("users"),
+  })
+    .index("by_trek", ["trekId"])
+    .index("by_user_trek", ["userId", "trekId"]),
+
+  // One row per signed-in viewer per trek per UTC day; the owner alone reads the count
+  trek_views: defineTable({
+    trekId: v.id("treks"),
+    viewerId: v.id("users"),
+    day: v.string(),                       // ISO date, UTC
+  })
+    .index("by_trek", ["trekId"])
+    .index("by_trek_viewer_day", ["trekId", "viewerId", "day"]),
 });

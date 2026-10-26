@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lock, MapPin } from "lucide-react";
+import { Heart, Lock, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTrekDate, summarizeStats } from "@/lib/trek-utils";
 
@@ -12,6 +12,7 @@ interface TrekCardProps {
     visibility: "public" | "private";
     dayCount: number;
     totals: Parameters<typeof summarizeStats>[0];
+    likeCount: number;
   };
   ownerUsername?: string;
 }
@@ -27,6 +28,11 @@ export default function TrekCard({ href, trek, ownerUsername }: TrekCardProps) {
             {trek.visibility === "private" && (
               <span className="flex flex-shrink-0 items-center gap-1 text-xs text-gray-500">
                 <Lock className="h-3 w-3" /> Private
+              </span>
+            )}
+            {trek.likeCount > 0 && (
+              <span className="flex flex-shrink-0 items-center gap-1 text-xs text-gray-500">
+                <Heart className="h-3 w-3" /> {trek.likeCount}
               </span>
             )}
           </div>

@@ -704,3 +704,177 @@ describe("trek comments", () => {
     expect(await logged()).toHaveLength(1);
   });
 });
+
+describe("trek likes", () => {
+  async function setupWithPublicTrek() {
+    const { t, owner, stranger } = await setupWithOwnerAndStranger();
+    const trekId = await t.mutation(api.treks.createTrek, { userId: owner, ...place });
+    const like = (userId: typeof owner) =>
+      t.mutation(api.treks.toggleTrekLike, { userId, trekId });
+    const likesOf = (viewerId?: typeof owner) =>
+      t
+        .query(api.treks.getTrek, { trekId, viewerId })
+        .then((trek) => ({ likeCount: trek?.likeCount, hasLiked: trek?.hasLiked }));
+    const setVisibility = (visibility: "public" | "private") =>
+      t.mutation(api.treks.updateTrek, { userId: owner, trekId, visibility });
+    return { t, owner, stranger, trekId, like, likesOf, setVisibility };
+  }
+
+  it("rejects a like on a private trek, so a private log cannot gain likes through the API", async () => {
+    const { stranger, like, setVisibility } = await setupWithPublicTrek();
+    await setVisibility("private");
+
+    await expect(like(stranger)).rejects.toThrow("Trek not found");
+  });
+
+  it("blocked users cannot like in either direction, so a block holds on every trek", async () => {
+    const { t, owner, stranger, like } = await setupWithPublicTrek();
+    const rows = () => t.run((ctx) => ctx.db.query("trek_likes").collect());
+
+    const block = await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: owner, blockedId: stranger })
+    );
+    await expect(like(stranger)).rejects.toThrow("Trek not found");
+    expect(await rows()).toEqual([]);
+
+    await t.run(async (ctx) => {
+      await ctx.db.delete(block);
+      await ctx.db.insert("blocked_users", { blockerId: stranger, blockedId: owner });
+    });
+    await expect(like(stranger)).rejects.toThrow("Trek not found");
+    expect(await rows()).toEqual([]);
+  });
+
+  it("a like given before a block can still be removed, so a block cannot lock it in place", async () => {
+    const { t, owner, stranger, like } = await setupWithPublicTrek();
+    const rows = () => t.run((ctx) => ctx.db.query("trek_likes").collect());
+
+    expect(await like(stranger)).toEqual({ liked: true });
+    await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: owner, blockedId: stranger })
+    );
+
+    expect(await like(stranger)).toEqual({ liked: false });
+    expect(await rows()).toEqual([]);
+    await expect(like(stranger)).rejects.toThrow("Trek not found");
+  });
+
+  it("rejects a guest, who has no account to like from", async () => {
+    const { t, like } = await setupWithPublicTrek();
+    const guest = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "curious-otter-43", citiesVisited: [] })
+    );
+
+    await expect(like(guest)).rejects.toThrow("Authentication required");
+  });
+
+  it("toggles once per user, so a double tap cannot inflate the count", async () => {
+    const { stranger, like, likesOf } = await setupWithPublicTrek();
+
+    expect(await like(stranger)).toEqual({ liked: true });
+    expect(await likesOf(stranger)).toEqual({ likeCount: 1, hasLiked: true });
+
+    expect(await like(stranger)).toEqual({ liked: false });
+    expect(await likesOf(stranger)).toEqual({ likeCount: 0, hasLiked: false });
+    expect(await likesOf()).toEqual({ likeCount: 0, hasLiked: false });
+  });
+
+  it("hides likes while the trek is private and shows them again when it goes public, losing nothing", async () => {
+    const { owner, stranger, like, likesOf, setVisibility } = await setupWithPublicTrek();
+    await like(stranger);
+
+    await setVisibility("private");
+    expect(await likesOf(owner)).toEqual({ likeCount: 0, hasLiked: false });
+
+    await setVisibility("public");
+    expect(await likesOf(stranger)).toEqual({ likeCount: 1, hasLiked: true });
+    expect(await likesOf()).toEqual({ likeCount: 1, hasLiked: false });
+  });
+
+  it("deletes the likes with the trek, so no orphan rows remain", async () => {
+    const { t, owner, stranger, trekId, like } = await setupWithPublicTrek();
+    await like(stranger);
+
+    await t.mutation(api.treks.deleteTrek, { userId: owner, trekId });
+
+    const left = await t.run((ctx) => ctx.db.query("trek_likes").collect());
+    expect(left).toEqual([]);
+  });
+});
+
+describe("trek views", () => {
+  async function setupWithPublicTrek() {
+    const { t, owner, stranger } = await setupWithOwnerAndStranger();
+    const trekId = await t.mutation(api.treks.createTrek, { userId: owner, ...place });
+    const view = (userId: typeof owner) =>
+      t.mutation(api.treks.recordTrekView, { userId, trekId });
+    const viewCountFor = async (viewerId?: typeof owner) => {
+      const trek = await t.query(api.treks.getTrek, { trekId, viewerId });
+      expect(trek).not.toBeNull();
+      return trek?.viewCount;
+    };
+    const rows = () => t.run((ctx) => ctx.db.query("trek_views").collect());
+    const setVisibility = (visibility: "public" | "private") =>
+      t.mutation(api.treks.updateTrek, { userId: owner, trekId, visibility });
+    return { t, owner, stranger, trekId, view, viewCountFor, rows, setVisibility };
+  }
+
+  it("counts the same viewer once per day but again on a later day, so a refresh cannot inflate the number", async () => {
+    const { t, owner, stranger, trekId, view, viewCountFor, rows } = await setupWithPublicTrek();
+    await t.run((ctx) =>
+      ctx.db.insert("trek_views", { trekId, viewerId: stranger, day: "2000-01-01" })
+    );
+
+    await view(stranger);
+    await view(stranger);
+
+    expect(await viewCountFor(owner)).toBe(2);
+    expect((await rows()).map((row) => row.day)).toContain("2000-01-01");
+  });
+
+  it("does not count the owner's own visit, so the number is honest", async () => {
+    const { owner, view, viewCountFor, rows } = await setupWithPublicTrek();
+
+    await view(owner);
+
+    expect(await rows()).toEqual([]);
+    expect(await viewCountFor(owner)).toBe(0);
+  });
+
+  it("records nothing on a private trek, so a private log gains no data through the API", async () => {
+    const { stranger, view, rows, setVisibility } = await setupWithPublicTrek();
+    await setVisibility("private");
+
+    await view(stranger);
+
+    expect(await rows()).toEqual([]);
+  });
+
+  it("returns the count to the owner only, so views are not a public popularity signal", async () => {
+    const { owner, stranger, view, viewCountFor } = await setupWithPublicTrek();
+    await view(stranger);
+
+    expect(await viewCountFor(owner)).toBe(1);
+    expect(await viewCountFor(stranger)).toBeUndefined();
+    expect(await viewCountFor()).toBeUndefined();
+  });
+
+  it("deletes the views with the trek, so no orphan rows remain", async () => {
+    const { t, owner, stranger, trekId, view, rows } = await setupWithPublicTrek();
+    await view(stranger);
+
+    await t.mutation(api.treks.deleteTrek, { userId: owner, trekId });
+
+    expect(await rows()).toEqual([]);
+  });
+
+  it("rejects a guest, who has no account to view from", async () => {
+    const { t, view, rows } = await setupWithPublicTrek();
+    const guest = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "curious-otter-43", citiesVisited: [] })
+    );
+
+    await expect(view(guest)).rejects.toThrow("Authentication required");
+    expect(await rows()).toEqual([]);
+  });
+});
