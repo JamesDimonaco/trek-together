@@ -560,3 +560,147 @@ describe("addTrekDay limit", () => {
     ).rejects.toThrow(/days per trek/);
   });
 });
+
+describe("trek comments", () => {
+  async function setupWithPublicTrek() {
+    const { t, owner, stranger } = await setupWithOwnerAndStranger();
+    const trekId = await t.mutation(api.treks.createTrek, { userId: owner, ...place });
+    const comment = (userId: typeof owner, content = "Is the bridge at km 12 open?") =>
+      t.mutation(api.treks.addTrekComment, { userId, trekId, content });
+    const commentsOf = (viewerId?: typeof owner) =>
+      t.query(api.treks.getTrek, { trekId, viewerId }).then((trek) => trek?.comments ?? []);
+    const setVisibility = (visibility: "public" | "private") =>
+      t.mutation(api.treks.updateTrek, { userId: owner, trekId, visibility });
+    return { t, owner, stranger, trekId, comment, commentsOf, setVisibility };
+  }
+
+  it("rejects a comment on a private trek, so a private log cannot gain content through the API", async () => {
+    const { stranger, comment, setVisibility } = await setupWithPublicTrek();
+    await setVisibility("private");
+
+    await expect(comment(stranger)).rejects.toThrow();
+  });
+
+  it("rejects a comment from someone the owner blocked, so blocking protects the owner's page", async () => {
+    const { t, owner, stranger, comment } = await setupWithPublicTrek();
+    await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: owner, blockedId: stranger })
+    );
+
+    await expect(comment(stranger)).rejects.toThrow("Cannot comment on this trek");
+  });
+
+  it("rejects a comment from someone who blocked the owner, so a block cannot be one-way harassment", async () => {
+    const { t, owner, stranger, comment } = await setupWithPublicTrek();
+    await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: stranger, blockedId: owner })
+    );
+
+    await expect(comment(stranger)).rejects.toThrow("Cannot comment on this trek");
+  });
+
+  it("lets the owner delete any comment and the author delete their own, but no one else", async () => {
+    const { t, owner, stranger, comment, commentsOf } = await setupWithPublicTrek();
+    const third = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "third", authId: "clerk_third", citiesVisited: [] })
+    );
+    const byStranger = await comment(stranger);
+    const byThird = await comment(third, "Snow above 4000m last week");
+
+    await expect(
+      t.mutation(api.treks.deleteTrekComment, { userId: third, commentId: byStranger })
+    ).rejects.toThrow();
+    expect(await commentsOf()).toHaveLength(2);
+
+    await t.mutation(api.treks.deleteTrekComment, { userId: stranger, commentId: byStranger });
+    await t.mutation(api.treks.deleteTrekComment, { userId: owner, commentId: byThird });
+    expect(await commentsOf()).toEqual([]);
+  });
+
+  it("hides comments while the trek is private and shows them again when it goes public, losing nothing", async () => {
+    const { owner, stranger, comment, commentsOf, setVisibility } = await setupWithPublicTrek();
+    await comment(stranger);
+
+    await setVisibility("private");
+    expect(await commentsOf(owner)).toEqual([]);
+
+    await setVisibility("public");
+    const comments = await commentsOf();
+    expect(comments).toHaveLength(1);
+    expect(comments[0].content).toBe("Is the bridge at km 12 open?");
+    expect(comments[0].author?.username).toBe("stranger");
+  });
+
+  it("hides comments from an author the viewer has blocked, so a block holds on every trek", async () => {
+    const { t, owner, stranger, comment, commentsOf } = await setupWithPublicTrek();
+    const reader = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "reader", authId: "clerk_reader", citiesVisited: [] })
+    );
+    await comment(stranger);
+    await comment(owner, "Yes, open as of Monday");
+    await t.run((ctx) =>
+      ctx.db.insert("blocked_users", { blockerId: reader, blockedId: stranger })
+    );
+
+    expect((await commentsOf(reader)).map((c) => c.author?.username)).toEqual(["owner"]);
+    expect((await commentsOf()).map((c) => c.author?.username)).toEqual(["stranger", "owner"]);
+  });
+
+  it("owner still sees comments from a user they blocked so they can delete them", async () => {
+    const { t, owner, stranger, comment, commentsOf } = await setupWithPublicTrek();
+    const third = await t.run((ctx) =>
+      ctx.db.insert("users", { username: "third", authId: "clerk_third", citiesVisited: [] })
+    );
+    const commentId = await comment(stranger);
+    await t.run(async (ctx) => {
+      await ctx.db.insert("blocked_users", { blockerId: owner, blockedId: stranger });
+      await ctx.db.insert("blocked_users", { blockerId: third, blockedId: stranger });
+    });
+
+    expect((await commentsOf(owner)).map((c) => c._id)).toEqual([commentId]);
+    expect(await commentsOf(third)).toEqual([]);
+
+    await t.mutation(api.treks.deleteTrekComment, { userId: owner, commentId });
+    expect(await commentsOf(owner)).toEqual([]);
+  });
+
+  it("rejects empty and over-limit comments, so the thread stays readable", async () => {
+    const { stranger, comment, commentsOf } = await setupWithPublicTrek();
+
+    await expect(comment(stranger, "   ")).rejects.toThrow();
+    await expect(comment(stranger, "x".repeat(TREK_LIMITS.commentMax + 1))).rejects.toThrow();
+    expect(await commentsOf()).toEqual([]);
+  });
+
+  it("deletes the comments with the trek, so no orphan rows remain", async () => {
+    const { t, owner, stranger, trekId, comment } = await setupWithPublicTrek();
+    await comment(stranger);
+
+    await t.mutation(api.treks.deleteTrek, { userId: owner, trekId });
+
+    const left = await t.run((ctx) => ctx.db.query("trek_comments").collect());
+    expect(left).toEqual([]);
+  });
+
+  it("emails the owner about a comment, but not about their own, so their inbox stays honest", async () => {
+    const { t, owner, stranger, trekId, comment } = await setupWithPublicTrek();
+    await t.run((ctx) =>
+      ctx.db.patch(owner, { email: "owner@example.com", emailNotifications: true })
+    );
+    const logged = () =>
+      t.run((ctx) =>
+        ctx.db
+          .query("notification_log")
+          .withIndex("by_user_kind_key", (q) =>
+            q.eq("userId", owner).eq("kind", "trek_comment").eq("key", trekId)
+          )
+          .collect()
+      );
+
+    await comment(owner, "Thanks for reading");
+    expect(await logged()).toHaveLength(0);
+
+    await comment(stranger);
+    expect(await logged()).toHaveLength(1);
+  });
+});
