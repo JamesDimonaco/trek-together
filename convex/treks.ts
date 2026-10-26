@@ -253,6 +253,13 @@ export const createTrek = mutation({
       startDate: args.startDate,
     };
     validateTrekFields(fields);
+    const existing = await ctx.db
+      .query("treks")
+      .withIndex("by_user_start", (q) => q.eq("userId", args.userId))
+      .take(TREK_LIMITS.treksMax);
+    if (existing.length >= TREK_LIMITS.treksMax) {
+      throw new Error(`At most ${TREK_LIMITS.treksMax} treks per account`);
+    }
     const companions = args.companions
       ? await checkCompanions(ctx, args.userId, args.companions)
       : undefined;
@@ -538,20 +545,46 @@ export const recordTrekView = mutation({
   },
 });
 
+// The owner sees all their treks; everyone else sees public ones only.
+// The limit applies before the visibility filter, so callers that need
+// every visible trek must pass none.
+async function listVisibleTreks(
+  ctx: QueryCtx,
+  userId: Id<"users">,
+  viewerId: Id<"users"> | undefined,
+  limit?: number
+) {
+  const newestFirst = ctx.db
+    .query("treks")
+    .withIndex("by_user_start", (q) => q.eq("userId", userId))
+    .order("desc");
+  const treks =
+    limit === undefined ? await newestFirst.collect() : await newestFirst.take(limit);
+  return treks.filter((trek) => canViewTrek(trek, viewerId));
+}
+
 export const getUserTreks = query({
   args: { userId: v.id("users"), viewerId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
-    const treks = await ctx.db
-      .query("treks")
-      .withIndex("by_user_start", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .take(200);
+    const treks = await listVisibleTreks(ctx, args.userId, args.viewerId, 200);
+    return await Promise.all(treks.map((trek) => withSummary(ctx, trek)));
+  },
+});
 
-    return await Promise.all(
-      treks
-        .filter((trek) => canViewTrek(trek, args.viewerId))
-        .map((trek) => withSummary(ctx, trek))
-    );
+export const getUserTrekStats = query({
+  args: { userId: v.id("users"), viewerId: v.optional(v.id("users")) },
+  handler: async (ctx, args) => {
+    const treks = await listVisibleTreks(ctx, args.userId, args.viewerId);
+    const days = (
+      await Promise.all(treks.map((trek) => listDays(ctx, trek._id)))
+    ).flat();
+    const totals = computeTrekTotals(days);
+    return {
+      trekCount: treks.length,
+      dayCount: days.length,
+      distanceMeters: totals.distanceMeters ?? 0,
+      elevationGainMeters: totals.elevationGainMeters ?? 0,
+    };
   },
 });
 

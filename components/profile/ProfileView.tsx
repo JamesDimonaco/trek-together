@@ -12,8 +12,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   MapPin,
   Calendar,
+  CalendarDays,
+  Footprints,
   MessageCircle,
   Edit,
+  Route,
+  TrendingUp,
   User,
   Mountain,
   PhoneIcon,
@@ -21,6 +25,7 @@ import {
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { analytics } from "@/lib/analytics";
+import { formatDistance, formatElevation } from "@/lib/trek-utils";
 import ProfileTreks from "@/components/treks/ProfileTreks";
 
 // Calculate age from date of birth
@@ -58,6 +63,15 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   });
 
   const isOwnProfile = profile?.authId === currentAuthUserId;
+  const trekStats = useQuery(
+    api.treks.getUserTrekStats,
+    profile
+      ? {
+          userId: profile._id,
+          viewerId: isOwnProfile ? profile._id : undefined,
+        }
+      : "skip"
+  );
 
   // Track profile view - must be before early returns to maintain hook order
   useEffect(() => {
@@ -125,6 +139,30 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                     <Mountain className="h-4 w-4" />
                     <span>{profile.citiesVisited.length} cities</span>
                   </div>
+                  {trekStats && trekStats.trekCount > 0 && (
+                    <>
+                      <div className="flex items-center space-x-1">
+                        <Route className="h-4 w-4" />
+                        <span>{trekStats.trekCount} treks</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <CalendarDays className="h-4 w-4" />
+                        <span>{trekStats.dayCount} days</span>
+                      </div>
+                      {trekStats.distanceMeters > 0 && (
+                        <div className="flex items-center space-x-1">
+                          <Footprints className="h-4 w-4" />
+                          <span>{formatDistance(trekStats.distanceMeters)}</span>
+                        </div>
+                      )}
+                      {trekStats.elevationGainMeters > 0 && (
+                        <div className="flex items-center space-x-1">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>{formatElevation(trekStats.elevationGainMeters)} gain</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                   {profile.dateOfBirth && (
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-4 w-4" />
