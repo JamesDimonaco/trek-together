@@ -63,7 +63,7 @@ TrekTogether is a location-based chat application that helps outdoor adventurers
 
 ### Prerequisites
 
-- Node.js 18+ and pnpm
+- Node.js 22+ and pnpm
 - Google Maps API key
 - Clerk account
 - Convex account
