@@ -36,6 +36,7 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
           <EmptyState
             icon={Mountain}
             title="No treks logged yet"
+            className="py-2"
             action={
               <Button asChild>
                 <Link href="/my-treks/new">Log a trek</Link>

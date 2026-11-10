@@ -235,55 +235,51 @@ export default function ProfileView({ userId }: ProfileViewProps) {
       <ProfileTreks profileUserId={profile._id} isOwnProfile={isOwnProfile} />
 
       {/* Cities Visited */}
-      {profile.cities && profile.cities.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <MapPin className="h-5 w-5 text-green-700" />
-              <span>Cities visited</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {profile.cities.map((city) => (
-                <Link
-                  key={city._id}
-                  href={`/chat/${city._id}`}
-                  className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition active:bg-gray-100 dark:active:bg-gray-700"
-                >
-                  <Mountain className="h-5 w-5 text-green-700 dark:text-green-400 flex-shrink-0" />
-                  <div className="min-w-0">
-                    <div className="font-medium text-gray-900 dark:text-white truncate">
-                      {city.name}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {city.country}
-                    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <MapPin className="h-5 w-5 text-green-700" />
+            <span>Cities visited</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!profile.cities || profile.cities.length === 0 ? (
+            <EmptyState
+              icon={MapPin}
+              title="No cities visited yet"
+              className="py-2"
+              description={isOwnProfile ? "Join a city chat to add it here." : undefined}
+              action={
+                isOwnProfile ? (
+                  <Button asChild>
+                    <Link href="/cities">Browse cities</Link>
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {profile.cities.map((city) => (
+              <Link
+                key={city._id}
+                href={`/chat/${city._id}`}
+                className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition active:bg-gray-100 dark:active:bg-gray-700"
+              >
+                <Mountain className="h-5 w-5 text-green-700 dark:text-green-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <div className="font-medium text-gray-900 dark:text-white truncate">
+                    {city.name}
                   </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Empty State */}
-      {(!profile.cities || profile.cities.length === 0) && (
-        <Card>
-          <EmptyState
-            icon={MapPin}
-            title="No cities visited yet"
-            description={isOwnProfile ? "Join a city chat to add it here." : undefined}
-            action={
-              isOwnProfile ? (
-                <Button asChild>
-                  <Link href="/cities">Browse cities</Link>
-                </Button>
-              ) : undefined
-            }
-          />
-        </Card>
-      )}
+                  <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {city.country}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

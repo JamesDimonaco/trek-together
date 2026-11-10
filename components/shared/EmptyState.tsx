@@ -7,14 +7,17 @@ export default function EmptyState({
   title,
   description,
   action,
+  className = "py-12",
 }: {
   icon: LucideIcon;
   title: string;
   description?: string;
   action?: ReactNode;
+  // Inside a card, pass a smaller padding: the card already pads.
+  className?: string;
 }) {
   return (
-    <div className="flex flex-col items-center px-4 py-12 text-center">
+    <div className={`flex flex-col items-center px-4 text-center ${className}`}>
       <Icon className="mb-4 h-10 w-10 text-gray-500" aria-hidden="true" />
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
       {description && <p className="mt-1 max-w-sm text-gray-600 dark:text-gray-300">{description}</p>}
