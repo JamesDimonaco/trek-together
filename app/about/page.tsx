@@ -82,12 +82,14 @@ export default function AboutPage() {
             <p className="mb-4">
               Find your city, join the chat, and start connecting with fellow trekkers today.
             </p>
-            <Button asChild size="lg" className="not-prose">
-              <Link href="/cities">
-                <Mountain className="h-5 w-5" aria-hidden="true" />
-                Find your city
-              </Link>
-            </Button>
+            <div className="not-prose">
+              <Button asChild size="lg">
+                <Link href="/cities">
+                  <Mountain className="h-5 w-5" aria-hidden="true" />
+                  Find your city
+                </Link>
+              </Button>
+            </div>
           </section>
         </CardContent>
       </Card>
