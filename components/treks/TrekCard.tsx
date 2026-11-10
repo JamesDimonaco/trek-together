@@ -24,7 +24,7 @@ export default function TrekCard({ href, trek, ownerUsername }: TrekCardProps) {
       <Card className="transition hover:bg-gray-50 dark:hover:bg-gray-800">
         <CardContent className="space-y-1">
           <div className="flex items-start justify-between gap-2">
-            <h2 className="font-medium text-gray-900 dark:text-white">{trek.name}</h2>
+            <h2 className="text-lg font-semibold leading-snug text-gray-900 dark:text-white">{trek.name}</h2>
             {trek.visibility === "private" && (
               <span className="flex flex-shrink-0 items-center gap-1 text-xs text-gray-500">
                 <Lock className="h-3 w-3" /> Private

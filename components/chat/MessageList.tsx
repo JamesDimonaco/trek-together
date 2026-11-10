@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { formatMessageTime } from "@/lib/time-utils";
 import Link from "next/link";
 import { Id } from "@/convex/_generated/dataModel";
 import MessageActions from "./MessageActions";
@@ -54,12 +55,6 @@ export default function MessageList({
     return message.sessionId === currentSessionId;
   };
 
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
 
   if (!messages?.length) {
     return (
@@ -128,7 +123,7 @@ export default function MessageList({
                 )}
                 <div className="text-sm">{message.content}</div>
                 <div className="text-xs mt-1">
-                  {formatTime(message._creationTime)}
+                  {formatMessageTime(message._creationTime)}
                 </div>
               </div>
 

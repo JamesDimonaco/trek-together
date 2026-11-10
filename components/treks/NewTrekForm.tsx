@@ -12,7 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { analytics } from "@/lib/analytics";
 import { newTrekFormErrors, NewTrekField } from "@/lib/trek-utils";
-import PlacePicker, { PickedPlace } from "./PlacePicker";
+import PlacePicker, { mapsAvailable, PickedPlace } from "./PlacePicker";
+import EmptyState from "@/components/shared/EmptyState";
+import Link from "next/link";
+import { MapPinOff } from "lucide-react";
 
 export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
   const router = useRouter();
@@ -40,7 +43,7 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
       : {};
   const fieldError = (field: NewTrekField) =>
     errors[field] && (
-      <p id={`${fieldIds[field]}-error`} role="alert" className="text-sm text-red-700 dark:text-red-400">
+      <p id={`${fieldIds[field]}-error`} className="text-sm text-red-700 dark:text-red-400">
         {errors[field]}
       </p>
     );
@@ -59,7 +62,7 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
     const found = newTrekFormErrors({ hasPin: !!pin, placeName, name, startDate });
     const first = (Object.keys(fieldIds) as NewTrekField[]).find((field) => found[field]);
     if (first || !pin) {
-      if (first) document.getElementById(fieldIds[first])?.focus();
+      document.getElementById(fieldIds[first ?? "place"])?.focus();
       return;
     }
     setIsSaving(true);
@@ -79,6 +82,22 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
       toast.error(error instanceof Error ? error.message : "Could not save the trek");
       setIsSaving(false);
     }
+  }
+
+  // Every trek needs a pin, so without the map there is nothing to fill in yet.
+  if (!mapsAvailable) {
+    return (
+      <EmptyState
+        icon={MapPinOff}
+        title="The map can't load right now"
+        description="Every trek needs a place on the map, so new treks can't be logged until it's back. Please try again later."
+        action={
+          <Button asChild variant="outline">
+            <Link href="/my-treks">Back to my treks</Link>
+          </Button>
+        }
+      />
+    );
   }
 
   return (

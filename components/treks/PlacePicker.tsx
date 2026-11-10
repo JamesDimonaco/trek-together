@@ -25,19 +25,14 @@ interface PlacePickerProps {
 }
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+export const mapsAvailable = !!API_KEY;
 // Advanced markers need a map ID; Google's demo ID works until a styled one exists.
 const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID";
 
+// Callers check mapsAvailable first; the picker needs the key to render at all.
 export default function PlacePicker(props: PlacePickerProps) {
-  if (!API_KEY) {
-    return (
-      <p className="text-sm text-red-700 dark:text-red-400">
-        The map can&apos;t load right now, so treks can&apos;t be placed. Please try again later.
-      </p>
-    );
-  }
   return (
-    <APIProvider apiKey={API_KEY}>
+    <APIProvider apiKey={API_KEY!}>
       <PickerBody {...props} />
     </APIProvider>
   );

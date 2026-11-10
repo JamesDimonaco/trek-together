@@ -121,7 +121,7 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
+          <div className="col-span-2 space-y-1 sm:col-span-1">
             <Label htmlFor={`placeNote-${day._id}`}>Where</Label>
             <Input
               id={`placeNote-${day._id}`}
@@ -131,7 +131,7 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
               maxLength={100}
             />
           </div>
-          <div className="space-y-1">
+          <div className="col-span-2 space-y-1 sm:col-span-1">
             <Label htmlFor={`weather-${day._id}`}>Weather</Label>
             <Input
               id={`weather-${day._id}`}

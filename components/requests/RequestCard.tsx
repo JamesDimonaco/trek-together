@@ -49,7 +49,7 @@ export default function RequestCard({
 }: RequestCardProps) {
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow"
+      className="cursor-pointer gap-2 hover:shadow-md transition-shadow"
       onClick={onClick}
     >
       <CardHeader>
@@ -58,7 +58,7 @@ export default function RequestCard({
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <Badge
                 variant="secondary"
-                className={activityColors[request.activityType] || activityColors.other}
+                className={`capitalize ${activityColors[request.activityType] || activityColors.other}`}
               >
                 {request.activityType}
               </Badge>
@@ -68,7 +68,7 @@ export default function RequestCard({
                 </Badge>
               )}
             </div>
-            <h2 className="font-semibold text-sm line-clamp-1">
+            <h2 className="text-lg font-semibold leading-snug line-clamp-2">
               <Link
                 href={`/chat/${cityId}/requests/${request._id}`}
                 onClick={(e) => e.stopPropagation()}
@@ -85,7 +85,7 @@ export default function RequestCard({
           {request.description}
         </p>
 
-        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
           <Calendar className="h-3.5 w-3.5" />
           <span>{formatDateRange(request.dateFrom, request.dateTo)}</span>
         </div>

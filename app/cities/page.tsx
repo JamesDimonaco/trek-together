@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
 import { useState, useMemo } from "react";
@@ -114,6 +115,11 @@ export default function CitiesPage() {
             icon={Search}
             title={`No cities match "${searchTerm}"`}
             description="Try the country name, or a shorter search."
+            action={
+              <Button variant="outline" onClick={() => setSearchTerm("")}>
+                Clear search
+              </Button>
+            }
           />
         )}
 

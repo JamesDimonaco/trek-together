@@ -152,7 +152,7 @@ export default function PostDetail({
                 {typeLabels[post.type]}
               </Badge>
               {post.difficulty && (
-                <Badge variant="secondary" className={difficultyColors[post.difficulty]}>
+                <Badge variant="secondary" className={`capitalize ${difficultyColors[post.difficulty]}`}>
                   {post.difficulty}
                 </Badge>
               )}

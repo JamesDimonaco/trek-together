@@ -122,7 +122,7 @@ export default function MyActivityPage() {
               }
               description="Share a trail report or find trek buddies in any city."
               action={
-                <Button asChild variant="outline">
+                <Button asChild>
                   <Link href="/cities">Browse cities</Link>
                 </Button>
               }

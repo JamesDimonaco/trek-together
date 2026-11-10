@@ -206,7 +206,7 @@ export default function RequestPageContent({
         <div className="flex items-center gap-2 flex-wrap">
           <Badge
             variant="secondary"
-            className={activityColors[request.activityType] || activityColors.other}
+            className={`capitalize ${activityColors[request.activityType] || activityColors.other}`}
           >
             {request.activityType}
           </Badge>

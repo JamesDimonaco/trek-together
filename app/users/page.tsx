@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
@@ -65,6 +66,11 @@ export default function UsersPage() {
                 icon={User}
                 title={`No trekkers match "${searchTerm}"`}
                 description="Usernames are matched from the start. Try fewer letters."
+                action={
+                  <Button variant="outline" onClick={() => setSearchTerm("")}>
+                    Clear search
+                  </Button>
+                }
               />
             )}
 

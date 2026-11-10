@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { formatMessageTime } from "@/lib/time-utils";
 import { Id } from "@/convex/_generated/dataModel";
 import MessageActions from "../chat/MessageActions";
 
@@ -53,12 +54,6 @@ export default function DMMessageList({
     return message.senderId === currentUserId;
   };
 
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   if (!messages?.length) {
     return (
@@ -100,7 +95,7 @@ export default function DMMessageList({
               >
                 <div className="text-sm break-words">{message.content}</div>
                 <div className="text-xs mt-1">
-                  {formatTime(message._creationTime)}
+                  {formatMessageTime(message._creationTime)}
                 </div>
               </div>
 

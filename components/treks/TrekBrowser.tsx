@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { Mountain, Search } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import TrekCard from "./TrekCard";
 
@@ -54,6 +55,13 @@ export default function TrekBrowser() {
             icon={Mountain}
             title={search.trim() ? `No treks match "${search.trim()}"` : "No public treks yet"}
             description={search.trim() ? "Try a place name, or a shorter search." : undefined}
+            action={
+              search.trim() ? (
+                <Button variant="outline" onClick={() => setSearch("")}>
+                  Clear search
+                </Button>
+              ) : undefined
+            }
           />
         )}
 

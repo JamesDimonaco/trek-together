@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { formatDateRange } from "../lib/request-utils";
 import { formatPostDate } from "../lib/post-utils";
 import { newTrekFormErrors } from "../lib/trek-utils";
+import { formatMessageTime, timeAgo } from "../lib/time-utils";
 
 // Users read one date style everywhere (day first), matching trek dates.
 describe("dates across posts and requests", () => {
@@ -36,5 +37,29 @@ describe("new trek form errors", () => {
     expect(newTrekFormErrors({ ...filled, hasPin: false })).toEqual({
       place: "Search for a place, or drop a pin on the map.",
     });
+  });
+});
+
+// Chat shows only a time for today's messages; older ones need the day, or they read out of order.
+describe("chat message times", () => {
+  const now = new Date(2026, 10, 10, 15, 0).getTime();
+
+  it("shows only the time for today", () => {
+    expect(formatMessageTime(new Date(2026, 10, 10, 9, 5).getTime(), now)).toBe("09:05");
+  });
+
+  it("adds the day for earlier days this year", () => {
+    expect(formatMessageTime(new Date(2026, 10, 9, 23, 59).getTime(), now)).toBe("9 Nov, 23:59");
+  });
+
+  it("adds the year for other years", () => {
+    expect(formatMessageTime(new Date(2025, 11, 31, 8, 0).getTime(), now)).toBe("31 Dec 2025, 08:00");
+  });
+});
+
+describe("time ago", () => {
+  it("adds the year once a date is in another year", () => {
+    const old = new Date(2025, 0, 3).getTime();
+    expect(timeAgo(old)).toBe("3 Jan 2025");
   });
 });

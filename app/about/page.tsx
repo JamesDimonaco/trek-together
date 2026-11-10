@@ -20,9 +20,9 @@ export default function AboutPage() {
         </CardHeader>
         <CardContent className="prose prose-sm sm:prose dark:prose-invert max-w-none">
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Heart className="h-6 w-6 text-green-700" />
-              The Story
+            <h2 className="mt-0 mb-3 flex items-center gap-2 text-lg font-semibold">
+              <Heart className="h-5 w-5 text-green-700" aria-hidden="true" />
+              The story
             </h2>
             <p className="text-base leading-relaxed mb-4">
               Hey! I&apos;m James, a developer currently traveling around South America with my girlfriend.
@@ -43,9 +43,9 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Users className="h-6 w-6 text-green-700" />
-              The Solution
+            <h2 className="mt-0 mb-3 flex items-center gap-2 text-lg font-semibold">
+              <Users className="h-5 w-5 text-green-700" aria-hidden="true" />
+              The solution
             </h2>
             <p className="text-base leading-relaxed mb-4">
               So I started building a little trekking chat app. That&apos;s why TrekTogether is here today.
@@ -62,7 +62,7 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-6">
-            <h2 className="text-2xl font-semibold mb-4">Built by One Person</h2>
+            <h2 className="mt-0 mb-3 text-lg font-semibold">Built by one person</h2>
             <p className="text-base leading-relaxed mb-4">
               TrekTogether is a solo project—just me, my laptop, and countless hours in hostels and
               cafes across South America. It&apos;s built with modern web technologies and designed to
@@ -78,7 +78,7 @@ export default function AboutPage() {
           </section>
 
           <section className="bg-green-50 dark:bg-green-950 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-3">Ready to trek?</h2>
+            <h2 className="mt-0 mb-3 text-lg font-semibold">Ready to trek?</h2>
             <p className="mb-4">
               Find your city, join the chat, and start connecting with fellow trekkers today.
             </p>

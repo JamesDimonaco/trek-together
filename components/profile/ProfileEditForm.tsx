@@ -10,7 +10,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, User } from "lucide-react";
@@ -156,13 +156,11 @@ export default function ProfileEditForm() {
         <BackLink href={`/profile/${currentUser?._id}`} label="Profile" />
       </div>
 
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit profile</h1>
+      <p className="mb-6 mt-1 text-gray-600 dark:text-gray-300">
+        Tell other trekkers about yourself.
+      </p>
       <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit profile</h1>
-          <CardDescription>
-            Update your profile information and let other trekkers know about you
-          </CardDescription>
-        </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Avatar Upload */}
@@ -204,7 +202,7 @@ export default function ProfileEditForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Date of Birth */}
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth (Optional)</Label>
+                <Label htmlFor="dateOfBirth">Date of birth (optional)</Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
@@ -233,7 +231,7 @@ export default function ProfileEditForm() {
 
             {/* WhatsApp */}
             <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp Number (Optional)</Label>
+              <Label htmlFor="whatsapp">WhatsApp number (optional)</Label>
               <Input
                 id="whatsapp"
                 type="tel"

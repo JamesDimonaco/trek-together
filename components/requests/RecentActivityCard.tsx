@@ -76,7 +76,7 @@ export default function RecentActivityCard({ item }: RecentActivityCardProps) {
             )}
           </div>
 
-          <h2 className="font-semibold text-sm line-clamp-2 mb-1">
+          <h2 className="text-lg font-semibold leading-snug line-clamp-2 mb-1">
             {item.title}
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-auto">

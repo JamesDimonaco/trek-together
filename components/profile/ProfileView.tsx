@@ -104,7 +104,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
         <CardHeader>
           {/* Mobile: Stack avatar and info vertically */}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 flex-1">
+            <div className="flex min-w-0 flex-col sm:flex-row items-center sm:items-center gap-4 flex-1">
               {/* Avatar */}
               <div className="relative h-24 w-24 sm:h-20 sm:w-20 rounded-full bg-green-100 dark:bg-green-900 flex-shrink-0 overflow-hidden">
                 {profile.avatarUrl ? (
@@ -125,7 +125,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
 
               {/* Username and Stats */}
               <div className="min-w-0 flex-1 text-center sm:text-left">
-                <h1 className="mb-2 break-words text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 className="mb-2 wrap-anywhere text-2xl font-bold text-gray-900 dark:text-white">
                   {profile.username}
                   {isGuest && (
                     <span className="ml-2 text-sm font-normal text-gray-500">

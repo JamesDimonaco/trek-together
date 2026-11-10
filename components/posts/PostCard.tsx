@@ -59,7 +59,7 @@ export default function PostCard({
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow"
+      className="cursor-pointer gap-2 hover:shadow-md transition-shadow"
       onClick={onClick}
     >
       <CardHeader>
@@ -70,7 +70,7 @@ export default function PostCard({
                 {typeLabels[post.type]}
               </Badge>
               {post.difficulty && (
-                <Badge variant="secondary" className={difficultyColors[post.difficulty]}>
+                <Badge variant="secondary" className={`capitalize ${difficultyColors[post.difficulty]}`}>
                   {post.difficulty}
                 </Badge>
               )}
@@ -81,7 +81,7 @@ export default function PostCard({
                 </span>
               )}
             </div>
-            <h2 className="font-semibold text-sm line-clamp-1">
+            <h2 className="text-lg font-semibold leading-snug line-clamp-2">
               <Link
                 href={`/chat/${cityId}/posts/${post._id}`}
                 onClick={(e) => e.stopPropagation()}
