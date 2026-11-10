@@ -75,7 +75,7 @@ export default function AuthHeader() {
             href="/"
             className="flex items-center space-x-2 min-w-0 flex-shrink-0"
           >
-            <Mountain className="h-6 w-6 text-green-700 dark:text-green-400 flex-shrink-0" />
+            <Mountain className="h-6 w-6 text-primary dark:text-green-400 flex-shrink-0" />
             <span className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
               TrekTogether
             </span>
@@ -128,7 +128,7 @@ export default function AuthHeader() {
                 {currentCity && (
                   <DropdownMenuItem asChild>
                     <Link href={`/chat/${currentCity._id}`}>
-                      <MessageCircle className="text-green-700" />
+                      <MessageCircle className="text-primary" />
                       {currentCity.name} chat
                     </Link>
                   </DropdownMenuItem>

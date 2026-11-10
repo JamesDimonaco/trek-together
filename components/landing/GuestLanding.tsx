@@ -8,7 +8,7 @@ export default function GuestLanding() {
     <div className="flex-1 bg-gradient-to-b from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="container mx-auto max-w-2xl px-4 py-12 sm:py-20">
         <section className="space-y-6 text-center">
-          <Mountain className="mx-auto h-12 w-12 text-green-700 dark:text-green-400" />
+          <Mountain className="mx-auto h-12 w-12 text-primary dark:text-green-400" />
           <h1 className="text-4xl font-extrabold leading-tight text-gray-900 dark:text-white sm:text-5xl">
             Log your treks
           </h1>
@@ -32,7 +32,7 @@ export default function GuestLanding() {
 
         <p className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
           Looking for trekking buddies?{" "}
-          <Link href="/cities" className="text-green-700 underline underline-offset-2 hover:text-green-800 dark:text-green-400">
+          <Link href="/cities" className="text-primary underline underline-offset-2 hover:text-primary-hover dark:text-green-400">
             Browse city chats
           </Link>
         </p>

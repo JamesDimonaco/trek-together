@@ -72,7 +72,7 @@ export default function RequestCard({
               <Link
                 href={`/chat/${cityId}/requests/${request._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-800 dark:hover:text-green-400"
+                className="hover:text-primary-hover dark:hover:text-green-400"
               >
                 {request.title}
               </Link>
@@ -96,12 +96,12 @@ export default function RequestCard({
               <Link
                 href={`/profile/${request.author._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-800 dark:hover:text-green-400"
+                className="hover:text-primary-hover dark:hover:text-green-400"
               >
                 {request.author.username}
               </Link>
             ) : (
-              <span className="hover:text-green-800 dark:hover:text-green-400">
+              <span className="hover:text-primary-hover dark:hover:text-green-400">
                 Unknown
               </span>
             )}

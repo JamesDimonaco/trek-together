@@ -14,14 +14,14 @@ export default function AboutPage() {
       <Card>
         <CardHeader>
           <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-white">
-            <Mountain className="h-8 w-8 text-green-700" aria-hidden="true" />
+            <Mountain className="h-8 w-8 text-primary" aria-hidden="true" />
             About TrekTogether
           </h1>
         </CardHeader>
         <CardContent className="prose prose-sm sm:prose dark:prose-invert max-w-none prose-h2:mt-0 prose-h2:mb-3 prose-h2:text-lg prose-h2:font-semibold">
           <section className="mb-8">
             <h2 className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-green-700" aria-hidden="true" />
+              <Heart className="h-5 w-5 text-primary" aria-hidden="true" />
               The story
             </h2>
             <p className="text-base leading-relaxed mb-4">
@@ -44,7 +44,7 @@ export default function AboutPage() {
 
           <section className="mb-8">
             <h2 className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-green-700" aria-hidden="true" />
+              <Users className="h-5 w-5 text-primary" aria-hidden="true" />
               The solution
             </h2>
             <p className="text-base leading-relaxed mb-4">
@@ -70,7 +70,7 @@ export default function AboutPage() {
             </p>
             <p className="text-base leading-relaxed">
               If you have feedback, find bugs, or just want to say hi, please reach out at{" "}
-              <a href="mailto:dimonaco.james@gmail.com" className="text-green-700 hover:underline">
+              <a href="mailto:dimonaco.james@gmail.com" className="text-primary hover:underline">
                 dimonaco.james@gmail.com
               </a>
               . I&apos;d love to hear from you!

@@ -18,7 +18,7 @@ export default function CountryChatHeader({ country }: CountryChatHeaderProps) {
         <BackLink href="/cities" label="Cities" />
 
         <div className="flex items-center space-x-2">
-          <Mountain className="h-6 w-6 text-green-700 dark:text-green-400" />
+          <Mountain className="h-6 w-6 text-primary dark:text-green-400" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {country.name} Trekkers

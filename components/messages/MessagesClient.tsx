@@ -106,7 +106,7 @@ export default function MessagesClient() {
                           />
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                            <span className="text-green-700 dark:text-green-300 font-medium text-lg">
+                            <span className="text-primary dark:text-green-300 font-medium text-lg">
                               {partner.username.charAt(0).toUpperCase()}
                             </span>
                           </div>

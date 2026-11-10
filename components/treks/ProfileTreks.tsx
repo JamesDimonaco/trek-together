@@ -27,7 +27,7 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
     <Card className="mb-4 sm:mb-6">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          <Mountain className="h-5 w-5 text-green-700" />
+          <Mountain className="h-5 w-5 text-primary" />
           <span>Treks</span>
         </CardTitle>
       </CardHeader>
@@ -36,6 +36,7 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
           <EmptyState
             icon={Mountain}
             title="No treks logged yet"
+            as="h3"
             className="py-2"
             action={
               <Button asChild>
@@ -49,6 +50,7 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
               key={trek._id}
               href={isOwnProfile ? `/my-treks/${trek._id}` : `/treks/${trek._id}`}
               trek={trek}
+              as="h3"
             />
           ))
         )}

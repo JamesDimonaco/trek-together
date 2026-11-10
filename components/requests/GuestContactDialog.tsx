@@ -58,7 +58,7 @@ export default function GuestContactDialog({
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-green-700" />
+            <Mail className="h-4 w-4 text-primary" />
             Where should replies go?
           </DialogTitle>
           <DialogDescription>
@@ -92,7 +92,7 @@ export default function GuestContactDialog({
 
           <p className="text-xs text-center text-gray-500">
             Prefer an account?{" "}
-            <Link href="/sign-up" className="text-green-700 hover:underline">
+            <Link href="/sign-up" className="text-primary hover:underline">
               Sign up
             </Link>
           </p>

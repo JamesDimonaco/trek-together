@@ -33,7 +33,7 @@ export default function GlobalRequestsStrip({
   return (
     <div className="space-y-3 pt-2">
       <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-        <Globe className="h-4 w-4 text-green-700" />
+        <Globe className="h-4 w-4 text-primary" />
         {heading}
       </div>
       <div className="grid gap-3 sm:grid-cols-2">

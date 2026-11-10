@@ -47,7 +47,7 @@ export default function PrivacyPage() {
             <h3 className="text-lg font-semibold mt-4 mb-2">2.3 Cookies and Tracking</h3>
             <p>
               We use cookies and similar tracking technologies to maintain your session and improve your experience.
-              See our <Link href="/cookies" className="text-green-700 hover:underline">Cookie policy</Link> for details.
+              See our <Link href="/cookies" className="text-primary hover:underline">Cookie policy</Link> for details.
             </p>
           </section>
 
@@ -72,7 +72,7 @@ export default function PrivacyPage() {
               <div>
                 <strong>Clerk (Authentication):</strong> Manages user authentication and account security.
                 <br />
-                <a href="https://clerk.com/privacy" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline text-sm">
+                <a href="https://clerk.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
                   Clerk Privacy Policy
                 </a>
               </div>
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
               <div>
                 <strong>Convex (Database):</strong> Stores all application data including messages, user profiles, and city information.
                 <br />
-                <a href="https://www.convex.dev/privacy" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline text-sm">
+                <a href="https://www.convex.dev/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
                   Convex Privacy Policy
                 </a>
               </div>
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
               <div>
                 <strong>Google Maps API:</strong> Provides geolocation and reverse geocoding services.
                 <br />
-                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline text-sm">
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
                   Google Privacy Policy
                 </a>
               </div>
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
               <div>
                 <strong>Vercel (Hosting):</strong> Hosts our application and may collect analytics data.
                 <br />
-                <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline text-sm">
+                <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
                   Vercel Privacy Policy
                 </a>
               </div>
@@ -104,7 +104,7 @@ export default function PrivacyPage() {
               <div>
                 <strong>Resend (Email Delivery):</strong> Delivers email notifications when enabled.
                 <br />
-                <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline text-sm">
+                <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
                   Resend Privacy Policy
                 </a>
               </div>
@@ -137,7 +137,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               To exercise these rights, please contact us at{" "}
-              <a href="mailto:dimonaco.james@gmail.com" className="text-green-700 hover:underline">
+              <a href="mailto:dimonaco.james@gmail.com" className="text-primary hover:underline">
                 dimonaco.james@gmail.com
               </a>
             </p>
@@ -193,13 +193,13 @@ export default function PrivacyPage() {
             <ul className="list-none space-y-1">
               <li>
                 Email:{" "}
-                <a href="mailto:dimonaco.james@gmail.com" className="text-green-700 hover:underline">
+                <a href="mailto:dimonaco.james@gmail.com" className="text-primary hover:underline">
                   dimonaco.james@gmail.com
                 </a>
               </li>
               <li>
                 Website:{" "}
-                <Link href="/" className="text-green-700 hover:underline">
+                <Link href="/" className="text-primary hover:underline">
                   trektogether.app
                 </Link>
               </li>

@@ -167,7 +167,7 @@ export default function PostDetail({
             <Link
               href={`/chat/${cityId}/posts/${postId}`}
               onClick={onClose}
-              className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-green-800 dark:hover:text-green-400 w-fit"
+              className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-hover dark:hover:text-green-400 w-fit"
             >
               <ArrowUpRight className="h-3 w-3" />
               Open full page
@@ -176,12 +176,12 @@ export default function PostDetail({
               {post.author?._id ? (
                 <Link
                   href={`/profile/${post.author._id}`}
-                  className="hover:text-green-800 dark:hover:text-green-400 font-medium"
+                  className="hover:text-primary-hover dark:hover:text-green-400 font-medium"
                 >
                   {post.author.username}
                 </Link>
               ) : (
-                <span className="hover:text-green-800 dark:hover:text-green-400 font-medium">
+                <span className="hover:text-primary-hover dark:hover:text-green-400 font-medium">
                   Unknown
                 </span>
               )}
@@ -193,7 +193,7 @@ export default function PostDetail({
                     size="sm"
                     onClick={() => setShowEditDialog(true)}
                     aria-label="Edit post"
-                    className="text-gray-500 hover:text-green-800 h-7 px-2"
+                    className="text-gray-500 hover:text-primary-hover px-2"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>

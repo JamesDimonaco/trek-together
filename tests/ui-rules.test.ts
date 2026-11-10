@@ -11,6 +11,12 @@ describe("dates across posts and requests", () => {
     expect(formatDateRange("2026-01-01")).toBe("1 Jan 2026");
   });
 
+  // One bad row must not take down the whole requests list.
+  it("shows a malformed date as-is instead of crashing", () => {
+    expect(formatDateRange("not-a-date")).toBe("not-a-date");
+    expect(formatDateRange("2026-11-17", "")).toBe("17 Nov 2026");
+  });
+
   it("writes a post's date day-first", () => {
     expect(formatPostDate(new Date(2026, 10, 2, 12).getTime())).toBe("2 Nov 2026");
   });

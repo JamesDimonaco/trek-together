@@ -157,7 +157,7 @@ export default function DMChat({ receiverId }: DMChatProps) {
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
-                <User className="h-5 w-5 text-green-700 dark:text-green-400" />
+                <User className="h-5 w-5 text-primary dark:text-green-400" />
               )}
             </div>
 

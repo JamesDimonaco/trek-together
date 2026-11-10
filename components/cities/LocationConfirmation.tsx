@@ -19,7 +19,7 @@ export default function LocationConfirmation({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
-        <MapPin className="h-12 w-12 text-green-700 dark:text-green-400 mx-auto mb-4" />
+        <MapPin className="h-12 w-12 text-primary dark:text-green-400 mx-auto mb-4" />
         <CardTitle>Is this correct?</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

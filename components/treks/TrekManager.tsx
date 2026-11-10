@@ -58,7 +58,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
     return (
       <p className="py-12 text-center text-gray-500">
         This trek does not exist, or it is not yours.{" "}
-        <Link href="/my-treks" className="text-green-700 hover:underline">
+        <Link href="/my-treks" className="text-primary hover:underline">
           Back to my treks
         </Link>
       </p>
@@ -183,7 +183,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
 
           <div className="flex items-center justify-between">
             {isPublic ? (
-              <Link href={`/treks/${trekId}`} className="text-sm text-green-700 hover:underline">
+              <Link href={`/treks/${trekId}`} className="text-sm text-primary hover:underline">
                 View public page
               </Link>
             ) : (

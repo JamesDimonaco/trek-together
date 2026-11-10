@@ -1,5 +1,6 @@
 "use client";
 
+import { timeAgo } from "@/lib/time-utils";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -7,7 +8,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import LikeButton from "@/components/shared/LikeButton";
-import { typeLabels, typeColors, difficultyColors, stripHtml, formatPostDate } from "@/lib/post-utils";
+import { typeLabels, typeColors, difficultyColors, stripHtml } from "@/lib/post-utils";
 import { MessageCircle, Star } from "lucide-react";
 import Link from "next/link";
 
@@ -44,18 +45,6 @@ export default function PostCard({
   isAuthenticated,
   onAuthPrompt,
 }: PostCardProps) {
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffHours < 1) return "just now";
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return formatPostDate(date.getTime());
-  };
 
   return (
     <Card
@@ -85,7 +74,7 @@ export default function PostCard({
               <Link
                 href={`/chat/${cityId}/posts/${post._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-800 dark:hover:text-green-400"
+                className="hover:text-primary-hover dark:hover:text-green-400"
               >
                 {post.title}
               </Link>
@@ -103,16 +92,16 @@ export default function PostCard({
               <Link
                 href={`/profile/${post.author._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-800 dark:hover:text-green-400"
+                className="hover:text-primary-hover dark:hover:text-green-400"
               >
                 {post.author.username}
               </Link>
             ) : (
-              <span className="hover:text-green-800 dark:hover:text-green-400">
+              <span className="hover:text-primary-hover dark:hover:text-green-400">
                 Unknown
               </span>
             )}
-            <span>{formatTime(post._creationTime)}</span>
+            <span>{timeAgo(post._creationTime)}</span>
           </div>
           <div
             className="flex items-center gap-1"

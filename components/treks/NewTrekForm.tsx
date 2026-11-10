@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { analytics } from "@/lib/analytics";
 import { newTrekFormErrors, NewTrekField } from "@/lib/trek-utils";
-import PlacePicker, { mapsAvailable, PickedPlace } from "./PlacePicker";
+import PlacePicker, { MAPS_API_KEY, PickedPlace } from "./PlacePicker";
 import EmptyState from "@/components/shared/EmptyState";
 import Link from "next/link";
 import { MapPinOff } from "lucide-react";
@@ -85,7 +85,7 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
   }
 
   // Every trek needs a pin, so without the map there is nothing to fill in yet.
-  if (!mapsAvailable) {
+  if (!MAPS_API_KEY) {
     return (
       <EmptyState
         icon={MapPinOff}
@@ -108,7 +108,7 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
       </p>
       <div className="space-y-2">
         <Label htmlFor="place-search">Where did you trek?</Label>
-        <PlacePicker value={pin} onPick={handlePick} errorId={errors.place && "place-search-error"} />
+        <PlacePicker apiKey={MAPS_API_KEY} value={pin} onPick={handlePick} errorId={errors.place && "place-search-error"} />
         {fieldError("place")}
       </div>
 

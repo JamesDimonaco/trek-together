@@ -1,4 +1,4 @@
-import { format, parseISO } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 
 // NBSP keeps a number and its unit on one line.
 const NBSP = "\u00a0";
@@ -20,7 +20,9 @@ export function formatElevation(meters: number): string {
 }
 
 export function formatTrekDate(isoDate: string): string {
-  return format(parseISO(isoDate), "d MMM yyyy");
+  const date = parseISO(isoDate);
+  // A malformed stored date shows as-is rather than throwing during render.
+  return isValid(date) ? format(date, "d MMM yyyy") : isoDate;
 }
 
 export function summarizeStats(stats: {

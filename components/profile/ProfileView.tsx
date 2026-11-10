@@ -119,7 +119,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">
-                    <User className="h-12 w-12 sm:h-10 sm:w-10 text-green-700 dark:text-green-400" />
+                    <User className="h-12 w-12 sm:h-10 sm:w-10 text-primary dark:text-green-400" />
                   </div>
                 )}
               </div>
@@ -238,7 +238,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <MapPin className="h-5 w-5 text-green-700" />
+            <MapPin className="h-5 w-5 text-primary" />
             <span>Cities visited</span>
           </CardTitle>
         </CardHeader>
@@ -247,6 +247,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
             <EmptyState
               icon={MapPin}
               title="No cities visited yet"
+              as="h3"
               className="py-2"
               description={isOwnProfile ? "Join a city chat to add it here." : undefined}
               action={
@@ -265,7 +266,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 href={`/chat/${city._id}`}
                 className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition active:bg-gray-100 dark:active:bg-gray-700"
               >
-                <Mountain className="h-5 w-5 text-green-700 dark:text-green-400 flex-shrink-0" />
+                <Mountain className="h-5 w-5 text-primary dark:text-green-400 flex-shrink-0" />
                 <div className="min-w-0">
                   <div className="font-medium text-gray-900 dark:text-white truncate">
                     {city.name}

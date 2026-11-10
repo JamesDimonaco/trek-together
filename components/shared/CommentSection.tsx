@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPostDate } from "@/lib/post-utils";
+import { timeAgo } from "@/lib/time-utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,21 +66,6 @@ export default function CommentSection({
     }
   };
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return "just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return formatPostDate(date.getTime());
-  };
-
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -99,7 +84,7 @@ export default function CommentSection({
                   {comment.author?._id ? (
                     <Link
                       href={`/profile/${comment.author._id}`}
-                      className="font-medium text-gray-900 dark:text-gray-100 hover:text-green-800 dark:hover:text-green-400"
+                      className="font-medium text-gray-900 dark:text-gray-100 hover:text-primary-hover dark:hover:text-green-400"
                     >
                       {comment.author.username}
                     </Link>
@@ -109,7 +94,7 @@ export default function CommentSection({
                     </span>
                   )}
                   <span className="text-xs text-gray-500">
-                    {formatTime(comment._creationTime)}
+                    {timeAgo(comment._creationTime)}
                   </span>
                   {(canDeleteAny || currentUserId === comment.authorId) && (
                     <button

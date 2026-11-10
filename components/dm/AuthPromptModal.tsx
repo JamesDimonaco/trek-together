@@ -24,7 +24,7 @@ export default function AuthPromptModal({ isOpen, onClose }: AuthPromptModalProp
       <DialogContent className="max-w-md text-center">
         <DialogHeader className="items-center sm:text-center">
           <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-            <Lock className="h-6 w-6 text-green-700 dark:text-green-400" aria-hidden="true" />
+            <Lock className="h-6 w-6 text-primary dark:text-green-400" aria-hidden="true" />
           </div>
           <DialogTitle>Sign in to continue</DialogTitle>
           <DialogDescription>

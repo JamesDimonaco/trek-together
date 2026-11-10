@@ -1,5 +1,6 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
@@ -137,33 +138,31 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
         <LoadingState className="py-8" />
       ) : requests.length === 0 ? (
         <div className="space-y-6">
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <HandHelping className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
-            <h2 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {statusFilter === "open"
-                ? "No trek plans here yet"
-                : "No closed requests yet."}
-            </h2>
-            {statusFilter === "open" && (
-              <>
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 max-w-xs">
-                  Post yours — it stays up while you&apos;re away, and
-                  we&apos;ll email you when someone wants to join.
-                </p>
+          <EmptyState
+            icon={HandHelping}
+            className="py-8"
+            title={statusFilter === "open" ? "No trek plans here yet" : "No closed requests yet"}
+            description={
+              statusFilter === "open"
+                ? "Post yours. It stays up while you're away, and we'll email you when someone wants to join."
+                : undefined
+            }
+            action={
+              statusFilter === "open" ? (
                 <CreateRequestForm
                   cityId={cityId}
                   session={session}
                   guestHasEmail={!!guestContact?.hasEmail}
                   trigger={
-                    <Button className="mt-4 gap-1.5">
+                    <Button className="gap-1.5">
                       <Plus className="h-4 w-4" />
                       Post your trek plan
                     </Button>
                   }
                 />
-              </>
-            )}
-          </div>
+              ) : undefined
+            }
+          />
 
           {/* The local room may be empty, but the network isn't */}
           {statusFilter === "open" && (

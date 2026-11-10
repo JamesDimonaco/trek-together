@@ -30,7 +30,7 @@ export default function UsernamePrompt({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
-        <User className="h-12 w-12 text-green-700 dark:text-green-400 mx-auto mb-4" />
+        <User className="h-12 w-12 text-primary dark:text-green-400 mx-auto mb-4" />
         <CardTitle>How should we call you?</CardTitle>
         <CardDescription>
           Choose a display name for the {locationData.city} chat

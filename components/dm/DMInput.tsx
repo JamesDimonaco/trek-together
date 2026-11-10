@@ -106,7 +106,7 @@ export default function DMInput({ onSendMessage, conversationId, currentUserId }
           aria-label="Send message"
         >
           {isSending ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
           ) : (
             <Send className="h-4 w-4" />
           )}

@@ -43,7 +43,7 @@ export default function CitySelector({
       <div className="text-center py-4 text-sm text-gray-500">
         <MapPin className="h-5 w-5 mx-auto mb-2 text-gray-500" />
         <p>You haven&apos;t visited any cities yet.</p>
-        <Link href="/cities" className="text-green-700 hover:underline">
+        <Link href="/cities" className="text-primary hover:underline">
           Browse cities to get started
         </Link>
       </div>

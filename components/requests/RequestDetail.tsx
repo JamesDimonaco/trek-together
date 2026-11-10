@@ -209,7 +209,7 @@ export default function RequestDetail({
           <Link
             href={`/chat/${cityId}/requests/${requestId}`}
             onClick={onClose}
-            className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-green-800 dark:hover:text-green-400 w-fit"
+            className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-hover dark:hover:text-green-400 w-fit"
           >
             <ArrowUpRight className="h-3 w-3" />
             Open full page
@@ -218,12 +218,12 @@ export default function RequestDetail({
             {request.author?._id ? (
               <Link
                 href={`/profile/${request.author._id}`}
-                className="hover:text-green-800 dark:hover:text-green-400 font-medium"
+                className="hover:text-primary-hover dark:hover:text-green-400 font-medium"
               >
                 {request.author.username}
               </Link>
             ) : (
-              <span className="hover:text-green-800 dark:hover:text-green-400 font-medium">
+              <span className="hover:text-primary-hover dark:hover:text-green-400 font-medium">
                 Unknown
               </span>
             )}
@@ -308,7 +308,7 @@ export default function RequestDetail({
                     <Link
                       key={user._id}
                       href={`/profile/${user._id}`}
-                      className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hover:text-green-800"
+                      className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hover:text-primary-hover"
                     >
                       {user.username}
                     </Link>

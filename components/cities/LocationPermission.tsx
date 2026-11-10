@@ -11,7 +11,7 @@ export default function LocationPermission({ isLoading, onManualEntry }: Locatio
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
-        <MapPin className="h-12 w-12 text-green-700 dark:text-green-400 mx-auto mb-4 animate-pulse" />
+        <MapPin className="h-12 w-12 text-primary dark:text-green-400 mx-auto mb-4 animate-pulse" />
         <CardTitle>
           {isLoading ? "Finding your location..." : "Enable location access"}
         </CardTitle>
@@ -21,15 +21,15 @@ export default function LocationPermission({ isLoading, onManualEntry }: Locatio
           <p className="font-medium">We need your location to:</p>
           <ul className="space-y-2 ml-4">
             <li className="flex items-start gap-2">
-              <span className="text-green-700 mt-1">✓</span>
+              <span className="text-primary mt-1">✓</span>
               <span>Connect you with trekkers in your city</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-green-700 mt-1">✓</span>
+              <span className="text-primary mt-1">✓</span>
               <span>Show relevant outdoor activities nearby</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-green-700 mt-1">✓</span>
+              <span className="text-primary mt-1">✓</span>
               <span>Help you find local hiking groups</span>
             </li>
           </ul>

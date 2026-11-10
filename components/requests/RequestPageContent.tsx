@@ -227,7 +227,7 @@ export default function RequestPageContent({
           {request.author?._id ? (
             <Link
               href={`/profile/${request.author._id}`}
-              className="hover:text-green-800 dark:hover:text-green-400 font-medium"
+              className="hover:text-primary-hover dark:hover:text-green-400 font-medium"
             >
               {request.author.username}
             </Link>
@@ -332,7 +332,7 @@ export default function RequestPageContent({
                     <Link
                       key={user._id}
                       href={`/profile/${user._id}`}
-                      className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hover:text-green-800"
+                      className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hover:text-primary-hover"
                     >
                       {user.username}
                     </Link>

@@ -24,15 +24,15 @@ interface PlacePickerProps {
   errorId?: string;
 }
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-export const mapsAvailable = !!API_KEY;
+// Undefined when the Maps key isn't set; callers show a notice instead of the picker.
+export const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
 // Advanced markers need a map ID; Google's demo ID works until a styled one exists.
 const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID";
 
-// Callers check mapsAvailable first; the picker needs the key to render at all.
-export default function PlacePicker(props: PlacePickerProps) {
+export default function PlacePicker({ apiKey, ...props }: PlacePickerProps & { apiKey: string }) {
   return (
-    <APIProvider apiKey={API_KEY!}>
+    <APIProvider apiKey={apiKey}>
       <PickerBody {...props} />
     </APIProvider>
   );

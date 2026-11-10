@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <div className="min-h-[60vh] bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
       <div className="text-center space-y-6 max-w-md mx-auto px-4">
-        <Mountain className="h-16 w-16 text-green-700 dark:text-green-400 mx-auto" aria-hidden="true" />
+        <Mountain className="h-16 w-16 text-primary dark:text-green-400 mx-auto" aria-hidden="true" />
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Page not found

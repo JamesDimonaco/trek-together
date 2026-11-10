@@ -73,7 +73,7 @@ export default function MessageList({
               </p>
               <button
                 onClick={onShowRequests}
-                className="text-sm text-green-700 dark:text-green-400 hover:underline font-medium"
+                className="text-sm text-primary dark:text-green-400 hover:underline font-medium"
               >
                 See trek plans instead →
               </button>

@@ -1,5 +1,6 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
@@ -87,15 +88,11 @@ export default function PostsList({ cityId, session }: PostsListProps) {
       {posts === undefined ? (
         <LoadingState className="py-8" />
       ) : posts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
-          <h2 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            No posts yet
-          </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Be the first to share a trail report or recommendation!
-          </p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No posts yet"
+          description="Be the first to share a trail report or recommendation."
+        />
       ) : (
         <div className="space-y-3">
           {posts.map((post) => (

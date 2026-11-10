@@ -278,7 +278,7 @@ export default function ProfileEditForm() {
 
             {/* Success Message */}
             {success && (
-              <div role="status" className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm">
+              <div role="status" className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-primary dark:text-green-400 text-sm">
                 Profile updated successfully! Redirecting...
               </div>
             )}
@@ -299,7 +299,7 @@ export default function ProfileEditForm() {
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
                     Saving...
                   </>
                 ) : (

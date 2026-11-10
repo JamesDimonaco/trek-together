@@ -97,7 +97,7 @@ export default function UsersPage() {
                           />
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0">
-                            <User className="h-6 w-6 text-green-700 dark:text-green-400" />
+                            <User className="h-6 w-6 text-primary dark:text-green-400" />
                           </div>
                         )}
 

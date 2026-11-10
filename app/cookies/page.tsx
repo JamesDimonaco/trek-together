@@ -119,7 +119,7 @@ export default function CookiesPage() {
                 <p className="text-sm">
                   Clerk sets cookies to manage authentication and security.
                   <br />
-                  <a href="https://clerk.com/privacy" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
+                  <a href="https://clerk.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                     Clerk Privacy Policy
                   </a>
                 </p>
@@ -130,7 +130,7 @@ export default function CookiesPage() {
                 <p className="text-sm">
                   Google may set cookies when using the geolocation feature.
                   <br />
-                  <a href="https://policies.google.com/technologies/cookies" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
+                  <a href="https://policies.google.com/technologies/cookies" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                     Google Cookies Policy
                   </a>
                 </p>
@@ -141,7 +141,7 @@ export default function CookiesPage() {
                 <p className="text-sm">
                   Vercel may set cookies for analytics and performance monitoring.
                   <br />
-                  <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
+                  <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                     Vercel Privacy Policy
                   </a>
                 </p>
@@ -166,22 +166,22 @@ export default function CookiesPage() {
             <p className="mt-3 mb-2">Learn how to manage cookies in popular browsers:</p>
             <ul className="list-none space-y-1">
               <li>
-                <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
+                <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   Google Chrome
                 </a>
               </li>
               <li>
-                <a href="https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
+                <a href="https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   Mozilla Firefox
                 </a>
               </li>
               <li>
-                <a href="https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
+                <a href="https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   Safari
                 </a>
               </li>
               <li>
-                <a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:underline">
+                <a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   Microsoft Edge
                 </a>
               </li>
@@ -231,13 +231,13 @@ export default function CookiesPage() {
             <ul className="list-none space-y-1">
               <li>
                 Email:{" "}
-                <a href="mailto:dimonaco.james@gmail.com" className="text-green-700 hover:underline">
+                <a href="mailto:dimonaco.james@gmail.com" className="text-primary hover:underline">
                   dimonaco.james@gmail.com
                 </a>
               </li>
               <li>
                 Website:{" "}
-                <Link href="/" className="text-green-700 hover:underline">
+                <Link href="/" className="text-primary hover:underline">
                   trektogether.app
                 </Link>
               </li>
@@ -248,12 +248,12 @@ export default function CookiesPage() {
             <h2 className="text-xl font-semibold mb-3">10. Additional Resources</h2>
             <ul className="list-none space-y-1">
               <li>
-                <Link href="/privacy" className="text-green-700 hover:underline">
+                <Link href="/privacy" className="text-primary hover:underline">
                   Privacy policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-green-700 hover:underline">
+                <Link href="/terms" className="text-primary hover:underline">
                   Terms of service
                 </Link>
               </li>
