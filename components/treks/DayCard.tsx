@@ -108,9 +108,9 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
 
   return (
     <Card>
-      <CardContent className="space-y-4 p-4">
+      <CardContent className="space-y-4">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-gray-900 dark:text-white">Day {dayNumber}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Day {dayNumber}</h2>
           <Input
             type="date"
             aria-label={`Day ${dayNumber} date`}

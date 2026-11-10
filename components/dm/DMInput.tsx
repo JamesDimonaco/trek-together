@@ -112,7 +112,7 @@ export default function DMInput({ onSendMessage, conversationId, currentUserId }
           )}
         </Button>
       </form>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
         Press Enter to send, Shift + Enter for new line
       </p>
     </div>

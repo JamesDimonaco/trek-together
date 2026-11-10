@@ -20,6 +20,8 @@ export interface PickedPlace {
 interface PlacePickerProps {
   value: { lat: number; lng: number } | null;
   onPick: (place: PickedPlace) => void;
+  // Id of an error message about the place; marks the search input invalid.
+  errorId?: string;
 }
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -29,8 +31,8 @@ const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID";
 export default function PlacePicker(props: PlacePickerProps) {
   if (!API_KEY) {
     return (
-      <p className="text-sm text-red-600">
-        Maps are not set up. Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.
+      <p className="text-sm text-red-700 dark:text-red-400">
+        The map can&apos;t load right now, so treks can&apos;t be placed. Please try again later.
       </p>
     );
   }
@@ -41,7 +43,7 @@ export default function PlacePicker(props: PlacePickerProps) {
   );
 }
 
-function PickerBody({ value, onPick }: PlacePickerProps) {
+function PickerBody({ value, onPick, errorId }: PlacePickerProps) {
   const places = useMapsLibrary("places");
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<
@@ -108,6 +110,8 @@ function PickerBody({ value, onPick }: PlacePickerProps) {
           }}
           placeholder="Search for a trail, mountain or town"
           id="place-search"
+          aria-invalid={errorId ? true : undefined}
+          aria-describedby={errorId}
         />
         {suggestions.length > 0 && (
           <ul className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-lg dark:bg-gray-800 dark:border-gray-700">
@@ -115,7 +119,7 @@ function PickerBody({ value, onPick }: PlacePickerProps) {
               <li key={s.placeId}>
                 <button
                   type="button"
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="min-h-11 w-full px-3 py-2 text-left text-sm hover:bg-gray-100 sm:min-h-0 dark:hover:bg-gray-700"
                   onClick={() => pickSuggestion(s)}
                 >
                   {s.text.text}
@@ -143,7 +147,7 @@ function PickerBody({ value, onPick }: PlacePickerProps) {
           <FlyToValue value={value} />
         </Map>
       </div>
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-sm text-gray-600 dark:text-gray-400">
         Can&apos;t find it? Click the map to drop a pin yourself.
       </p>
     </div>

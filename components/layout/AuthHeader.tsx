@@ -175,7 +175,7 @@ export default function AuthHeader() {
               <UserButton
                 appearance={{
                   elements: {
-                    avatarBox: "h-11 w-11 sm:h-9 sm:w-9",
+                    avatarBox: "size-11! sm:size-9!",
                   },
                 }}
                 userProfileMode="modal"

@@ -12,7 +12,7 @@ export async function generateMetadata({
   const { userId } = await params;
 
   return {
-    title: "User Profile",
+    title: "User profile",
     description: "View user profile on TrekTogether",
   };
 }

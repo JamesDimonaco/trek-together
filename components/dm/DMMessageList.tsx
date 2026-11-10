@@ -99,7 +99,7 @@ export default function DMMessageList({
                 }`}
               >
                 <div className="text-sm break-words">{message.content}</div>
-                <div className="text-xs mt-1 opacity-90">
+                <div className="text-xs mt-1">
                   {formatTime(message._creationTime)}
                 </div>
               </div>

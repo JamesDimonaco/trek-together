@@ -132,7 +132,7 @@ export default function MessageActions({
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Report User</DialogTitle>
+            <DialogTitle>Report user</DialogTitle>
             <DialogDescription>
               Report {reportedUsername} for violating community guidelines
             </DialogDescription>
@@ -176,7 +176,7 @@ export default function MessageActions({
               Cancel
             </Button>
             <Button onClick={handleReport} disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Report"}
+              {isSubmitting ? "Submitting..." : "Submit report"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -205,7 +205,7 @@ export default function MessageActions({
               onClick={handleBlock}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Blocking..." : "Block User"}
+              {isSubmitting ? "Blocking..." : "Block user"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -45,3 +45,20 @@ export function hoursMinutesToMinutes(hours: string, minutes: string): number | 
   if (hours.trim() === "" && minutes.trim() === "") return null;
   return Math.round(Number(hours || 0) * 60 + Number(minutes || 0));
 }
+
+export type NewTrekField = "place" | "placeName" | "name" | "startDate";
+
+// Field-level errors for the new trek form, so each message sits under its own input.
+export function newTrekFormErrors(fields: {
+  hasPin: boolean;
+  placeName: string;
+  name: string;
+  startDate: string;
+}): Partial<Record<NewTrekField, string>> {
+  const errors: Partial<Record<NewTrekField, string>> = {};
+  if (!fields.hasPin) errors.place = "Search for a place, or drop a pin on the map.";
+  if (!fields.placeName.trim()) errors.placeName = "Give this place a name.";
+  if (!fields.name.trim()) errors.name = "Give your trek a name.";
+  if (!fields.startDate) errors.startDate = "Pick the date you started.";
+  return errors;
+}

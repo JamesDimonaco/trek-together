@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
@@ -127,9 +128,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
 
   if (!session) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="flex-1" />
     );
   }
 

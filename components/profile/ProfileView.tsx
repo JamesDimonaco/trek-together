@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -84,9 +85,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   if (profile === undefined) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-        </div>
+        <LoadingState className="h-64" />
       </div>
     );
   }
@@ -102,7 +101,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
       {/* Header Card */}
       <Card className="mb-4 sm:mb-6">
-        <CardHeader className="px-4 sm:px-6">
+        <CardHeader>
           {/* Mobile: Stack avatar and info vertically */}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 flex-1">
@@ -125,7 +124,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
               </div>
 
               {/* Username and Stats */}
-              <div className="flex-1 text-center sm:text-left">
+              <div className="min-w-0 flex-1 text-center sm:text-left">
                 <h1 className="mb-2 break-words text-2xl font-bold text-gray-900 dark:text-white">
                   {profile.username}
                   {isGuest && (
@@ -186,7 +185,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                   <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                     <Link href="/profile/edit">
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
+                      Edit profile
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
@@ -205,7 +204,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 >
                   <Link href={`/dm/${userId}`}>
                     <MessageCircle className="h-4 w-4 mr-2" />
-                    Send Message
+                    Send message
                   </Link>
                 </Button>
               )}
@@ -214,7 +213,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
         </CardHeader>
 
         {(profile.bio || profile.whatsappNumber) && (
-          <CardContent className="pt-0 px-4 sm:px-6">
+          <CardContent>
             {profile.bio && (
               <div className="mb-4">
                 <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base">
@@ -237,13 +236,13 @@ export default function ProfileView({ userId }: ProfileViewProps) {
       {/* Cities Visited */}
       {profile.cities && profile.cities.length > 0 && (
         <Card>
-          <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
               <MapPin className="h-5 w-5 text-green-700" />
-              <span>Cities Visited</span>
+              <span>Cities visited</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-4 sm:px-6">
+          <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {profile.cities.map((city) => (
                 <Link
@@ -270,7 +269,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
       {/* Empty State */}
       {(!profile.cities || profile.cities.length === 0) && (
         <Card>
-          <CardContent className="py-8 sm:py-12 text-center px-4">
+          <CardContent className="py-8 sm:py-12 text-center">
             <Mountain className="h-10 w-10 sm:h-12 sm:w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
               {isOwnProfile

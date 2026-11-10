@@ -1,5 +1,8 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -54,7 +57,7 @@ export default function MessagesClient() {
       // Less than a week
       return date.toLocaleDateString([], { weekday: "short" });
     } else {
-      return date.toLocaleDateString([], { month: "short", day: "numeric" });
+      return format(date, "d MMM");
     }
   };
 
@@ -65,9 +68,7 @@ export default function MessagesClient() {
 
   if (!isLoaded || !currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="min-h-screen" />
     );
   }
 
@@ -77,25 +78,23 @@ export default function MessagesClient() {
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b sticky top-0 z-10">
           <div className="px-4 py-4">
-            <h1 className="text-xl font-semibold">Messages</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Messages</h1>
           </div>
         </div>
 
         {/* Conversations List */}
         <div className="p-4 space-y-2">
           {!conversations || conversations.length === 0 ? (
-            <Card className="p-12">
-              <div className="text-center">
-                <MessageSquare className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                <h2 className="text-lg font-medium mb-2">No messages yet</h2>
-                <p className="text-gray-500 dark:text-gray-400 mb-4">
-                  Start a conversation by visiting a user&apos;s profile
-                </p>
+            <EmptyState
+              icon={MessageSquare}
+              title="No messages yet"
+              description="Open a trekker's profile and choose Send message to start a conversation."
+              action={
                 <Button asChild>
-                  <Link href="/cities">Browse Cities</Link>
+                  <Link href="/users">Find trekkers</Link>
                 </Button>
-              </div>
-            </Card>
+              }
+            />
           ) : (
             conversations.map((conversation) => {
               const partner = conversation.partner as {
@@ -110,7 +109,7 @@ export default function MessagesClient() {
                   href={`/dm/${partner._id}`}
                   className="block"
                 >
-                  <Card className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                  <Card className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
                     <div className="flex items-start gap-3">
                       {/* Avatar */}
                       <div className="flex-shrink-0">

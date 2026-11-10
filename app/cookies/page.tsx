@@ -249,12 +249,12 @@ export default function CookiesPage() {
             <ul className="list-none space-y-1">
               <li>
                 <Link href="/privacy" className="text-green-700 hover:underline">
-                  Privacy Policy
+                  Privacy policy
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="text-green-700 hover:underline">
-                  Terms of Service
+                  Terms of service
                 </Link>
               </li>
             </ul>

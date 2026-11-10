@@ -7,7 +7,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import LikeButton from "@/components/shared/LikeButton";
-import { typeLabels, typeColors, difficultyColors, stripHtml } from "@/lib/post-utils";
+import { typeLabels, typeColors, difficultyColors, stripHtml, formatPostDate } from "@/lib/post-utils";
 import { MessageCircle, Star } from "lucide-react";
 import Link from "next/link";
 
@@ -54,7 +54,7 @@ export default function PostCard({
     if (diffHours < 1) return "just now";
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    return formatPostDate(date.getTime());
   };
 
   return (
@@ -62,7 +62,7 @@ export default function PostCard({
       className="cursor-pointer hover:shadow-md transition-shadow"
       onClick={onClick}
     >
-      <CardHeader className="pb-2 pt-3 px-4">
+      <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -75,7 +75,7 @@ export default function PostCard({
                 </Badge>
               )}
               {post.rating && (
-                <span className="flex items-center gap-0.5 text-xs text-yellow-500">
+                <span className="flex items-center gap-0.5 text-xs text-amber-700 dark:text-amber-400">
                   <Star className="h-3 w-3 fill-yellow-400" />
                   {post.rating}
                 </span>
@@ -93,7 +93,7 @@ export default function PostCard({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-3 pt-0">
+      <CardContent>
         <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
           {stripHtml(post.content)}
         </p>

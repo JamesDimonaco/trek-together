@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Mountain, Heart, Users } from "lucide-react";
 import Link from "next/link";
@@ -77,17 +78,16 @@ export default function AboutPage() {
           </section>
 
           <section className="bg-green-50 dark:bg-green-950 p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-3">Ready to Trek?</h3>
+            <h2 className="text-xl font-semibold mb-3">Ready to trek?</h2>
             <p className="mb-4">
               Find your city, join the chat, and start connecting with fellow trekkers today.
             </p>
-            <Link
-              href="/cities"
-              className="inline-flex items-center justify-center px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-            >
-              <Mountain className="h-5 w-5 mr-2" />
-              Find Your City
-            </Link>
+            <Button asChild size="lg" className="not-prose">
+              <Link href="/cities">
+                <Mountain className="h-5 w-5" aria-hidden="true" />
+                Find your city
+              </Link>
+            </Button>
           </section>
         </CardContent>
       </Card>

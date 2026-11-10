@@ -109,7 +109,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
       <DialogTrigger asChild>
         <Button size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" />
-          New Post
+          New post
         </Button>
       </DialogTrigger>
       <DialogContent className={expanded ? "sm:max-w-4xl w-[90vw] h-[90vh] flex flex-col" : "max-w-lg max-h-[90vh] overflow-y-auto"}>
@@ -138,7 +138,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="general">General</SelectItem>
-                <SelectItem value="trail_report">Trail Report</SelectItem>
+                <SelectItem value="trail_report">Trail report</SelectItem>
                 <SelectItem value="recommendation">Recommendation</SelectItem>
               </SelectContent>
             </Select>
@@ -222,7 +222,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
             disabled={isSubmitting || !title.trim() || !stripHtml(content).length}
             className="w-full"
           >
-            {isSubmitting ? "Creating..." : "Create Post"}
+            {isSubmitting ? "Creating..." : "Create post"}
           </Button>
         </form>
       </DialogContent>

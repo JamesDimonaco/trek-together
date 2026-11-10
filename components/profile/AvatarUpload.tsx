@@ -103,11 +103,11 @@ export default function AvatarUpload({
           >
             <span>
               <Upload className="h-4 w-4 mr-2" />
-              {preview ? "Change Photo" : "Upload Photo"}
+              {preview ? "Change photo" : "Upload photo"}
             </span>
           </Button>
         </label>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           JPG, PNG or GIF (max 5MB)
         </p>
       </div>

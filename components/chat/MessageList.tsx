@@ -112,7 +112,7 @@ export default function MessageList({
                 }`}
               >
                 {!isOwn && (
-                  <div className="text-xs font-medium mb-1 opacity-90">
+                  <div className="text-xs font-medium mb-1">
                     {message.userId ? (
                       <Link
                         href={`/profile/${message.userId}`}
@@ -127,7 +127,7 @@ export default function MessageList({
                   </div>
                 )}
                 <div className="text-sm">{message.content}</div>
-                <div className="text-xs mt-1 opacity-90">
+                <div className="text-xs mt-1">
                   {formatTime(message._creationTime)}
                 </div>
               </div>

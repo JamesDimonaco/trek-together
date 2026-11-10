@@ -1,5 +1,7 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
+import BackLink from "@/components/layout/BackLink";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -11,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, User } from "lucide-react";
+import { Save, User } from "lucide-react";
 import Link from "next/link";
 import AvatarUpload from "./AvatarUpload";
 import { analytics } from "@/lib/analytics";
@@ -131,7 +133,7 @@ export default function ProfileEditForm() {
               You need to be signed in to edit your profile
             </p>
             <Button asChild>
-              <Link href="/">Go Home</Link>
+              <Link href="/">Go home</Link>
             </Button>
           </CardContent>
         </Card>
@@ -143,9 +145,7 @@ export default function ProfileEditForm() {
   if (currentUser === undefined) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-        </div>
+        <LoadingState className="h-64" />
       </div>
     );
   }
@@ -153,12 +153,7 @@ export default function ProfileEditForm() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="mb-6">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/profile/${currentUser?._id}`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Profile
-          </Link>
-        </Button>
+        <BackLink href={`/profile/${currentUser?._id}`} label="Profile" />
       </div>
 
       <Card>
@@ -200,7 +195,7 @@ export default function ProfileEditForm() {
                 rows={4}
                 maxLength={500}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-600">
                 {bio.length}/500 characters
               </p>
             </div>
@@ -218,7 +213,7 @@ export default function ProfileEditForm() {
                   max={new Date().toISOString().split("T")[0]}
                   className="text-base"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-sm text-gray-600">
                   Your age will be calculated automatically
                 </p>
               </div>
@@ -247,7 +242,7 @@ export default function ProfileEditForm() {
                 placeholder="+1234567890"
                 maxLength={20}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-600">
                 Share your WhatsApp to connect with other trekkers
               </p>
             </div>
@@ -288,7 +283,7 @@ export default function ProfileEditForm() {
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Save Profile
+                    Save profile
                   </>
                 )}
               </Button>

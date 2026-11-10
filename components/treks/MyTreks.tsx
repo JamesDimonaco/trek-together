@@ -1,10 +1,12 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
-import { Loader2, Plus } from "lucide-react";
+import { Mountain, Plus } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import TrekCard from "@/components/treks/TrekCard";
@@ -36,14 +38,18 @@ export default function MyTreks() {
       </div>
 
       {isLoading || !userId || treks === undefined ? (
-        <div className="flex min-h-[40vh] items-center justify-center" role="status">
-          <Loader2 className="h-8 w-8 animate-spin text-green-700" aria-hidden="true" />
-          <span className="sr-only">Loading your treks</span>
-        </div>
+        <LoadingState className="min-h-[40vh]" />
       ) : treks.length === 0 ? (
-        <p className="py-12 text-center text-gray-500 dark:text-gray-400">
-          Your logbook is empty. Log your first trek to start it.
-        </p>
+        <EmptyState
+          icon={Mountain}
+          title="Your logbook is empty"
+          description="Log a trek to keep its days, distance, notes and photos in one place."
+          action={
+            <Button asChild>
+              <Link href="/my-treks/new">Log your first trek</Link>
+            </Button>
+          }
+        />
       ) : (
         <div className="space-y-3">
           {treks.map((trek) => (

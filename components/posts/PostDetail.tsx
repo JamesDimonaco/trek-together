@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -117,9 +118,7 @@ export default function PostDetail({
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent>
           <DialogTitle className="sr-only">Loading post</DialogTitle>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-          </div>
+          <LoadingState className="py-8" />
         </DialogContent>
       </Dialog>
     );
@@ -158,7 +157,7 @@ export default function PostDetail({
                 </Badge>
               )}
               {post.rating && (
-                <span className="flex items-center gap-0.5 text-sm text-yellow-500">
+                <span className="flex items-center gap-0.5 text-sm text-amber-700 dark:text-amber-400">
                   <Star className="h-4 w-4 fill-yellow-400" />
                   {post.rating}/5
                 </span>

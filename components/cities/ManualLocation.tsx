@@ -23,7 +23,7 @@ export default function ManualLocation({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Where are you located?</CardTitle>
+        <CardTitle>Where are you located?</CardTitle>
         <CardDescription>
           Enter your city to connect with local trekkers
         </CardDescription>

@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -101,9 +102,7 @@ export default function DMChat({ receiverId }: DMChatProps) {
   // Loading state
   if (!isLoaded || currentUser === undefined || receiver === undefined) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="flex-1" />
     );
   }
 
@@ -125,12 +124,12 @@ export default function DMChat({ receiverId }: DMChatProps) {
           <CardContent className="py-12 text-center space-y-4">
             <User className="h-12 w-12 text-gray-500 mx-auto" />
             <div>
-              <h2 className="text-xl font-semibold mb-2">User Not Available</h2>
+              <h2 className="text-xl font-semibold mb-2">User not available</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 This user cannot receive direct messages
               </p>
               <Button onClick={() => router.back()} variant="outline">
-                Go Back
+                Go back
               </Button>
             </div>
           </CardContent>
@@ -163,11 +162,11 @@ export default function DMChat({ receiverId }: DMChatProps) {
             </div>
 
             <div>
-              <h1 className="font-semibold text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {receiver.username}
               </h1>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Direct Message
+                Direct message
               </p>
             </div>
           </Link>

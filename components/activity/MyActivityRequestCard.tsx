@@ -34,7 +34,7 @@ export default function MyActivityRequestCard({
       onClick={() => analytics.activityCardClicked("request", request._id, request.cityId)}
     >
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
-        <CardContent className="px-4 py-3">
+        <CardContent>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             {request.city && (
               <Badge variant="outline" className="text-xs gap-1">

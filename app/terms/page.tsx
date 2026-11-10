@@ -265,12 +265,12 @@ export default function TermsPage() {
             <ul className="list-none space-y-1">
               <li>
                 <Link href="/privacy" className="text-green-700 hover:underline">
-                  Privacy Policy
+                  Privacy policy
                 </Link>
               </li>
               <li>
                 <Link href="/cookies" className="text-green-700 hover:underline">
-                  Cookie Policy
+                  Cookie policy
                 </Link>
               </li>
             </ul>

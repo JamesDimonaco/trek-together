@@ -1,3 +1,4 @@
+import { formatTrekDate } from "./trek-utils";
 export const activityColors: Record<string, string> = {
   trekking:
     "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -12,13 +13,6 @@ export const activityColors: Record<string, string> = {
 };
 
 export function formatDateRange(from: string, to?: string) {
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  };
-  const fromDate = new Date(from + "T00:00:00");
-  if (!to) return fromDate.toLocaleDateString("en-US", options);
-  const toDate = new Date(to + "T00:00:00");
-  return `${fromDate.toLocaleDateString("en-US", options)} \u2013 ${toDate.toLocaleDateString("en-US", options)}`;
+  if (!to) return formatTrekDate(from);
+  return `${formatTrekDate(from)} \u2013 ${formatTrekDate(to)}`;
 }

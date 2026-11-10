@@ -52,7 +52,7 @@ export default function RequestCard({
       className="cursor-pointer hover:shadow-md transition-shadow"
       onClick={onClick}
     >
-      <CardHeader className="pb-2 pt-3 px-4">
+      <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -80,7 +80,7 @@ export default function RequestCard({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-3 pt-0">
+      <CardContent>
         <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
           {request.description}
         </p>
@@ -118,7 +118,7 @@ export default function RequestCard({
                 onClick={onToggleInterest}
               >
                 <HandHelping className="h-3.5 w-3.5" />
-                {request.hasExpressedInterest ? "Interested" : "I'm In"}
+                {request.hasExpressedInterest ? "Interested" : "I'm in"}
               </Button>
             )}
             <span className="flex items-center gap-1 text-xs text-gray-500">

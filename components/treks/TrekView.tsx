@@ -101,9 +101,9 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
         const stats = summarizeStats(day);
         return (
           <Card key={day._id}>
-            <CardContent className="space-y-3 p-4">
+            <CardContent className="space-y-3">
               <div className="flex items-baseline justify-between gap-2">
-                <h2 className="font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Day {index + 1}
                   {day.placeNote && (
                     <span className="font-normal text-gray-600 dark:text-gray-400">

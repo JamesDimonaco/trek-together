@@ -1,8 +1,8 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import NewTrekForm from "@/components/treks/NewTrekForm";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
@@ -16,9 +16,7 @@ export default function NewTrekPage() {
 
   if (isLoading || !userId) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-700" />
-      </div>
+      <LoadingState className="min-h-[60vh]" />
     );
   }
 

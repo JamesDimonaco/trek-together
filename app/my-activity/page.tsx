@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -7,7 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, HandHelping, Loader2 } from "lucide-react";
+import { FileText, HandHelping } from "lucide-react";
 import Link from "next/link";
 import MyActivityPostCard from "@/components/activity/MyActivityPostCard";
 import MyActivityRequestCard from "@/components/activity/MyActivityRequestCard";
@@ -69,9 +72,7 @@ export default function MyActivityPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-green-700" />
-      </div>
+      <LoadingState className="min-h-[60vh]" />
     );
   }
 
@@ -79,7 +80,7 @@ export default function MyActivityPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           My activity
         </h1>
@@ -108,28 +109,24 @@ export default function MyActivityPage() {
         {/* One panel whose content follows the active tab, so each tab controls a real panel. */}
         <TabsContent value={activeTab} className="mt-6">
           {posts === undefined || requests === undefined ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-green-700" />
-            </div>
+            <LoadingState className="py-12" />
           ) : allActivity.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400 mb-2">
-                {activeTab === "posts"
-                  ? "You haven't created any posts yet."
+            <EmptyState
+              icon={FileText}
+              title={
+                activeTab === "posts"
+                  ? "No posts yet"
                   : activeTab === "requests"
-                    ? "You haven't created any requests yet."
-                    : "You haven't created any posts or requests yet."}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                Join a city and share your trekking experiences!
-              </p>
-              <Link
-                href="/cities"
-                className="inline-block mt-4 text-green-700 hover:underline text-sm"
-              >
-                Browse cities
-              </Link>
-            </div>
+                    ? "No trek requests yet"
+                    : "No posts or trek requests yet"
+              }
+              description="Share a trail report or find trek buddies in any city."
+              action={
+                <Button asChild variant="outline">
+                  <Link href="/cities">Browse cities</Link>
+                </Button>
+              }
+            />
           ) : (
             <div className="space-y-3">
               {allActivity.map((item) =>

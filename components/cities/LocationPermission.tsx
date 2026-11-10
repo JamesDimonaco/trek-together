@@ -12,8 +12,8 @@ export default function LocationPermission({ isLoading, onManualEntry }: Locatio
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
         <MapPin className="h-12 w-12 text-green-700 dark:text-green-400 mx-auto mb-4 animate-pulse" />
-        <CardTitle className="text-2xl">
-          {isLoading ? "Finding your location..." : "Enable Location Access"}
+        <CardTitle>
+          {isLoading ? "Finding your location..." : "Enable location access"}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

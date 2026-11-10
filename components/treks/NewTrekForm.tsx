@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { analytics } from "@/lib/analytics";
+import { newTrekFormErrors, NewTrekField } from "@/lib/trek-utils";
 import PlacePicker, { PickedPlace } from "./PlacePicker";
 
 export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
@@ -22,6 +23,27 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
   const [nameEdited, setNameEdited] = useState(false);
   const [startDate, setStartDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [isSaving, setIsSaving] = useState(false);
+  // Errors show after the first save attempt and update live, so each clears once fixed.
+  const [triedSave, setTriedSave] = useState(false);
+  const errors = triedSave
+    ? newTrekFormErrors({ hasPin: !!pin, placeName, name, startDate })
+    : {};
+  const fieldIds: Record<NewTrekField, string> = {
+    place: "place-search",
+    placeName: "placeName",
+    name: "trekName",
+    startDate: "startDate",
+  };
+  const errorProps = (field: NewTrekField) =>
+    errors[field]
+      ? { "aria-invalid": true, "aria-describedby": `${fieldIds[field]}-error` }
+      : {};
+  const fieldError = (field: NewTrekField) =>
+    errors[field] && (
+      <p id={`${fieldIds[field]}-error`} role="alert" className="text-sm text-red-700 dark:text-red-400">
+        {errors[field]}
+      </p>
+    );
 
   function handlePick(picked: PickedPlace) {
     setPin(picked);
@@ -33,8 +55,11 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!pin) {
-      toast.error("Pick a place on the map first");
+    setTriedSave(true);
+    const found = newTrekFormErrors({ hasPin: !!pin, placeName, name, startDate });
+    const first = (Object.keys(fieldIds) as NewTrekField[]).find((field) => found[field]);
+    if (first || !pin) {
+      if (first) document.getElementById(fieldIds[first])?.focus();
       return;
     }
     setIsSaving(true);
@@ -57,46 +82,50 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
       <div className="space-y-2">
         <Label htmlFor="place-search">Where did you trek?</Label>
-        <PlacePicker value={pin} onPick={handlePick} />
+        <PlacePicker value={pin} onPick={handlePick} errorId={errors.place && "place-search-error"} />
+        {fieldError("place")}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="placeName">Place name</Label>
         <Input
           id="placeName"
+          {...errorProps("placeName")}
           value={placeName}
           onChange={(e) => setPlaceName(e.target.value)}
           placeholder="Name this place if you dropped a pin"
-          required
         />
+        {fieldError("placeName")}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="trekName">Trek name</Label>
         <Input
           id="trekName"
+          {...errorProps("name")}
           value={name}
           onChange={(e) => {
             setName(e.target.value);
             setNameEdited(true);
           }}
           placeholder="e.g. Torres del Paine W"
-          required
         />
+        {fieldError("name")}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="startDate">Start date</Label>
         <Input
           id="startDate"
+          {...errorProps("startDate")}
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          required
         />
+        {fieldError("startDate")}
       </div>
 
       <p className="text-sm text-gray-600 dark:text-gray-400">

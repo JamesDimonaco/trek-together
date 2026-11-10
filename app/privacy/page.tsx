@@ -47,7 +47,7 @@ export default function PrivacyPage() {
             <h3 className="text-lg font-semibold mt-4 mb-2">2.3 Cookies and Tracking</h3>
             <p>
               We use cookies and similar tracking technologies to maintain your session and improve your experience.
-              See our <Link href="/cookies" className="text-green-700 hover:underline">Cookie Policy</Link> for details.
+              See our <Link href="/cookies" className="text-green-700 hover:underline">Cookie policy</Link> for details.
             </p>
           </section>
 

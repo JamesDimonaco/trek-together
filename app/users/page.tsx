@@ -1,5 +1,7 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -22,8 +24,8 @@ export default function UsersPage() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Find Trekkers
+          <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+            Find trekkers
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Connect with fellow adventurers
@@ -54,19 +56,16 @@ export default function UsersPage() {
           <>
             {/* Loading */}
             {!users && (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-              </div>
+              <LoadingState className="py-12" />
             )}
 
             {/* No results */}
             {users && users.length === 0 && (
-              <div className="text-center py-12">
-                <User className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  No users found matching "{searchTerm}"
-                </p>
-              </div>
+              <EmptyState
+                icon={User}
+                title={`No trekkers match "${searchTerm}"`}
+                description="Usernames are matched from the start. Try fewer letters."
+              />
             )}
 
             {/* User list */}

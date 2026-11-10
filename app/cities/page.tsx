@@ -1,5 +1,7 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -70,8 +72,8 @@ export default function CitiesPage() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Explore Cities
+          <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+            Explore cities
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Find trekkers in cities around the world, grouped by country
@@ -98,29 +100,21 @@ export default function CitiesPage() {
 
         {/* Loading state */}
         {!groupedCities && (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-          </div>
+          <LoadingState className="py-12" />
         )}
 
         {/* Empty state */}
         {groupedCities && groupedCities.length === 0 && (
-          <div className="text-center py-12">
-            <MapPin className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">
-              No cities yet. Be the first to explore!
-            </p>
-          </div>
+          <EmptyState icon={MapPin} title="No cities yet" description="Be the first to start one." />
         )}
 
         {/* No results */}
         {filteredGroups && filteredGroups.length === 0 && groupedCities && groupedCities.length > 0 && (
-          <div className="text-center py-12">
-            <Search className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">
-              No cities found matching "{searchTerm}"
-            </p>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={`No cities match "${searchTerm}"`}
+            description="Try the country name, or a shorter search."
+          />
         )}
 
         {/* Countries with cities */}

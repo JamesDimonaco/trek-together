@@ -84,10 +84,10 @@ export default function CompanionEditor({ ownerId, companions, onChange }: Compa
                   type="button"
                   aria-label={`Remove ${label}`}
                   disabled={pending}
-                  className="rounded-full p-0.5 text-gray-500 hover:bg-gray-200 disabled:opacity-50 dark:hover:bg-gray-700"
+                  className="-my-2 flex size-11 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 disabled:opacity-50 sm:my-0 sm:size-6 dark:hover:bg-gray-700"
                   onClick={() => removeAt(index)}
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               </li>
             );

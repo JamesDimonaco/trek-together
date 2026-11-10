@@ -57,7 +57,7 @@ export default function RecentActivityCard({ item }: RecentActivityCardProps) {
       onClick={() => analytics.carouselCardClicked(item.itemType, item._id, item.city?.name ?? "Unknown")}
     >
       <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-        <CardContent className="px-4 py-3 h-full flex flex-col">
+        <CardContent className="h-full flex flex-col">
           <div className="flex items-center gap-1.5 mb-2 flex-wrap">
             {item.itemType === "post" ? (
               <Badge

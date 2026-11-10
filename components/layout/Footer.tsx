@@ -43,7 +43,7 @@ export default function Footer() {
                   href="/privacy"
                   className="text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-400 transition-colors"
                 >
-                  Privacy Policy
+                  Privacy policy
                 </Link>
               </li>
               <li>
@@ -51,7 +51,7 @@ export default function Footer() {
                   href="/terms"
                   className="text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-400 transition-colors"
                 >
-                  Terms of Service
+                  Terms of service
                 </Link>
               </li>
               <li>
@@ -59,7 +59,7 @@ export default function Footer() {
                   href="/cookies"
                   className="text-gray-600 dark:text-gray-400 hover:text-green-800 dark:hover:text-green-400 transition-colors"
                 >
-                  Cookie Policy
+                  Cookie policy
                 </Link>
               </li>
             </ul>

@@ -24,13 +24,13 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
 
   return (
     <Card className="mb-4 sm:mb-6">
-      <CardHeader className="px-4 sm:px-6">
-        <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
           <Mountain className="h-5 w-5 text-green-700" />
           <span>Treks</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 px-4 sm:px-6">
+      <CardContent className="space-y-3">
         {treks.length === 0 ? (
           <div className="text-center">
             <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">

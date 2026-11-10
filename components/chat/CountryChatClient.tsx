@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -86,9 +87,7 @@ export default function CountryChatClient({
 
   if (!session) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="flex-1" />
     );
   }
 
@@ -98,7 +97,7 @@ export default function CountryChatClient({
       <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600 dark:text-gray-300">
-            Country Chat
+            Country chat
           </span>
           <span className="text-gray-600 dark:text-gray-300">
             {session.username || "Anonymous"}

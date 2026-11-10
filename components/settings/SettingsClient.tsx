@@ -1,5 +1,7 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
+import { formatPostDate } from "@/lib/post-utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
@@ -150,18 +152,12 @@ export default function SettingsClient() {
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString([], {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatPostDate(timestamp);
   };
 
   if (!isLoaded || !currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="min-h-screen" />
     );
   }
 
@@ -172,17 +168,17 @@ export default function SettingsClient() {
         <div className="bg-white dark:bg-gray-800 border-b sticky top-0 z-10">
           <div className="px-4 py-4">
             {convexUserId && <BackLink href={`/profile/${convexUserId}`} label="Profile" />}
-            <h1 className="text-xl font-semibold">Settings</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
           </div>
         </div>
 
         {/* Content */}
         <div className="p-4 space-y-6">
           {/* Notification Preferences Section */}
-          <Card className="p-6">
+          <Card>
             <div className="flex items-center gap-2 mb-4">
               <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              <h2 className="text-lg font-semibold">Notification Preferences</h2>
+              <h2 className="text-lg font-semibold">Notification preferences</h2>
             </div>
 
             <div className="space-y-4">
@@ -192,7 +188,7 @@ export default function SettingsClient() {
                   <MailIcon className="h-5 w-5 text-gray-500" />
                   <div>
                     <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer">
-                      Email Notifications
+                      Email notifications
                     </Label>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Get notified by email when you receive a new DM
@@ -212,7 +208,7 @@ export default function SettingsClient() {
                   <Bell className="h-5 w-5 text-gray-500" />
                   <div>
                     <Label htmlFor="browser-notifications" className="text-base font-medium cursor-pointer">
-                      Browser Notifications
+                      Browser notifications
                     </Label>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Get browser notifications for new messages
@@ -235,10 +231,10 @@ export default function SettingsClient() {
           </Card>
 
           {/* Blocked Users Section */}
-          <Card className="p-6">
+          <Card>
             <div className="flex items-center gap-2 mb-4">
               <Ban className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              <h2 className="text-lg font-semibold">Blocked Users</h2>
+              <h2 className="text-lg font-semibold">Blocked users</h2>
             </div>
 
             {!blockedUsers || blockedUsers.length === 0 ? (

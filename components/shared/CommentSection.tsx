@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPostDate } from "@/lib/post-utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,7 +78,7 @@ export default function CommentSection({
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    return formatPostDate(date.getTime());
   };
 
   return (

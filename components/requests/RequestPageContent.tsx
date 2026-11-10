@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -181,9 +182,7 @@ export default function RequestPageContent({
 
   if (request === undefined) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="py-8" />
     );
   }
 
@@ -219,7 +218,7 @@ export default function RequestPageContent({
         </div>
 
         {/* Title */}
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {request.title}
         </h1>
 
@@ -256,7 +255,7 @@ export default function RequestPageContent({
               onClick={() => handleToggleInterest()}
             >
               <HandHelping className="h-4 w-4" />
-              {request.hasExpressedInterest ? "Interested" : "I'm In"}
+              {request.hasExpressedInterest ? "Interested" : "I'm in"}
             </Button>
           )}
 

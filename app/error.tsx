@@ -52,10 +52,10 @@ export default function Error({
               variant="outline"
               className="flex-1"
             >
-              Go Home
+              Go home
             </Button>
             <Button onClick={reset} className="flex-1">
-              Try Again
+              Try again
             </Button>
           </div>
         </div>

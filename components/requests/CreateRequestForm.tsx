@@ -151,7 +151,7 @@ export default function CreateRequestForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="req-activity">Activity Type</Label>
+            <Label htmlFor="req-activity">Activity type</Label>
             <Select
               value={activityType}
               onValueChange={setActivityType}

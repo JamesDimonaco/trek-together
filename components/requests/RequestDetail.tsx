@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -163,9 +164,7 @@ export default function RequestDetail({
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent>
           <DialogTitle className="sr-only">Loading request</DialogTitle>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-          </div>
+          <LoadingState className="py-8" />
         </DialogContent>
       </Dialog>
     );
@@ -252,7 +251,7 @@ export default function RequestDetail({
               onClick={() => handleToggleInterest()}
             >
               <HandHelping className="h-4 w-4" />
-              {request.hasExpressedInterest ? "Interested" : "I'm In"}
+              {request.hasExpressedInterest ? "Interested" : "I'm in"}
             </Button>
           )}
 

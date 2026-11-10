@@ -22,7 +22,7 @@ export default function TrekCard({ href, trek, ownerUsername }: TrekCardProps) {
   return (
     <Link href={href} className="block">
       <Card className="transition hover:bg-gray-50 dark:hover:bg-gray-800">
-        <CardContent className="space-y-1 px-4 py-3">
+        <CardContent className="space-y-1">
           <div className="flex items-start justify-between gap-2">
             <h2 className="font-medium text-gray-900 dark:text-white">{trek.name}</h2>
             {trek.visibility === "private" && (

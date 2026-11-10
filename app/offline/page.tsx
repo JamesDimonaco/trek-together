@@ -9,7 +9,7 @@ export default function OfflinePage() {
         <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
           <Mountain className="h-8 w-8 text-green-700 dark:text-green-400" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
           You&apos;re Offline
         </h1>
         <div className="flex items-center justify-center gap-2 text-gray-500 mb-4">
@@ -24,7 +24,7 @@ export default function OfflinePage() {
           onClick={() => window.location.reload()}
           className="inline-flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors"
         >
-          Try Again
+          Try again
         </button>
       </div>
     </div>

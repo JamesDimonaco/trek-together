@@ -1,57 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Lock, X } from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface AuthPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function AuthPromptModal({
-  isOpen,
-  onClose,
-}: AuthPromptModalProps) {
-  if (!isOpen) return null;
-
+// Shown wherever a guest tries something that needs an account (messages, comments, likes).
+export default function AuthPromptModal({ isOpen, onClose }: AuthPromptModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <Card className="max-w-md w-full relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-600 dark:hover:text-gray-200"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-            <Lock className="h-6 w-6 text-green-700 dark:text-green-400" />
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md text-center">
+        <DialogHeader className="items-center sm:text-center">
+          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+            <Lock className="h-6 w-6 text-green-700 dark:text-green-400" aria-hidden="true" />
           </div>
-          <CardTitle>Sign In Required</CardTitle>
-          <CardDescription>
-            You need to be signed in to send direct messages and connect with
-            other trekkers
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-3">
+          <DialogTitle>Sign in to continue</DialogTitle>
+          <DialogDescription>
+            You need an account to message, comment and connect with other trekkers.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex-col gap-2 sm:flex-col">
           <Button className="w-full" asChild>
-            <Link href="/sign-in">Sign In to Continue</Link>
+            <Link href="/sign-in">Sign in</Link>
           </Button>
           <Button variant="outline" onClick={onClose} className="w-full">
-            Go Back
+            Not now
           </Button>
-        </CardContent>
-      </Card>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

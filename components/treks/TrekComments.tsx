@@ -36,7 +36,7 @@ export default function TrekComments({ trekId }: { trekId: Id<"treks"> }) {
 
   return (
     <section className="space-y-3">
-      <h2 className="font-semibold text-gray-900 dark:text-white">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
         Comments{trek.comments.length > 0 && ` (${trek.comments.length})`}
       </h2>
       <CommentSection
