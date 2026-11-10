@@ -176,9 +176,11 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
               )}
             </TabsTrigger>
           </TabsList>
-          <span className="text-gray-600 dark:text-gray-300 text-sm">
-            Chatting as {session.username || "Anonymous"}
-          </span>
+          {activeTab === "chat" && (
+            <span className="text-gray-600 dark:text-gray-300 text-sm">
+              Chatting as {session.username || "Anonymous"}
+            </span>
+          )}
         </div>
       </div>
 

@@ -71,7 +71,7 @@ export default async function ChatPage({ params }: ChatPageProps) {
   const city = await getCityData(cityId);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900 flex flex-col">
       <div className="w-full max-w-3xl mx-auto flex flex-col flex-1">
         <ChatHeaderServer city={city} />
         <CityPageTabs cityId={cityId as Id<"cities">} cityName={city.name} />

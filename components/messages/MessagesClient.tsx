@@ -50,12 +50,12 @@ export default function MessagesClient() {
 
   if (!isLoaded || !currentUser) {
     return (
-      <LoadingState className="min-h-screen" />
+      <LoadingState className="flex-1" />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b sticky top-0 z-10">

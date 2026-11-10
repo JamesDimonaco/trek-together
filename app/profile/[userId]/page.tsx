@@ -26,7 +26,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900">
       <ProfileView userId={userId} />
     </div>
   );

@@ -50,17 +50,17 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
           <TrekLikeButton trekId={trek._id} />
         </div>
         <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-          <MapPin className="h-4 w-4 flex-shrink-0" />
+          <MapPin className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
           <span>{trek.placeName}</span>
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-2 inline-flex items-center gap-1 text-sm text-green-700 hover:underline"
-          >
-            Open in Google Maps <ExternalLink className="h-3 w-3" />
-          </a>
         </div>
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-11 items-center gap-1 text-sm text-green-700 hover:underline sm:min-h-0"
+        >
+          Open in Google Maps <ExternalLink className="h-3 w-3" aria-hidden="true" />
+        </a>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {trek.owner && (
             <>

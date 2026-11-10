@@ -132,7 +132,7 @@ export default function RootLayout({
             </a>
             <AuthHeader />
             <AuthSync />
-            <main id="main" className="flex-1">
+            <main id="main" className="flex flex-1 flex-col">
               {children}
             </main>
             <Footer />

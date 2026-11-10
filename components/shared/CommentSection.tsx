@@ -141,7 +141,7 @@ export default function CommentSection({
             (isAuthenticated ? "Add a comment..." : "Sign in to comment")
           }
           aria-label="Comment"
-          className="min-h-11 h-11 py-2.5 sm:min-h-9 sm:h-9 sm:py-2 resize-none text-sm"
+          className="min-h-11 h-11 py-2.5 sm:min-h-9 sm:h-9 sm:py-1.5 resize-none text-sm"
           onFocus={() => {
             if (!isAuthenticated) onAuthPrompt();
           }}

@@ -2,7 +2,7 @@ import { Mountain } from "lucide-react";
 
 export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="flex flex-col items-center space-y-4">
         <Mountain className="h-12 w-12 text-green-700 dark:text-green-400 animate-pulse" />
         <div className="flex space-x-1">
