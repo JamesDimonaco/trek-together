@@ -297,7 +297,7 @@ export default function RequestDetail({
 
         {/* Interested users */}
         {request.interestedUsers.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Interested
             </h2>

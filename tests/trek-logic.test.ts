@@ -195,10 +195,11 @@ describe("validateCompanions", () => {
 });
 
 describe("display formatters", () => {
+  // Units are joined with non-breaking spaces so "2,050 m" never splits across lines.
   it("formats distance in metres below 1 km and kilometres above", () => {
-    expect(formatDistance(850)).toBe("850 m");
-    expect(formatDistance(12_400)).toBe("12.4 km");
-    expect(formatDistance(21_000)).toBe("21 km");
+    expect(formatDistance(850)).toBe("850\u00a0m");
+    expect(formatDistance(12_400)).toBe("12.4\u00a0km");
+    expect(formatDistance(21_000)).toBe("21\u00a0km");
   });
 
   it("formats duration as hours and minutes", () => {
@@ -208,7 +209,7 @@ describe("display formatters", () => {
   });
 
   it("formats elevation in metres", () => {
-    expect(formatElevation(1850)).toBe("1,850 m");
+    expect(formatElevation(1850)).toBe("1,850\u00a0m");
   });
 
   it("writes dates day-first, with no timezone shift", () => {
@@ -219,9 +220,9 @@ describe("display formatters", () => {
   it("summarises only the stats that were logged", () => {
     expect(
       summarizeStats({ distanceMeters: 12_400, elevationGainMeters: 1900 })
-    ).toEqual(["12.4 km", "1,900 m gain"]);
+    ).toEqual(["12.4\u00a0km", "1,900\u00a0m\u00a0gain"]);
     expect(summarizeStats({})).toEqual([]);
-    expect(summarizeStats({ maxElevationMeters: 0 })).toEqual(["max 0 m"]);
+    expect(summarizeStats({ maxElevationMeters: 0 })).toEqual(["max\u00a00\u00a0m"]);
   });
 });
 

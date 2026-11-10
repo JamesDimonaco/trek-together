@@ -23,3 +23,10 @@ export function formatDayDivider(timestamp: number, now: number = Date.now()): s
 export function startsNewDay(previous: number | undefined, current: number): boolean {
   return previous === undefined || !isSameDay(previous, current);
 }
+
+// Inbox rows: time for today, then Yesterday, then the date.
+export function formatConversationTime(timestamp: number, now: number = Date.now()): string {
+  if (isSameDay(timestamp, now)) return format(timestamp, "HH:mm");
+  if (isSameDay(timestamp, subDays(now, 1))) return "Yesterday";
+  return format(timestamp, isSameYear(timestamp, now) ? "d MMM" : "d MMM yyyy");
+}

@@ -41,6 +41,9 @@ export default function ProfileEditForm() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  // Shown after a save attempt; clears as soon as a name is typed.
+  const [triedSave, setTriedSave] = useState(false);
+  const usernameError = triedSave && !username.trim() ? "Choose a username." : "";
   const [success, setSuccess] = useState(false);
 
   // Populate form with current user data
@@ -57,6 +60,11 @@ export default function ProfileEditForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
+    setTriedSave(true);
+    if (!username.trim()) {
+      document.getElementById("username")?.focus();
+      return;
+    }
 
     setIsLoading(true);
     setError("");
@@ -162,7 +170,7 @@ export default function ProfileEditForm() {
       </p>
       <Card>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             {/* Avatar Upload */}
             <AvatarUpload
               currentAvatar={currentUser?.avatarUrl || clerkUser?.imageUrl}
@@ -177,9 +185,15 @@ export default function ProfileEditForm() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
-                required
                 maxLength={50}
+                aria-invalid={usernameError ? true : undefined}
+                aria-describedby={usernameError ? "username-error" : undefined}
               />
+              {usernameError && (
+                <p id="username-error" role="alert" className="text-sm text-red-700 dark:text-red-400">
+                  {usernameError}
+                </p>
+              )}
             </div>
 
             {/* Bio */}
@@ -247,14 +261,14 @@ export default function ProfileEditForm() {
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+              <div role="alert" className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm">
                 {error}
               </div>
             )}
 
             {/* Success Message */}
             {success && (
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm">
+              <div role="status" className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm">
                 Profile updated successfully! Redirecting...
               </div>
             )}

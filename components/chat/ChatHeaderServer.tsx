@@ -38,7 +38,7 @@ export default function ChatHeaderServer({ city }: ChatHeaderServerProps) {
           </div>
         </div>
 
-        <Button variant="outline" size="sm" asChild className="gap-1.5">
+        <Button variant="outline" size="sm" asChild className="min-w-11 gap-1.5">
           <Link href={`/chat/country/${countrySlug}`}>
             <Globe className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only sm:not-sr-only">{city.country} chat</span>

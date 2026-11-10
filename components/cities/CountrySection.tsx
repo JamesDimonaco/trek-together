@@ -61,7 +61,7 @@ export function CountrySection({
             variant="outline"
             size="sm"
             asChild
-            className="gap-2 border-green-500 text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+            className="min-w-11 gap-2 border-green-500 text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
           >
             <Link href={`/chat/country/${country.slug}`}>
               <MessageCircle className="h-4 w-4" aria-hidden="true" />

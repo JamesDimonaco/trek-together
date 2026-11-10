@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         // Disabled stays readable: grey with dark text, not a faded green.
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 disabled:opacity-100 disabled:bg-gray-200 disabled:text-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-200",
+        default: "bg-primary text-primary-foreground hover:bg-green-800 active:bg-green-900 dark:hover:bg-primary/90 dark:active:bg-primary/80 disabled:opacity-100 disabled:bg-gray-200 disabled:text-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-200",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 active:bg-destructive/80 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:

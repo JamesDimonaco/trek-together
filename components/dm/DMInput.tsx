@@ -102,7 +102,7 @@ export default function DMInput({ onSendMessage, conversationId, currentUserId }
         <Button
           type="submit"
           disabled={!message.trim() || isSending}
-          className="self-end"
+          className="min-w-11 self-end"
           aria-label="Send message"
         >
           {isSending ? (

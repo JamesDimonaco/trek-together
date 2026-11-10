@@ -35,10 +35,7 @@ export default function TrekComments({ trekId }: { trekId: Id<"treks"> }) {
   };
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-        Comments{trek.comments.length > 0 && ` (${trek.comments.length})`}
-      </h2>
+    <>
       <CommentSection
         comments={trek.comments}
         currentUserId={userId}
@@ -50,6 +47,6 @@ export default function TrekComments({ trekId }: { trekId: Id<"treks"> }) {
         placeholder={userId ? "Ask a question or add a trail update..." : undefined}
       />
       <AuthPromptModal isOpen={showAuthPrompt} onClose={() => setShowAuthPrompt(false)} />
-    </section>
+    </>
   );
 }

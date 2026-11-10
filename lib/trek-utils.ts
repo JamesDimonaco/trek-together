@@ -1,8 +1,11 @@
 import { format, parseISO } from "date-fns";
 
+// NBSP keeps a number and its unit on one line.
+const NBSP = "\u00a0";
+
 export function formatDistance(meters: number): string {
-  if (meters < 1000) return `${meters} m`;
-  return `${Math.round(meters / 100) / 10} km`;
+  if (meters < 1000) return `${meters}${NBSP}m`;
+  return `${Math.round(meters / 100) / 10}${NBSP}km`;
 }
 
 export function formatDuration(minutes: number): string {
@@ -13,7 +16,7 @@ export function formatDuration(minutes: number): string {
 }
 
 export function formatElevation(meters: number): string {
-  return `${String(meters).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} m`;
+  return `${String(meters).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${NBSP}m`;
 }
 
 export function formatTrekDate(isoDate: string): string {
@@ -30,9 +33,9 @@ export function summarizeStats(stats: {
     stats.distanceMeters !== undefined && formatDistance(stats.distanceMeters),
     stats.durationMinutes !== undefined && formatDuration(stats.durationMinutes),
     stats.elevationGainMeters !== undefined &&
-      `${formatElevation(stats.elevationGainMeters)} gain`,
+      `${formatElevation(stats.elevationGainMeters)}${NBSP}gain`,
     stats.maxElevationMeters !== undefined &&
-      `max ${formatElevation(stats.maxElevationMeters)}`,
+      `max${NBSP}${formatElevation(stats.maxElevationMeters)}`,
   ].filter((part): part is string => part !== false);
 }
 

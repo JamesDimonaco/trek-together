@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { formatDateRange } from "../lib/request-utils";
 import { formatPostDate } from "../lib/post-utils";
 import { newTrekFormErrors } from "../lib/trek-utils";
-import { formatDayDivider, startsNewDay, timeAgo } from "../lib/time-utils";
+import { formatConversationTime, formatDayDivider, startsNewDay, timeAgo } from "../lib/time-utils";
 
 // Users read one date style everywhere (day first), matching trek dates.
 describe("dates across posts and requests", () => {
@@ -71,5 +71,20 @@ describe("time ago", () => {
   it("adds the year once a date is in another year", () => {
     const old = new Date(2025, 0, 3).getTime();
     expect(timeAgo(old)).toBe("3 Jan 2025");
+  });
+});
+
+// The inbox uses the same 24-hour clock and calendar days as the chat it opens.
+describe("inbox times", () => {
+  const now = new Date(2026, 10, 10, 15, 0).getTime();
+
+  it("shows the time for today and Yesterday for yesterday", () => {
+    expect(formatConversationTime(new Date(2026, 10, 10, 9, 5).getTime(), now)).toBe("09:05");
+    expect(formatConversationTime(new Date(2026, 10, 9, 22, 0).getTime(), now)).toBe("Yesterday");
+  });
+
+  it("shows the date for anything older", () => {
+    expect(formatConversationTime(new Date(2026, 10, 2, 12).getTime(), now)).toBe("2 Nov");
+    expect(formatConversationTime(new Date(2025, 10, 2, 12).getTime(), now)).toBe("2 Nov 2025");
   });
 });

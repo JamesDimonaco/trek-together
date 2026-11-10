@@ -149,7 +149,7 @@ export default function AuthHeader() {
             </DropdownMenu>
 
             <SignedOut>
-              <Button variant="ghost" size="sm" asChild className="px-3">
+              <Button variant="ghost" size="sm" asChild className="min-w-11 px-3">
                 <Link href="/sign-in" aria-label="Sign in" className="flex items-center">
                   <User className="h-4 w-4 sm:mr-1" />
                   <span className="hidden sm:inline">Sign in</span>

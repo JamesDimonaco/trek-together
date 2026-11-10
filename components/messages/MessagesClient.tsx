@@ -2,7 +2,7 @@
 
 import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
-import { format } from "date-fns";
+import { formatConversationTime } from "@/lib/time-utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -43,23 +43,7 @@ export default function MessagesClient() {
     }
   }, [isLoaded, clerkUser, router]);
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } else if (diffInHours < 168) {
-      // Less than a week
-      return date.toLocaleDateString([], { weekday: "short" });
-    } else {
-      return format(date, "d MMM");
-    }
-  };
 
   const truncateMessage = (content: string, maxLength: number = 60) => {
     if (content.length <= maxLength) return content;
@@ -138,7 +122,7 @@ export default function MessagesClient() {
                             {partner.username}
                           </h2>
                           <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
-                            {formatTime(conversation.lastMessageTime)}
+                            {formatConversationTime(conversation.lastMessageTime)}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 truncate">

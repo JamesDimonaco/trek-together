@@ -82,7 +82,10 @@ export default function CommentSection({
   };
 
   return (
-    <div className="space-y-3">
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        Comments{comments.length > 0 && ` (${comments.length})`}
+      </h2>
       {/* Comment list */}
       {comments.length > 0 && (
         <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -153,12 +156,12 @@ export default function CommentSection({
           size="sm"
           onClick={handleSubmit}
           disabled={isSubmitting || !newComment.trim()}
-          className="px-3"
+          className="min-w-11 px-3"
           aria-label="Post comment"
         >
           <Send className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
       </div>
-    </div>
+    </section>
   );
 }
