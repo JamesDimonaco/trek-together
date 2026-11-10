@@ -176,16 +176,16 @@ export default function SettingsClient() {
         <div className="p-4 space-y-6">
           {/* Notification Preferences Section */}
           <Card>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <h2 className="text-lg font-semibold">Notification preferences</h2>
             </div>
 
             <div className="space-y-4">
               {/* Email Notifications */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MailIcon className="h-5 w-5 text-gray-500" />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <MailIcon className="mt-0.5 h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />
                   <div>
                     <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer">
                       Email notifications
@@ -203,9 +203,9 @@ export default function SettingsClient() {
               </div>
 
               {/* Browser Notifications */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Bell className="h-5 w-5 text-gray-500" />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <Bell className="mt-0.5 h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />
                   <div>
                     <Label htmlFor="browser-notifications" className="text-base font-medium cursor-pointer">
                       Browser notifications
@@ -223,7 +223,7 @@ export default function SettingsClient() {
               </div>
 
               {!currentUser?.email && (
-                <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+                <p className="text-sm text-amber-700 dark:text-amber-400 mt-2">
                   ⚠ No email address on file. Email notifications will not work until you add an email to your account.
                 </p>
               )}
@@ -232,7 +232,7 @@ export default function SettingsClient() {
 
           {/* Blocked Users Section */}
           <Card>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2">
               <Ban className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <h2 className="text-lg font-semibold">Blocked users</h2>
             </div>

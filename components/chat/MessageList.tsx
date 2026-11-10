@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
-import { formatMessageTime } from "@/lib/time-utils";
+import { Fragment, useEffect, useRef } from "react";
+import { format } from "date-fns";
+import { startsNewDay } from "@/lib/time-utils";
+import DayDivider from "@/components/chat/DayDivider";
 import Link from "next/link";
 import { Id } from "@/convex/_generated/dataModel";
 import MessageActions from "./MessageActions";
@@ -55,7 +57,6 @@ export default function MessageList({
     return message.sessionId === currentSessionId;
   };
 
-
   if (!messages?.length) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -89,13 +90,16 @@ export default function MessageList({
       onScroll={handleScroll}
       className="flex-1 overflow-y-auto p-4 space-y-3"
     >
-      {messages.map((message) => {
+      {messages.map((message, index) => {
         const isOwn = isOwnMessage(message);
         const canShowActions = !isOwn && message.userId && currentUserId;
 
         return (
+          <Fragment key={message._id}>
+          {startsNewDay(messages[index - 1]?._creationTime, message._creationTime) && (
+            <DayDivider timestamp={message._creationTime} />
+          )}
           <div
-            key={message._id}
             className={`flex group ${isOwn ? "justify-end" : "justify-start"}`}
           >
             <div className="flex items-start gap-2">
@@ -123,7 +127,7 @@ export default function MessageList({
                 )}
                 <div className="text-sm">{message.content}</div>
                 <div className="text-xs mt-1">
-                  {formatMessageTime(message._creationTime)}
+                  {format(message._creationTime, "HH:mm")}
                 </div>
               </div>
 
@@ -138,6 +142,7 @@ export default function MessageList({
               )}
             </div>
           </div>
+          </Fragment>
         );
       })}
     </div>

@@ -134,7 +134,7 @@ export default function MessagesClient() {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline justify-between gap-2 mb-1">
-                          <h2 className="font-medium truncate">
+                          <h2 className="text-lg font-semibold truncate">
                             {partner.username}
                           </h2>
                           <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">

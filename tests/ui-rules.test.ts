@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { formatDateRange } from "../lib/request-utils";
 import { formatPostDate } from "../lib/post-utils";
 import { newTrekFormErrors } from "../lib/trek-utils";
-import { formatMessageTime, timeAgo } from "../lib/time-utils";
+import { formatDayDivider, startsNewDay, timeAgo } from "../lib/time-utils";
 
 // Users read one date style everywhere (day first), matching trek dates.
 describe("dates across posts and requests", () => {
@@ -40,20 +40,30 @@ describe("new trek form errors", () => {
   });
 });
 
-// Chat shows only a time for today's messages; older ones need the day, or they read out of order.
-describe("chat message times", () => {
+// Chat groups messages under one divider per day, so each bubble only needs its time.
+describe("chat day dividers", () => {
   const now = new Date(2026, 10, 10, 15, 0).getTime();
 
-  it("shows only the time for today", () => {
-    expect(formatMessageTime(new Date(2026, 10, 10, 9, 5).getTime(), now)).toBe("09:05");
+  it("names today and yesterday", () => {
+    expect(formatDayDivider(new Date(2026, 10, 10, 0, 1).getTime(), now)).toBe("Today");
+    expect(formatDayDivider(new Date(2026, 10, 9, 23, 59).getTime(), now)).toBe("Yesterday");
   });
 
-  it("adds the day for earlier days this year", () => {
-    expect(formatMessageTime(new Date(2026, 10, 9, 23, 59).getTime(), now)).toBe("9 Nov, 23:59");
+  it("gives weekday and date for older days this year", () => {
+    expect(formatDayDivider(new Date(2026, 9, 23, 12).getTime(), now)).toBe("Fri 23 Oct");
   });
 
   it("adds the year for other years", () => {
-    expect(formatMessageTime(new Date(2025, 11, 31, 8, 0).getTime(), now)).toBe("31 Dec 2025, 08:00");
+    expect(formatDayDivider(new Date(2025, 11, 31, 8).getTime(), now)).toBe("31 Dec 2025");
+  });
+
+  it("starts a new group only when the day changes", () => {
+    const morning = new Date(2026, 10, 9, 8).getTime();
+    const evening = new Date(2026, 10, 9, 22).getTime();
+    const nextDay = new Date(2026, 10, 10, 1).getTime();
+    expect(startsNewDay(undefined, morning)).toBe(true);
+    expect(startsNewDay(morning, evening)).toBe(false);
+    expect(startsNewDay(evening, nextDay)).toBe(true);
   });
 });
 

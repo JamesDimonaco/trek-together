@@ -1,4 +1,4 @@
-import { format, isSameDay, isSameYear } from "date-fns";
+import { format, isSameDay, isSameYear, subDays } from "date-fns";
 
 export function timeAgo(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -12,9 +12,14 @@ export function timeAgo(timestamp: number): string {
   return format(timestamp, isSameYear(timestamp, Date.now()) ? "d MMM" : "d MMM yyyy");
 }
 
-// Time alone for today; older messages carry the day (and year) so the thread reads in order.
-export function formatMessageTime(timestamp: number, now: number = Date.now()): string {
-  if (isSameDay(timestamp, now)) return format(timestamp, "HH:mm");
-  if (isSameYear(timestamp, now)) return format(timestamp, "d MMM, HH:mm");
-  return format(timestamp, "d MMM yyyy, HH:mm");
+// Chat shows one divider per day; bubbles then only need the time.
+export function formatDayDivider(timestamp: number, now: number = Date.now()): string {
+  if (isSameDay(timestamp, now)) return "Today";
+  if (isSameDay(timestamp, subDays(now, 1))) return "Yesterday";
+  if (isSameYear(timestamp, now)) return format(timestamp, "EEE d MMM");
+  return format(timestamp, "d MMM yyyy");
+}
+
+export function startsNewDay(previous: number | undefined, current: number): boolean {
+  return previous === undefined || !isSameDay(previous, current);
 }

@@ -18,9 +18,9 @@ export default function AboutPage() {
             About TrekTogether
           </h1>
         </CardHeader>
-        <CardContent className="prose prose-sm sm:prose dark:prose-invert max-w-none">
+        <CardContent className="prose prose-sm sm:prose dark:prose-invert max-w-none prose-h2:mt-0 prose-h2:mb-3 prose-h2:text-lg prose-h2:font-semibold">
           <section className="mb-8">
-            <h2 className="mt-0 mb-3 flex items-center gap-2 text-lg font-semibold">
+            <h2 className="flex items-center gap-2">
               <Heart className="h-5 w-5 text-green-700" aria-hidden="true" />
               The story
             </h2>
@@ -43,7 +43,7 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mt-0 mb-3 flex items-center gap-2 text-lg font-semibold">
+            <h2 className="flex items-center gap-2">
               <Users className="h-5 w-5 text-green-700" aria-hidden="true" />
               The solution
             </h2>
@@ -62,7 +62,7 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-6">
-            <h2 className="mt-0 mb-3 text-lg font-semibold">Built by one person</h2>
+            <h2>Built by one person</h2>
             <p className="text-base leading-relaxed mb-4">
               TrekTogether is a solo project—just me, my laptop, and countless hours in hostels and
               cafes across South America. It&apos;s built with modern web technologies and designed to
@@ -77,8 +77,8 @@ export default function AboutPage() {
             </p>
           </section>
 
-          <section className="bg-green-50 dark:bg-green-950 p-6 rounded-lg">
-            <h2 className="mt-0 mb-3 text-lg font-semibold">Ready to trek?</h2>
+          <section className="bg-green-50 dark:bg-green-950 p-4 rounded-lg [&>p]:mt-0">
+            <h2>Ready to trek?</h2>
             <p className="mb-4">
               Find your city, join the chat, and start connecting with fellow trekkers today.
             </p>

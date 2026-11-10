@@ -218,7 +218,7 @@ export default function ProfileEditForm() {
 
               {/* Location */}
               <div className="space-y-2">
-                <Label htmlFor="location">From (Optional)</Label>
+                <Label htmlFor="location">From (optional)</Label>
                 <Input
                   id="location"
                   value={location}

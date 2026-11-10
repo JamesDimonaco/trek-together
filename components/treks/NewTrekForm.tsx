@@ -102,6 +102,10 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      <p role="status" className="sr-only">
+        {Object.keys(errors).length > 0 &&
+          `${Object.keys(errors).length} ${Object.keys(errors).length === 1 ? "field needs" : "fields need"} attention`}
+      </p>
       <div className="space-y-2">
         <Label htmlFor="place-search">Where did you trek?</Label>
         <PlacePicker value={pin} onPick={handlePick} errorId={errors.place && "place-search-error"} />

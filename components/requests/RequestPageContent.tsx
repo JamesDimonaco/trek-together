@@ -322,7 +322,7 @@ export default function RequestPageContent({
         {/* Interested users */}
         {request.interestedUsers.length > 0 && (
           <div className="space-y-1">
-            <h2 className="text-sm font-medium text-gray-600 dark:text-gray-300">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Interested
             </h2>
             <div className="flex flex-wrap gap-2">
