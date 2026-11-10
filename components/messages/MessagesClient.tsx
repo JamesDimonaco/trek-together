@@ -8,7 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, ArrowLeft } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -76,12 +76,7 @@ export default function MessagesClient() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b sticky top-0 z-10">
-          <div className="px-4 py-4 flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
+          <div className="px-4 py-4">
             <h1 className="text-xl font-semibold">Messages</h1>
           </div>
         </div>
@@ -91,8 +86,8 @@ export default function MessagesClient() {
           {!conversations || conversations.length === 0 ? (
             <Card className="p-12">
               <div className="text-center">
-                <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium mb-2">No messages yet</h3>
+                <MessageSquare className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                <h2 className="text-lg font-medium mb-2">No messages yet</h2>
                 <p className="text-gray-500 dark:text-gray-400 mb-4">
                   Start a conversation by visiting a user&apos;s profile
                 </p>
@@ -130,7 +125,7 @@ export default function MessagesClient() {
                           />
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                            <span className="text-green-600 dark:text-green-300 font-medium text-lg">
+                            <span className="text-green-700 dark:text-green-300 font-medium text-lg">
                               {partner.username.charAt(0).toUpperCase()}
                             </span>
                           </div>
@@ -140,9 +135,9 @@ export default function MessagesClient() {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline justify-between gap-2 mb-1">
-                          <h3 className="font-medium truncate">
+                          <h2 className="font-medium truncate">
                             {partner.username}
-                          </h3>
+                          </h2>
                           <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                             {formatTime(conversation.lastMessageTime)}
                           </span>

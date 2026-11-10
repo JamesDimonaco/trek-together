@@ -107,7 +107,7 @@ export default function NewTrekForm({ userId }: { userId: Id<"users"> }) {
       <Button
         type="submit"
         disabled={isSaving}
-        className="w-full bg-green-600 hover:bg-green-700"
+        className="w-full"
       >
         {isSaving ? "Saving..." : "Save trek"}
       </Button>

@@ -68,7 +68,7 @@ export default function DMMessageList({
           <p className="text-gray-500 dark:text-gray-400 mb-2">
             No messages yet
           </p>
-          <p className="text-sm text-gray-400 dark:text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-500">
             Send a message to {receiver.username} to start the conversation
           </p>
         </div>
@@ -94,12 +94,12 @@ export default function DMMessageList({
               <div
                 className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
                   isOwn
-                    ? "bg-green-600 text-white"
+                    ? "bg-primary text-primary-foreground"
                     : "bg-white dark:bg-gray-700 border"
                 }`}
               >
                 <div className="text-sm break-words">{message.content}</div>
-                <div className="text-xs mt-1 opacity-70">
+                <div className="text-xs mt-1 opacity-90">
                   {formatTime(message._creationTime)}
                 </div>
               </div>

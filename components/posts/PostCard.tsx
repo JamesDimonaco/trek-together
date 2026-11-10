@@ -81,15 +81,15 @@ export default function PostCard({
                 </span>
               )}
             </div>
-            <h3 className="font-semibold text-sm line-clamp-1">
+            <h2 className="font-semibold text-sm line-clamp-1">
               <Link
                 href={`/chat/${cityId}/posts/${post._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-600 dark:hover:text-green-400"
+                className="hover:text-green-800 dark:hover:text-green-400"
               >
                 {post.title}
               </Link>
-            </h3>
+            </h2>
           </div>
         </div>
       </CardHeader>
@@ -103,12 +103,12 @@ export default function PostCard({
               <Link
                 href={`/profile/${post.author._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-600 dark:hover:text-green-400"
+                className="hover:text-green-800 dark:hover:text-green-400"
               >
                 {post.author.username}
               </Link>
             ) : (
-              <span className="hover:text-green-600 dark:hover:text-green-400">
+              <span className="hover:text-green-800 dark:hover:text-green-400">
                 Unknown
               </span>
             )}

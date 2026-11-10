@@ -230,7 +230,7 @@ export default function EditPostForm({
           <Button
             type="submit"
             disabled={isSubmitting || !title.trim() || !stripHtml(content).length}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full"
           >
             {isSubmitting ? "Updating..." : "Update Post"}
           </Button>

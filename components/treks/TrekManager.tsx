@@ -50,7 +50,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
   if (trek === undefined) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+        <Loader2 className="h-6 w-6 animate-spin text-green-700" />
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
     return (
       <p className="py-12 text-center text-gray-500">
         This trek does not exist, or it is not yours.{" "}
-        <Link href="/my-treks" className="text-green-600 hover:underline">
+        <Link href="/my-treks" className="text-green-700 hover:underline">
           Back to My Treks
         </Link>
       </p>
@@ -109,7 +109,6 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  className="bg-green-600 hover:bg-green-700"
                   disabled={busy}
                   onClick={() =>
                     run(async () => {
@@ -185,7 +184,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
 
           <div className="flex items-center justify-between">
             {isPublic ? (
-              <Link href={`/treks/${trekId}`} className="text-sm text-green-600 hover:underline">
+              <Link href={`/treks/${trekId}`} className="text-sm text-green-700 hover:underline">
                 View public page
               </Link>
             ) : (

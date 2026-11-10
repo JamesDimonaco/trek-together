@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { SessionData } from "@/lib/types";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -61,17 +62,20 @@ export default function PostsList({ cityId, session }: PostsListProps) {
     <div className="p-4 space-y-4">
       {/* Header with filter and create button */}
       <div className="flex items-center justify-between gap-2">
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-40 h-8 text-xs">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Posts</SelectItem>
-            <SelectItem value="trail_report">Trail Reports</SelectItem>
-            <SelectItem value="recommendation">Recommendations</SelectItem>
-            <SelectItem value="general">General</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="post-type" className="text-sm text-gray-600 dark:text-gray-300">Show</Label>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger id="post-type" className="w-40">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All posts</SelectItem>
+              <SelectItem value="trail_report">Trail reports</SelectItem>
+              <SelectItem value="recommendation">Recommendations</SelectItem>
+              <SelectItem value="general">General</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {hasValidConvexUserId && (
           <CreatePostForm cityId={cityId} userId={session.userId as Id<"users">} />
@@ -86,10 +90,10 @@ export default function PostsList({ cityId, session }: PostsListProps) {
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
-          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <h2 className="text-sm font-medium text-gray-600 dark:text-gray-400">
             No posts yet
-          </h3>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
             Be the first to share a trail report or recommendation!
           </p>
         </div>

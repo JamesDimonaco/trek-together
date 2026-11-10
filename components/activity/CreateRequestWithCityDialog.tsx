@@ -106,7 +106,7 @@ export default function CreateRequestWithCityDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5">
+        <Button size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" />
           New Request
         </Button>
@@ -193,7 +193,7 @@ export default function CreateRequestWithCityDialog({
               !description.trim() ||
               !dateFrom
             }
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full"
           >
             {isSubmitting ? "Creating..." : "Create Request"}
           </Button>

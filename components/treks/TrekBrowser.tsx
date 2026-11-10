@@ -32,10 +32,11 @@ export default function TrekBrowser() {
         </div>
 
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" aria-hidden="true" />
           <Input
             type="search"
             placeholder="Search by place or trek name..."
+            aria-label="Search treks"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -44,13 +45,13 @@ export default function TrekBrowser() {
 
         {treks === undefined && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-green-700" />
           </div>
         )}
 
         {treks && treks.length === 0 && (
           <div className="py-12 text-center">
-            <Mountain className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <Mountain className="mx-auto mb-4 h-12 w-12 text-gray-500" />
             <p className="text-gray-600 dark:text-gray-400">
               {search.trim() ? `No treks match "${search.trim()}".` : "No public treks yet."}
             </p>

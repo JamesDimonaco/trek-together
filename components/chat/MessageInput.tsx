@@ -99,6 +99,7 @@ export default function MessageInput({
           onChange={handleInputChange}
           onKeyDown={handleKeyPress}
           placeholder={placeholder || "Type a message..."}
+          aria-label="Message"
           disabled={isSending}
           className="flex-1"
           maxLength={500}
@@ -107,9 +108,9 @@ export default function MessageInput({
         <Button
           onClick={handleSend}
           disabled={!message.trim() || isSending}
-          className="bg-green-600 hover:bg-green-700"
+          aria-label="Send message"
         >
-          <Send className="h-4 w-4" />
+          <Send className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
     </div>

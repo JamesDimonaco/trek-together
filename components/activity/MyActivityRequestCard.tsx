@@ -55,14 +55,14 @@ export default function MyActivityRequestCard({
             )}
           </div>
 
-          <h3 className="font-semibold text-sm line-clamp-1 mb-1">
+          <h2 className="font-semibold text-sm line-clamp-1 mb-1">
             {request.title}
-          </h3>
+          </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-2">
             {request.description}
           </p>
 
-          <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="flex items-center justify-between text-xs text-gray-500">
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
               <span>{formatDateRange(request.dateFrom, request.dateTo)}</span>

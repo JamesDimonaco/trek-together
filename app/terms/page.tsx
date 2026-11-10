@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 
 export const metadata = {
@@ -11,7 +11,7 @@ export default function TermsPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-3xl">Terms of Service</CardTitle>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Terms of service</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Last updated: {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
           </p>
@@ -115,7 +115,7 @@ export default function TermsPage() {
             <h3 className="text-lg font-semibold mt-4 mb-2">6.3 Reporting Violations</h3>
             <p>
               If you encounter content or behavior that violates these Terms, please report it to{" "}
-              <a href="mailto:dimonaco.james@gmail.com" className="text-green-600 hover:underline">
+              <a href="mailto:dimonaco.james@gmail.com" className="text-green-700 hover:underline">
                 dimonaco.james@gmail.com
               </a>
             </p>
@@ -209,7 +209,7 @@ export default function TermsPage() {
             <h3 className="text-lg font-semibold mt-4 mb-2">13.2 Informal Resolution</h3>
             <p>
               Before filing a claim, you agree to contact us at{" "}
-              <a href="mailto:dimonaco.james@gmail.com" className="text-green-600 hover:underline">
+              <a href="mailto:dimonaco.james@gmail.com" className="text-green-700 hover:underline">
                 dimonaco.james@gmail.com
               </a>{" "}
               to attempt to resolve the dispute informally.
@@ -247,13 +247,13 @@ export default function TermsPage() {
             <ul className="list-none space-y-1">
               <li>
                 Email:{" "}
-                <a href="mailto:dimonaco.james@gmail.com" className="text-green-600 hover:underline">
+                <a href="mailto:dimonaco.james@gmail.com" className="text-green-700 hover:underline">
                   dimonaco.james@gmail.com
                 </a>
               </li>
               <li>
                 Website:{" "}
-                <Link href="/" className="text-green-600 hover:underline">
+                <Link href="/" className="text-green-700 hover:underline">
                   trektogether.app
                 </Link>
               </li>
@@ -264,12 +264,12 @@ export default function TermsPage() {
             <h2 className="text-xl font-semibold mb-3">17. Additional Resources</h2>
             <ul className="list-none space-y-1">
               <li>
-                <Link href="/privacy" className="text-green-600 hover:underline">
+                <Link href="/privacy" className="text-green-700 hover:underline">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/cookies" className="text-green-600 hover:underline">
+                <Link href="/cookies" className="text-green-700 hover:underline">
                   Cookie Policy
                 </Link>
               </li>

@@ -76,14 +76,14 @@ export default function RecentActivityCard({ item }: RecentActivityCardProps) {
             )}
           </div>
 
-          <h3 className="font-semibold text-sm line-clamp-2 mb-1">
+          <h2 className="font-semibold text-sm line-clamp-2 mb-1">
             {item.title}
-          </h3>
+          </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-auto">
             {preview}
           </p>
 
-          <div className="flex items-center justify-between text-xs text-gray-400 mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between text-xs text-gray-500 mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-1 min-w-0 truncate">
               <MapPin className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">

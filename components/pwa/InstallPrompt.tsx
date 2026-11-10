@@ -75,14 +75,14 @@ export default function InstallPrompt() {
         <Button
           size="sm"
           onClick={handleInstall}
-          className="bg-green-600 hover:bg-green-700 gap-1.5 shrink-0"
+          className="gap-1.5 shrink-0"
         >
           <Download className="h-4 w-4" />
           Install
         </Button>
         <button
           onClick={handleDismiss}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0"
+          className="text-gray-500 hover:text-gray-600 dark:hover:text-gray-200 shrink-0"
         >
           <X className="h-4 w-4" />
         </button>

@@ -33,7 +33,7 @@ export default function UsersPage() {
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
             <Input
               type="text"
               placeholder="Search by username..."
@@ -62,7 +62,7 @@ export default function UsersPage() {
             {/* No results */}
             {users && users.length === 0 && (
               <div className="text-center py-12">
-                <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <User className="h-12 w-12 text-gray-500 mx-auto mb-4" />
                 <p className="text-gray-600 dark:text-gray-400">
                   No users found matching "{searchTerm}"
                 </p>
@@ -91,15 +91,15 @@ export default function UsersPage() {
                           />
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0">
-                            <User className="h-6 w-6 text-green-600 dark:text-green-400" />
+                            <User className="h-6 w-6 text-green-700 dark:text-green-400" />
                           </div>
                         )}
 
                         {/* User info */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                          <h2 className="font-semibold text-gray-900 dark:text-white truncate">
                             {user.username}
-                          </h3>
+                          </h2>
                           {user.bio && (
                             <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                               {user.bio}
@@ -129,7 +129,7 @@ export default function UsersPage() {
         {/* Initial state */}
         {searchTerm.length < 2 && (
           <div className="text-center py-12">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <Search className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">
               Start typing to search for trekkers
             </p>

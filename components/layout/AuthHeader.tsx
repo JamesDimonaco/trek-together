@@ -75,7 +75,7 @@ export default function AuthHeader() {
             href="/"
             className="flex items-center space-x-2 min-w-0 flex-shrink-0"
           >
-            <Mountain className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <Mountain className="h-6 w-6 text-green-700 dark:text-green-400 flex-shrink-0" />
             <span className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
               TrekTogether
             </span>
@@ -88,7 +88,7 @@ export default function AuthHeader() {
               variant="ghost"
               size="sm"
               asChild
-              className="h-9 w-9 sm:w-auto px-0 sm:px-3"
+              className="w-11 sm:w-auto px-0 sm:px-3"
             >
               <Link href="/treks" aria-label="Treks" className="flex items-center justify-center">
                 <Route className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
@@ -101,23 +101,23 @@ export default function AuthHeader() {
                 variant="ghost"
                 size="sm"
                 asChild
-                className="h-9 w-9 sm:w-auto px-0 sm:px-3"
+                className="w-11 sm:w-auto px-0 sm:px-3"
               >
-                <Link href="/my-treks" aria-label="My Treks" className="flex items-center justify-center">
+                <Link href="/my-treks" aria-label="My treks" className="flex items-center justify-center">
                   <Mountain className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">My Treks</span>
+                  <span className="hidden sm:inline">My treks</span>
                 </Link>
               </Button>
             </SignedIn>
 
             {/* Community - city chats, cities and trekker search */}
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
                   aria-label="Community"
-                  className="h-9 w-9 sm:w-auto px-0 sm:px-3"
+                  className="w-11 sm:w-auto px-0 sm:px-3"
                 >
                   <Users className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
                   <span className="hidden sm:inline">Community</span>
@@ -128,7 +128,7 @@ export default function AuthHeader() {
                 {currentCity && (
                   <DropdownMenuItem asChild>
                     <Link href={`/chat/${currentCity._id}`}>
-                      <MessageCircle className="text-green-600" />
+                      <MessageCircle className="text-green-700" />
                       {currentCity.name} Chat
                     </Link>
                   </DropdownMenuItem>
@@ -149,19 +149,19 @@ export default function AuthHeader() {
             </DropdownMenu>
 
             <SignedOut>
-              <Button variant="ghost" size="sm" asChild className="h-9 px-3">
-                <Link href="/sign-in" aria-label="Sign In" className="flex items-center">
+              <Button variant="ghost" size="sm" asChild className="px-3">
+                <Link href="/sign-in" aria-label="Sign in" className="flex items-center">
                   <User className="h-4 w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">Sign In</span>
+                  <span className="hidden sm:inline">Sign in</span>
                 </Link>
               </Button>
               <Button
                 size="sm"
-                className="bg-green-600 hover:bg-green-700 h-9 px-3"
+                className="px-3"
                 asChild
               >
                 <Link href="/sign-up">
-                  <span className="hidden sm:inline">Sign Up</span>
+                  <span className="hidden sm:inline">Sign up</span>
                   <span className="sm:hidden">Join</span>
                 </Link>
               </Button>
@@ -175,7 +175,7 @@ export default function AuthHeader() {
               <UserButton
                 appearance={{
                   elements: {
-                    avatarBox: "h-9 w-9",
+                    avatarBox: "h-11 w-11 sm:h-9 sm:w-9",
                   },
                 }}
                 userProfileMode="modal"
@@ -188,7 +188,7 @@ export default function AuthHeader() {
                       href={`/profile/${currentUser._id}`}
                     />
                     <UserButton.Link
-                      label="My Activity"
+                      label="My activity"
                       labelIcon={<FileText className="h-4 w-4" />}
                       href="/my-activity"
                     />

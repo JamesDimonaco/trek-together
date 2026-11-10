@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, MapPin, Mountain, Globe } from "lucide-react";
+import { MapPin, Mountain, Globe } from "lucide-react";
+import BackLink from "@/components/layout/BackLink";
 import { Button } from "@/components/ui/button";
 
 interface City {
@@ -21,15 +22,10 @@ export default function ChatHeaderServer({ city }: ChatHeaderServerProps) {
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="sm" asChild className="p-2">
-            <Link href="/cities">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-
+        <div>
+          <BackLink href="/cities" label="Cities" />
           <div className="flex items-center space-x-2">
-            <Mountain className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <Mountain className="h-6 w-6 text-green-700 dark:text-green-400" />
             <div>
               <h1 className="font-semibold text-gray-900 dark:text-white">
                 {city.name} Trekkers
@@ -44,8 +40,8 @@ export default function ChatHeaderServer({ city }: ChatHeaderServerProps) {
 
         <Button variant="outline" size="sm" asChild className="gap-1.5">
           <Link href={`/chat/country/${countrySlug}`}>
-            <Globe className="h-4 w-4" />
-            <span className="hidden sm:inline">{city.country} Chat</span>
+            <Globe className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only sm:not-sr-only">{city.country} chat</span>
           </Link>
         </Button>
       </div>

@@ -110,7 +110,7 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
     <Card>
       <CardContent className="space-y-4 p-4">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Day {dayNumber}</h3>
+          <h2 className="font-semibold text-gray-900 dark:text-white">Day {dayNumber}</h2>
           <Input
             type="date"
             aria-label={`Day ${dayNumber} date`}
@@ -253,7 +253,6 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-green-600 hover:bg-green-700"
           >
             {isSaving ? "Saving..." : "Save day"}
           </Button>

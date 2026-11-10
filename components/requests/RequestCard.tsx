@@ -68,15 +68,15 @@ export default function RequestCard({
                 </Badge>
               )}
             </div>
-            <h3 className="font-semibold text-sm line-clamp-1">
+            <h2 className="font-semibold text-sm line-clamp-1">
               <Link
                 href={`/chat/${cityId}/requests/${request._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-600 dark:hover:text-green-400"
+                className="hover:text-green-800 dark:hover:text-green-400"
               >
                 {request.title}
               </Link>
-            </h3>
+            </h2>
           </div>
         </div>
       </CardHeader>
@@ -96,12 +96,12 @@ export default function RequestCard({
               <Link
                 href={`/profile/${request.author._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-600 dark:hover:text-green-400"
+                className="hover:text-green-800 dark:hover:text-green-400"
               >
                 {request.author.username}
               </Link>
             ) : (
-              <span className="hover:text-green-600 dark:hover:text-green-400">
+              <span className="hover:text-green-800 dark:hover:text-green-400">
                 Unknown
               </span>
             )}
@@ -114,11 +114,7 @@ export default function RequestCard({
               <Button
                 variant={request.hasExpressedInterest ? "default" : "outline"}
                 size="sm"
-                className={
-                  request.hasExpressedInterest
-                    ? "bg-green-600 hover:bg-green-700 h-7 text-xs gap-1"
-                    : "h-7 text-xs gap-1"
-                }
+                className="gap-1"
                 onClick={onToggleInterest}
               >
                 <HandHelping className="h-3.5 w-3.5" />

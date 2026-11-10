@@ -56,7 +56,7 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
             href={mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-2 inline-flex items-center gap-1 text-sm text-green-600 hover:underline"
+            className="ml-2 inline-flex items-center gap-1 text-sm text-green-700 hover:underline"
           >
             Open in Google Maps <ExternalLink className="h-3 w-3" />
           </a>
@@ -65,7 +65,7 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
           {trek.owner && (
             <>
               By{" "}
-              <Link href={`/profile/${trek.owner._id}`} className="text-green-600 hover:underline">
+              <Link href={`/profile/${trek.owner._id}`} className="text-green-700 underline underline-offset-2 hover:text-green-800">
                 {trek.owner.username}
               </Link>
               {" · "}
@@ -84,7 +84,7 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
                 {companion.kind === "user" ? (
                   <Link
                     href={`/profile/${companion.userId}`}
-                    className="text-green-600 hover:underline"
+                    className="text-green-700 underline underline-offset-2 hover:text-green-800"
                   >
                     {companion.username}
                   </Link>

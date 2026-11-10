@@ -65,7 +65,7 @@ export default function ImageLightbox({
                 size="sm"
                 onClick={handlePrev}
                 aria-label="Previous image"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white h-10 w-10 p-0 rounded-full"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white size-11 p-0 rounded-full"
               >
                 <ChevronLeft className="h-6 w-6" />
               </Button>
@@ -74,7 +74,7 @@ export default function ImageLightbox({
                 size="sm"
                 onClick={handleNext}
                 aria-label="Next image"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white h-10 w-10 p-0 rounded-full"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white size-11 p-0 rounded-full"
               >
                 <ChevronRight className="h-6 w-6" />
               </Button>

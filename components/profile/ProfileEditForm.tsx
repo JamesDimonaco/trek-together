@@ -8,7 +8,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, User } from "lucide-react";
@@ -126,7 +126,7 @@ export default function ProfileEditForm() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Card>
           <CardContent className="py-12 text-center">
-            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <User className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               You need to be signed in to edit your profile
             </p>
@@ -163,7 +163,7 @@ export default function ProfileEditForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Edit Profile</CardTitle>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit profile</h1>
           <CardDescription>
             Update your profile information and let other trekkers know about you
           </CardDescription>
@@ -261,7 +261,7 @@ export default function ProfileEditForm() {
 
             {/* Success Message */}
             {success && (
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm">
+              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm">
                 Profile updated successfully! Redirecting...
               </div>
             )}
@@ -278,7 +278,6 @@ export default function ProfileEditForm() {
               </Button>
               <Button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700"
                 disabled={isLoading}
               >
                 {isLoading ? (

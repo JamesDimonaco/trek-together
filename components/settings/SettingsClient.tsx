@@ -9,8 +9,8 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Ban, Loader2, Bell, Mail as MailIcon } from "lucide-react";
-import Link from "next/link";
+import BackLink from "@/components/layout/BackLink";
+import { Ban, Loader2, Bell, Mail as MailIcon } from "lucide-react";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -170,12 +170,8 @@ export default function SettingsClient() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b sticky top-0 z-10">
-          <div className="px-4 py-4 flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
+          <div className="px-4 py-4">
+            {convexUserId && <BackLink href={`/profile/${convexUserId}`} label="Profile" />}
             <h1 className="text-xl font-semibold">Settings</h1>
           </div>
         </div>

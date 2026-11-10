@@ -27,14 +27,14 @@ export default function AuthPromptModal({
       <Card className="max-w-md w-full relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-600 dark:hover:text-gray-200"
         >
           <X className="h-5 w-5" />
         </button>
 
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-            <Lock className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <Lock className="h-6 w-6 text-green-700 dark:text-green-400" />
           </div>
           <CardTitle>Sign In Required</CardTitle>
           <CardDescription>
@@ -44,7 +44,7 @@ export default function AuthPromptModal({
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
+          <Button className="w-full" asChild>
             <Link href="/sign-in">Sign In to Continue</Link>
           </Button>
           <Button variant="outline" onClick={onClose} className="w-full">

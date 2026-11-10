@@ -119,21 +119,21 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">
-                    <User className="h-12 w-12 sm:h-10 sm:w-10 text-green-600 dark:text-green-400" />
+                    <User className="h-12 w-12 sm:h-10 sm:w-10 text-green-700 dark:text-green-400" />
                   </div>
                 )}
               </div>
 
               {/* Username and Stats */}
               <div className="flex-1 text-center sm:text-left">
-                <CardTitle className="text-xl sm:text-2xl mb-2">
+                <h1 className="mb-2 break-words text-2xl font-bold text-gray-900 dark:text-white">
                   {profile.username}
                   {isGuest && (
                     <span className="ml-2 text-sm font-normal text-gray-500">
                       (Guest)
                     </span>
                   )}
-                </CardTitle>
+                </h1>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center space-x-1">
                     <Mountain className="h-4 w-4" />
@@ -201,7 +201,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 <Button
                   asChild
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                  className="w-full sm:w-auto"
                 >
                   <Link href={`/dm/${userId}`}>
                     <MessageCircle className="h-4 w-4 mr-2" />
@@ -239,7 +239,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-              <MapPin className="h-5 w-5 text-green-600" />
+              <MapPin className="h-5 w-5 text-green-700" />
               <span>Cities Visited</span>
             </CardTitle>
           </CardHeader>
@@ -251,7 +251,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                   href={`/chat/${city._id}`}
                   className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition active:bg-gray-100 dark:active:bg-gray-700"
                 >
-                  <Mountain className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <Mountain className="h-5 w-5 text-green-700 dark:text-green-400 flex-shrink-0" />
                   <div className="min-w-0">
                     <div className="font-medium text-gray-900 dark:text-white truncate">
                       {city.name}
@@ -271,7 +271,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
       {(!profile.cities || profile.cities.length === 0) && (
         <Card>
           <CardContent className="py-8 sm:py-12 text-center px-4">
-            <Mountain className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+            <Mountain className="h-10 w-10 sm:h-12 sm:w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
               {isOwnProfile
                 ? "You haven't visited any cities yet. Start exploring!"

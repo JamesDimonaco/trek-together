@@ -103,10 +103,9 @@ export default function RootLayout({
     <ClerkProvider
       appearance={{
         variables: {
-          colorPrimary: "#059669", // green-600
+          colorPrimary: "#15803d", // green-700, matches --primary
         },
         elements: {
-          formButtonPrimary: "bg-green-600 hover:bg-green-700",
           card: "shadow-lg",
         },
       }}
@@ -125,9 +124,15 @@ export default function RootLayout({
         >
           <ConvexClientProvider>
             <PostHogIdentifier />
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow"
+            >
+              Skip to content
+            </a>
             <AuthHeader />
             <AuthSync />
-            <main className="flex-1">
+            <main id="main" className="flex-1">
               {children}
             </main>
             <Footer />

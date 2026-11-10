@@ -26,7 +26,7 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
     <Card className="mb-4 sm:mb-6">
       <CardHeader className="px-4 sm:px-6">
         <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-          <Mountain className="h-5 w-5 text-green-600" />
+          <Mountain className="h-5 w-5 text-green-700" />
           <span>Treks</span>
         </CardTitle>
       </CardHeader>
@@ -36,7 +36,7 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
             <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
               You have not logged a trek yet.
             </p>
-            <Button asChild className="bg-green-600 hover:bg-green-700">
+            <Button asChild>
               <Link href="/my-treks/new">Log a trek</Link>
             </Button>
           </div>

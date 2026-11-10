@@ -108,10 +108,12 @@ export default function MessageActions({
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            size="icon"
+            aria-label={`Actions for ${reportedUsername}'s message`}
+            // Always visible on touch screens; revealed on hover or focus where a mouse exists.
+            className="sm:size-8 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
           >
-            <MoreVertical className="h-4 w-4" />
+            <MoreVertical className="h-4 w-4" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

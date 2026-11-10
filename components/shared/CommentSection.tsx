@@ -95,7 +95,7 @@ export default function CommentSection({
                   {comment.author?._id ? (
                     <Link
                       href={`/profile/${comment.author._id}`}
-                      className="font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400"
+                      className="font-medium text-gray-900 dark:text-gray-100 hover:text-green-800 dark:hover:text-green-400"
                     >
                       {comment.author.username}
                     </Link>
@@ -104,15 +104,17 @@ export default function CommentSection({
                       Unknown
                     </span>
                   )}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     {formatTime(comment._creationTime)}
                   </span>
                   {(canDeleteAny || currentUserId === comment.authorId) && (
                     <button
                       onClick={() => onDeleteComment(comment._id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
+                      aria-label="Delete comment"
+                      // Always visible on touch screens; revealed on hover or focus where a mouse exists.
+                      className="-my-3 flex size-11 items-center justify-center text-gray-500 transition-opacity hover:text-red-700 focus-visible:opacity-100 sm:-my-1 sm:size-6 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
                   )}
                 </div>
@@ -134,7 +136,8 @@ export default function CommentSection({
             placeholder ??
             (isAuthenticated ? "Add a comment..." : "Sign in to comment")
           }
-          className="min-h-[36px] h-9 resize-none text-sm"
+          aria-label="Comment"
+          className="min-h-11 h-11 sm:min-h-9 sm:h-9 resize-none text-sm"
           onFocus={() => {
             if (!isAuthenticated) onAuthPrompt();
           }}
@@ -149,9 +152,10 @@ export default function CommentSection({
           size="sm"
           onClick={handleSubmit}
           disabled={isSubmitting || !newComment.trim()}
-          className="bg-green-600 hover:bg-green-700 h-9 px-3"
+          className="px-3"
+          aria-label="Post comment"
         >
-          <Send className="h-3.5 w-3.5" />
+          <Send className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
       </div>
     </div>

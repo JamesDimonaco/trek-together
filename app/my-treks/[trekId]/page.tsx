@@ -19,7 +19,7 @@ export default function MyTrekPage({ params }: { params: Promise<{ trekId: strin
   if (isLoading || !userId) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-green-700" />
       </div>
     );
   }

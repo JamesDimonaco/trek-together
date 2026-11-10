@@ -7,7 +7,7 @@ export default function OfflinePage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="text-center max-w-md">
         <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <Mountain className="h-8 w-8 text-green-600 dark:text-green-400" />
+          <Mountain className="h-8 w-8 text-green-700 dark:text-green-400" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           You&apos;re Offline
@@ -22,7 +22,7 @@ export default function OfflinePage() {
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors"
         >
           Try Again
         </button>

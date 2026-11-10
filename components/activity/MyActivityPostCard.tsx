@@ -49,14 +49,14 @@ export default function MyActivityPostCard({ post }: MyActivityPostCardProps) {
             </Badge>
           </div>
 
-          <h3 className="font-semibold text-sm line-clamp-1 mb-1">
+          <h2 className="font-semibold text-sm line-clamp-1 mb-1">
             {post.title}
-          </h3>
+          </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-2">
             {preview}
           </p>
 
-          <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="flex items-center justify-between text-xs text-gray-500">
             <span>{timeAgo(post._creationTime)}</span>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">

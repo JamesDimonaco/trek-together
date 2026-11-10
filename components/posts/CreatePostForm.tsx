@@ -107,7 +107,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5">
+        <Button size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" />
           New Post
         </Button>
@@ -220,7 +220,7 @@ export default function CreatePostForm({ cityId, userId }: CreatePostFormProps) 
           <Button
             type="submit"
             disabled={isSubmitting || !title.trim() || !stripHtml(content).length}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full"
           >
             {isSubmitting ? "Creating..." : "Create Post"}
           </Button>

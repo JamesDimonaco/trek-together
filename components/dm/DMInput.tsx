@@ -95,13 +95,15 @@ export default function DMInput({ onSendMessage, conversationId, currentUserId }
           onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
+          aria-label="Message"
           className="flex-1 min-h-[60px] max-h-[120px] resize-none"
           disabled={isSending}
         />
         <Button
           type="submit"
           disabled={!message.trim() || isSending}
-          className="bg-green-600 hover:bg-green-700 self-end"
+          className="self-end"
+          aria-label="Send message"
         >
           {isSending ? (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />

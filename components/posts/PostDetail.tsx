@@ -168,7 +168,7 @@ export default function PostDetail({
             <Link
               href={`/chat/${cityId}/posts/${postId}`}
               onClick={onClose}
-              className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
+              className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-green-800 dark:hover:text-green-400 w-fit"
             >
               <ArrowUpRight className="h-3 w-3" />
               Open full page
@@ -177,12 +177,12 @@ export default function PostDetail({
               {post.author?._id ? (
                 <Link
                   href={`/profile/${post.author._id}`}
-                  className="hover:text-green-600 dark:hover:text-green-400 font-medium"
+                  className="hover:text-green-800 dark:hover:text-green-400 font-medium"
                 >
                   {post.author.username}
                 </Link>
               ) : (
-                <span className="hover:text-green-600 dark:hover:text-green-400 font-medium">
+                <span className="hover:text-green-800 dark:hover:text-green-400 font-medium">
                   Unknown
                 </span>
               )}
@@ -194,7 +194,7 @@ export default function PostDetail({
                     size="sm"
                     onClick={() => setShowEditDialog(true)}
                     aria-label="Edit post"
-                    className="text-gray-500 hover:text-green-600 h-7 px-2"
+                    className="text-gray-500 hover:text-green-800 h-7 px-2"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
@@ -204,7 +204,7 @@ export default function PostDetail({
                         variant="ghost"
                         size="sm"
                         aria-label="Delete post"
-                        className="text-red-500 hover:text-red-600 h-7 px-2"
+                        className="text-red-700 hover:text-red-800 px-2"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

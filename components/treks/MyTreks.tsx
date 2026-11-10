@@ -23,19 +23,11 @@ export default function MyTreks() {
     if (isSignedOut) router.push("/sign-in");
   }, [isSignedOut, router]);
 
-  if (isLoading || !userId || treks === undefined) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto max-w-2xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Treks</h1>
-        <Button asChild className="gap-1.5 bg-green-600 hover:bg-green-700">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My treks</h1>
+        <Button asChild className="gap-1.5">
           <Link href="/my-treks/new">
             <Plus className="h-4 w-4" />
             Log a trek
@@ -43,7 +35,12 @@ export default function MyTreks() {
         </Button>
       </div>
 
-      {treks.length === 0 ? (
+      {isLoading || !userId || treks === undefined ? (
+        <div className="flex min-h-[40vh] items-center justify-center" role="status">
+          <Loader2 className="h-8 w-8 animate-spin text-green-700" aria-hidden="true" />
+          <span className="sr-only">Loading your treks</span>
+        </div>
+      ) : treks.length === 0 ? (
         <p className="py-12 text-center text-gray-500 dark:text-gray-400">
           Your logbook is empty. Log your first trek to start it.
         </p>

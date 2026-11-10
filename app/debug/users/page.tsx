@@ -37,7 +37,7 @@ export default function DebugUsersPage() {
           </h2>
           {!duplicateAuthIds && <p className="text-gray-500">Loading...</p>}
           {duplicateAuthIds && duplicateAuthIds.length === 0 && (
-            <p className="text-green-600 dark:text-green-400">
+            <p className="text-green-700 dark:text-green-400">
               ✓ No duplicate auth IDs found
             </p>
           )}

@@ -81,7 +81,7 @@ export default function CitiesPage() {
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
             <Input
               type="text"
               placeholder="Search cities or countries..."
@@ -106,7 +106,7 @@ export default function CitiesPage() {
         {/* Empty state */}
         {groupedCities && groupedCities.length === 0 && (
           <div className="text-center py-12">
-            <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <MapPin className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">
               No cities yet. Be the first to explore!
             </p>
@@ -116,7 +116,7 @@ export default function CitiesPage() {
         {/* No results */}
         {filteredGroups && filteredGroups.length === 0 && groupedCities && groupedCities.length > 0 && (
           <div className="text-center py-12">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <Search className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">
               No cities found matching "{searchTerm}"
             </p>
