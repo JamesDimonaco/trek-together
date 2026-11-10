@@ -43,7 +43,7 @@ export default function TrekCard({ href, trek, ownerUsername }: TrekCardProps) {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {ownerUsername && `${ownerUsername} · `}
             {formatTrekDate(trek.startDate)}
-            {trek.dayCount > 1 && ` · ${trek.dayCount} days`}
+            {trek.dayCount > 1 && ` · ${trek.dayCount}\u00a0days`}
             {stats.length > 0 && ` · ${stats.join(" · ")}`}
           </p>
         </CardContent>

@@ -72,7 +72,7 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
             </>
           )}
           {formatTrekDate(trek.startDate)}
-          {trek.days.length > 1 && ` · ${trek.days.length} days`}
+          {trek.days.length > 1 && ` · ${trek.days.length}\u00a0days`}
           {totals.length > 0 && ` · ${totals.join(" · ")}`}
         </p>
         {trek.companions.length > 0 && (
@@ -112,7 +112,7 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
                     </span>
                   )}
                 </h2>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="shrink-0 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {formatTrekDate(day.date)}
                 </span>
               </div>

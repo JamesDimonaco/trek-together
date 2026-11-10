@@ -129,7 +129,7 @@ export default function AuthHeader() {
                   <DropdownMenuItem asChild>
                     <Link href={`/chat/${currentCity._id}`}>
                       <MessageCircle className="text-green-700" />
-                      {currentCity.name} Chat
+                      {currentCity.name} chat
                     </Link>
                   </DropdownMenuItem>
                 )}

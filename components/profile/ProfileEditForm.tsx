@@ -44,6 +44,9 @@ export default function ProfileEditForm() {
   // Shown after a save attempt; clears as soon as a name is typed.
   const [triedSave, setTriedSave] = useState(false);
   const usernameError = triedSave && !username.trim() ? "Choose a username." : "";
+  const today = new Date().toISOString().split("T")[0];
+  const dateOfBirthError =
+    triedSave && dateOfBirth > today ? "Date of birth can't be in the future." : "";
   const [success, setSuccess] = useState(false);
 
   // Populate form with current user data
@@ -61,8 +64,8 @@ export default function ProfileEditForm() {
     e.preventDefault();
     if (!currentUser) return;
     setTriedSave(true);
-    if (!username.trim()) {
-      document.getElementById("username")?.focus();
+    if (!username.trim() || dateOfBirth > today) {
+      document.getElementById(!username.trim() ? "username" : "dateOfBirth")?.focus();
       return;
     }
 
@@ -222,9 +225,16 @@ export default function ProfileEditForm() {
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
+                  max={today}
                   className="text-base"
+                  aria-invalid={dateOfBirthError ? true : undefined}
+                  aria-describedby={dateOfBirthError ? "dateOfBirth-error" : undefined}
                 />
+                {dateOfBirthError && (
+                  <p id="dateOfBirth-error" role="alert" className="text-sm text-red-700 dark:text-red-400">
+                    {dateOfBirthError}
+                  </p>
+                )}
                 <p className="text-sm text-gray-600">
                   Your age will be calculated automatically
                 </p>

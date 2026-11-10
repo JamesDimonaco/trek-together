@@ -19,7 +19,7 @@ function Switch({
       )}
       {...props}
     >
-      <span className="group-data-[state=checked]:bg-primary group-data-[state=unchecked]:bg-input dark:group-data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 items-center rounded-full border border-transparent shadow-xs transition-all">
+      <span className="group-data-[state=checked]:bg-primary group-data-[state=unchecked]:bg-gray-500 dark:group-data-[state=unchecked]:bg-gray-500 inline-flex h-[1.15rem] w-8 items-center rounded-full border border-transparent shadow-xs transition-all">
         <SwitchPrimitive.Thumb
           data-slot="switch-thumb"
           className={cn(

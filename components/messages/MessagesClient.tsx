@@ -43,8 +43,6 @@ export default function MessagesClient() {
     }
   }, [isLoaded, clerkUser, router]);
 
-
-
   const truncateMessage = (content: string, maxLength: number = 60) => {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + "...";
