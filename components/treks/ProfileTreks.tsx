@@ -1,5 +1,6 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { Mountain } from "lucide-react";
@@ -32,14 +33,15 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
       </CardHeader>
       <CardContent className="space-y-3">
         {treks.length === 0 ? (
-          <div className="text-center">
-            <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
-              You have not logged a trek yet.
-            </p>
-            <Button asChild>
-              <Link href="/my-treks/new">Log a trek</Link>
-            </Button>
-          </div>
+          <EmptyState
+            icon={Mountain}
+            title="No treks logged yet"
+            action={
+              <Button asChild>
+                <Link href="/my-treks/new">Log a trek</Link>
+              </Button>
+            }
+          />
         ) : (
           treks.map((trek) => (
             <TrekCard

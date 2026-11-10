@@ -1,5 +1,6 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
 import { useEffect } from "react";
 import { useQuery } from "convex/react";
@@ -269,14 +270,18 @@ export default function ProfileView({ userId }: ProfileViewProps) {
       {/* Empty State */}
       {(!profile.cities || profile.cities.length === 0) && (
         <Card>
-          <CardContent className="py-8 sm:py-12 text-center">
-            <Mountain className="h-10 w-10 sm:h-12 sm:w-12 text-gray-500 mx-auto mb-4" />
-            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-              {isOwnProfile
-                ? "You haven't visited any cities yet. Start exploring!"
-                : "This user hasn't visited any cities yet."}
-            </p>
-          </CardContent>
+          <EmptyState
+            icon={MapPin}
+            title="No cities visited yet"
+            description={isOwnProfile ? "Join a city chat to add it here." : undefined}
+            action={
+              isOwnProfile ? (
+                <Button asChild>
+                  <Link href="/cities">Browse cities</Link>
+                </Button>
+              ) : undefined
+            }
+          />
         </Card>
       )}
     </div>
