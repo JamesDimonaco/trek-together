@@ -32,7 +32,7 @@ export default function CitySelector({
       <div className="space-y-2">
         <Label>City</Label>
         <div className="flex items-center justify-center h-10 rounded-md border border-input bg-background">
-          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+          <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
         </div>
       </div>
     );
@@ -41,9 +41,9 @@ export default function CitySelector({
   if (cities.length === 0) {
     return (
       <div className="text-center py-4 text-sm text-gray-500">
-        <MapPin className="h-5 w-5 mx-auto mb-2 text-gray-400" />
+        <MapPin className="h-5 w-5 mx-auto mb-2 text-gray-500" />
         <p>You haven&apos;t visited any cities yet.</p>
-        <Link href="/cities" className="text-green-600 hover:underline">
+        <Link href="/cities" className="text-primary hover:underline">
           Browse cities to get started
         </Link>
       </div>

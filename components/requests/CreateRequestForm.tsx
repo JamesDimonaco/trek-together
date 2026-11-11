@@ -138,7 +138,7 @@ export default function CreateRequestForm({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5">
+          <Button size="sm" className="gap-1.5">
             <Plus className="h-4 w-4" />
             Post a trek plan
           </Button>
@@ -151,7 +151,7 @@ export default function CreateRequestForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="req-activity">Activity Type</Label>
+            <Label htmlFor="req-activity">Activity type</Label>
             <Select
               value={activityType}
               onValueChange={setActivityType}
@@ -225,7 +225,7 @@ export default function CreateRequestForm({
                 placeholder="you@example.com"
                 required
               />
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-500">
                 We&apos;ll email you when someone wants to join — one-click
                 unsubscribe, nothing else. No account needed.
               </p>
@@ -254,7 +254,7 @@ export default function CreateRequestForm({
               !dateFrom ||
               (needsEmail && !email.trim())
             }
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full"
           >
             {isSubmitting ? "Posting..." : "Post trek plan"}
           </Button>

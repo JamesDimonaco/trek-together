@@ -106,14 +106,14 @@ export default function CreateRequestWithCityDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5">
+        <Button size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" />
-          New Request
+          New request
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Find Trek Buddies</DialogTitle>
+          <DialogTitle>Find trek buddies</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,7 +124,7 @@ export default function CreateRequestWithCityDialog({
           />
 
           <div className="space-y-2">
-            <Label htmlFor="req-activity-type">Activity Type</Label>
+            <Label htmlFor="req-activity-type">Activity type</Label>
             <Select value={activityType} onValueChange={setActivityType}>
               <SelectTrigger id="req-activity-type">
                 <SelectValue />
@@ -193,9 +193,9 @@ export default function CreateRequestWithCityDialog({
               !description.trim() ||
               !dateFrom
             }
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full"
           >
-            {isSubmitting ? "Creating..." : "Create Request"}
+            {isSubmitting ? "Creating..." : "Create request"}
           </Button>
         </form>
       </DialogContent>

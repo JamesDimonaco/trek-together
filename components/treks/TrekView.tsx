@@ -50,29 +50,29 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
           <TrekLikeButton trekId={trek._id} />
         </div>
         <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-          <MapPin className="h-4 w-4 flex-shrink-0" />
+          <MapPin className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
           <span>{trek.placeName}</span>
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-2 inline-flex items-center gap-1 text-sm text-green-600 hover:underline"
-          >
-            Open in Google Maps <ExternalLink className="h-3 w-3" />
-          </a>
         </div>
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-11 items-center gap-1 text-sm text-primary hover:underline sm:min-h-0"
+        >
+          Open in Google Maps <ExternalLink className="h-3 w-3" aria-hidden="true" />
+        </a>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {trek.owner && (
             <>
               By{" "}
-              <Link href={`/profile/${trek.owner._id}`} className="text-green-600 hover:underline">
+              <Link href={`/profile/${trek.owner._id}`} className="text-primary underline underline-offset-2 hover:text-primary-hover">
                 {trek.owner.username}
               </Link>
               {" · "}
             </>
           )}
           {formatTrekDate(trek.startDate)}
-          {trek.days.length > 1 && ` · ${trek.days.length} days`}
+          {trek.days.length > 1 && ` · ${trek.days.length}\u00a0days`}
           {totals.length > 0 && ` · ${totals.join(" · ")}`}
         </p>
         {trek.companions.length > 0 && (
@@ -84,7 +84,7 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
                 {companion.kind === "user" ? (
                   <Link
                     href={`/profile/${companion.userId}`}
-                    className="text-green-600 hover:underline"
+                    className="text-primary underline underline-offset-2 hover:text-primary-hover"
                   >
                     {companion.username}
                   </Link>
@@ -101,9 +101,9 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
         const stats = summarizeStats(day);
         return (
           <Card key={day._id}>
-            <CardContent className="space-y-3 p-4">
+            <CardContent className="space-y-3">
               <div className="flex items-baseline justify-between gap-2">
-                <h2 className="font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Day {index + 1}
                   {day.placeNote && (
                     <span className="font-normal text-gray-600 dark:text-gray-400">
@@ -112,7 +112,7 @@ export default function TrekView({ trek }: { trek: TrekViewData }) {
                     </span>
                   )}
                 </h2>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="shrink-0 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {formatTrekDate(day.date)}
                 </span>
               </div>

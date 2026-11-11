@@ -1,4 +1,7 @@
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
+import { format } from "date-fns";
+import { startsNewDay } from "@/lib/time-utils";
+import DayDivider from "@/components/chat/DayDivider";
 import Link from "next/link";
 import { Id } from "@/convex/_generated/dataModel";
 import MessageActions from "./MessageActions";
@@ -54,13 +57,6 @@ export default function MessageList({
     return message.sessionId === currentSessionId;
   };
 
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-
   if (!messages?.length) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -71,13 +67,13 @@ export default function MessageList({
           </p>
           {onShowRequests && (
             <div className="space-y-1">
-              <p className="text-xs text-gray-400 dark:text-gray-500 max-w-xs mx-auto">
+              <p className="text-xs text-gray-500 dark:text-gray-500 max-w-xs mx-auto">
                 Chat is quiet when nobody&apos;s online — trek plans stick
                 around and get answered later.
               </p>
               <button
                 onClick={onShowRequests}
-                className="text-sm text-green-600 dark:text-green-400 hover:underline font-medium"
+                className="text-sm text-primary dark:text-green-400 hover:underline font-medium"
               >
                 See trek plans instead →
               </button>
@@ -94,25 +90,28 @@ export default function MessageList({
       onScroll={handleScroll}
       className="flex-1 overflow-y-auto p-4 space-y-3"
     >
-      {messages.map((message) => {
+      {messages.map((message, index) => {
         const isOwn = isOwnMessage(message);
         const canShowActions = !isOwn && message.userId && currentUserId;
 
         return (
+          <Fragment key={message._id}>
+          {startsNewDay(messages[index - 1]?._creationTime, message._creationTime) && (
+            <DayDivider timestamp={message._creationTime} />
+          )}
           <div
-            key={message._id}
             className={`flex group ${isOwn ? "justify-end" : "justify-start"}`}
           >
             <div className="flex items-start gap-2">
               <div
                 className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
                   isOwn
-                    ? "bg-green-600 text-white"
+                    ? "bg-primary text-primary-foreground"
                     : "bg-white dark:bg-gray-700 border"
                 }`}
               >
                 {!isOwn && (
-                  <div className="text-xs font-medium mb-1 opacity-70">
+                  <div className="text-xs font-medium mb-1">
                     {message.userId ? (
                       <Link
                         href={`/profile/${message.userId}`}
@@ -127,8 +126,8 @@ export default function MessageList({
                   </div>
                 )}
                 <div className="text-sm">{message.content}</div>
-                <div className="text-xs mt-1 opacity-70">
-                  {formatTime(message._creationTime)}
+                <div className="text-xs mt-1">
+                  {format(message._creationTime, "HH:mm")}
                 </div>
               </div>
 
@@ -143,6 +142,7 @@ export default function MessageList({
               )}
             </div>
           </div>
+          </Fragment>
         );
       })}
     </div>

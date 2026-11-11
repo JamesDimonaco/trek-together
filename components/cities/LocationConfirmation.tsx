@@ -19,8 +19,8 @@ export default function LocationConfirmation({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
-        <MapPin className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
-        <CardTitle className="text-2xl">Is this correct?</CardTitle>
+        <MapPin className="h-12 w-12 text-primary dark:text-green-400 mx-auto mb-4" />
+        <CardTitle>Is this correct?</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center space-y-2">
@@ -39,7 +39,7 @@ export default function LocationConfirmation({
         <div className="space-y-3">
           <Button
             onClick={onConfirm}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full"
             size="lg"
             disabled={isLoading}
           >
@@ -52,7 +52,6 @@ export default function LocationConfirmation({
               `Join ${locationData.city} City Chat`
             )}
           </Button>
-          
           <Button
             variant="outline"
             onClick={onChangeLocation}

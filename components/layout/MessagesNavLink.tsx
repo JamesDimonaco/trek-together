@@ -12,7 +12,7 @@ export default function MessagesNavLink() {
   return (
     <Link
       href="/messages"
-      className="flex items-center justify-center relative h-9 w-9 sm:w-auto px-0 sm:px-3 rounded-md hover:bg-accent transition-colors"
+      className="flex items-center justify-center relative h-11 w-11 sm:h-8 sm:w-auto px-0 sm:px-3 rounded-md hover:bg-accent transition-colors"
       aria-label="Messages"
     >
       <Mail className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" aria-hidden="true" />

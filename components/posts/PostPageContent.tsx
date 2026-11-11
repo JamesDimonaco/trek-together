@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -107,9 +108,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
 
   if (post === undefined) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="py-8" />
     );
   }
 
@@ -135,12 +134,12 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
             {typeLabels[post.type]}
           </Badge>
           {post.difficulty && (
-            <Badge variant="secondary" className={difficultyColors[post.difficulty]}>
+            <Badge variant="secondary" className={`capitalize ${difficultyColors[post.difficulty]}`}>
               {post.difficulty}
             </Badge>
           )}
           {post.rating && (
-            <span className="flex items-center gap-0.5 text-sm text-yellow-500">
+            <span className="flex items-center gap-0.5 text-sm text-amber-700 dark:text-amber-400">
               <Star className="h-4 w-4 fill-yellow-400" />
               {post.rating}/5
             </span>
@@ -148,7 +147,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
         </div>
 
         {/* Title */}
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {post.title}
         </h1>
 
@@ -157,7 +156,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
           {post.author?._id ? (
             <Link
               href={`/profile/${post.author._id}`}
-              className="hover:text-green-600 dark:hover:text-green-400 font-medium"
+              className="hover:text-primary-hover dark:hover:text-green-400 font-medium"
             >
               {post.author.username}
             </Link>
@@ -172,7 +171,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
                 size="sm"
                 onClick={() => setShowEditDialog(true)}
                 aria-label="Edit post"
-                className="text-gray-500 hover:text-green-600 h-7 px-2"
+                className="text-gray-500 hover:text-primary-hover px-2"
               >
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
@@ -182,7 +181,7 @@ export default function PostPageContent({ postId, cityId, session }: PostPageCon
                     variant="ghost"
                     size="sm"
                     aria-label="Delete post"
-                    className="text-red-500 hover:text-red-600 h-7 px-2"
+                    className="text-red-700 hover:text-red-800 px-2"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

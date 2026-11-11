@@ -1,5 +1,7 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -13,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import RequestCard from "./RequestCard";
 import RequestDetail from "./RequestDetail";
@@ -110,15 +113,18 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
     <div className="p-4 space-y-4">
       {/* Header with filter and create button */}
       <div className="flex items-center justify-between gap-2">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-32 h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="open">Open</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="request-status" className="text-sm text-gray-600 dark:text-gray-300">Show</Label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger id="request-status" className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         <CreateRequestForm
           cityId={cityId}
@@ -129,38 +135,34 @@ export default function RequestsList({ cityId, session }: RequestsListProps) {
 
       {/* Requests list */}
       {requests === undefined ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-        </div>
+        <LoadingState className="py-8" />
       ) : requests.length === 0 ? (
         <div className="space-y-6">
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <HandHelping className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {statusFilter === "open"
-                ? "No trek plans here yet"
-                : "No closed requests yet."}
-            </h3>
-            {statusFilter === "open" && (
-              <>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-xs">
-                  Post yours — it stays up while you&apos;re away, and
-                  we&apos;ll email you when someone wants to join.
-                </p>
+          <EmptyState
+            icon={HandHelping}
+            className="py-8"
+            title={statusFilter === "open" ? "No trek plans here yet" : "No closed requests yet"}
+            description={
+              statusFilter === "open"
+                ? "Post yours. It stays up while you're away, and we'll email you when someone wants to join."
+                : undefined
+            }
+            action={
+              statusFilter === "open" ? (
                 <CreateRequestForm
                   cityId={cityId}
                   session={session}
                   guestHasEmail={!!guestContact?.hasEmail}
                   trigger={
-                    <Button className="mt-4 bg-green-600 hover:bg-green-700 gap-1.5">
+                    <Button className="gap-1.5">
                       <Plus className="h-4 w-4" />
                       Post your trek plan
                     </Button>
                   }
                 />
-              </>
-            )}
-          </div>
+              ) : undefined
+            }
+          />
 
           {/* The local room may be empty, but the network isn't */}
           {statusFilter === "open" && (

@@ -1,19 +1,11 @@
 import { cache } from "react";
 import { Metadata } from "next";
-import Link from "next/link";
 import { getCityData } from "../../actions/city";
 import { getRequestData } from "./actions/request";
 import { getServerSession } from "@/lib/server-session";
 import { BASE_URL, safeJsonLd, truncateAtWord } from "@/lib/convex-server";
 import RequestPageContent from "@/components/requests/RequestPageContent";
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import BackLink from "@/components/layout/BackLink";
 
 interface RequestPageProps {
   params: Promise<{ cityId: string; requestId: string }>;
@@ -127,7 +119,7 @@ export default async function RequestPage({ params }: RequestPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900 flex flex-col">
       <div className="w-full max-w-3xl mx-auto flex flex-col flex-1">
         {/* JSON-LD */}
         <script
@@ -135,28 +127,9 @@ export default async function RequestPage({ params }: RequestPageProps) {
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
 
-        {/* Breadcrumb */}
-        <Breadcrumb className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href="/cities">Cities</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href={`/chat/${cityId}`}>{city.name}</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="truncate max-w-[200px]">
-                {request.title}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <div className="px-4 pt-3">
+          <BackLink href={`/chat/${cityId}`} label={city.name} />
+        </div>
 
         {/* Content */}
         <div className="p-4">

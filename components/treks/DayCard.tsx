@@ -108,9 +108,9 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
 
   return (
     <Card>
-      <CardContent className="space-y-4 p-4">
+      <CardContent className="space-y-4">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Day {dayNumber}</h3>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Day {dayNumber}</h2>
           <Input
             type="date"
             aria-label={`Day ${dayNumber} date`}
@@ -121,7 +121,7 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
+          <div className="col-span-2 space-y-1 sm:col-span-1">
             <Label htmlFor={`placeNote-${day._id}`}>Where</Label>
             <Input
               id={`placeNote-${day._id}`}
@@ -131,7 +131,7 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
               maxLength={100}
             />
           </div>
-          <div className="space-y-1">
+          <div className="col-span-2 space-y-1 sm:col-span-1">
             <Label htmlFor={`weather-${day._id}`}>Weather</Label>
             <Input
               id={`weather-${day._id}`}
@@ -253,7 +253,6 @@ export default function DayCard({ userId, day, dayNumber, canDelete, onChanged }
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-green-600 hover:bg-green-700"
           >
             {isSaving ? "Saving..." : "Save day"}
           </Button>

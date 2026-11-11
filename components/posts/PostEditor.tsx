@@ -112,14 +112,14 @@ export default function PostEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           isActive={editor.isActive("bulletList")}
-          title="Bullet List"
+          title="Bullet list"
         >
           <List className="h-3.5 w-3.5" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           isActive={editor.isActive("orderedList")}
-          title="Ordered List"
+          title="Ordered list"
         >
           <ListOrdered className="h-3.5 w-3.5" />
         </ToolbarButton>
@@ -132,7 +132,7 @@ export default function PostEditor({
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          title="Horizontal Rule"
+          title="Horizontal rule"
         >
           <Minus className="h-3.5 w-3.5" />
         </ToolbarButton>

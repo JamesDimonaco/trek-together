@@ -24,7 +24,7 @@ export default async function DMPage({ params }: DMPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900 flex flex-col">
       <div className="w-full max-w-3xl mx-auto flex flex-col flex-1">
         <DMChat receiverId={userId} />
       </div>

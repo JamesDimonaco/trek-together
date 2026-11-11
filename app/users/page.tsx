@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -18,12 +21,12 @@ export default function UsersPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Find Trekkers
+          <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+            Find trekkers
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Connect with fellow adventurers
@@ -33,9 +36,10 @@ export default function UsersPage() {
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
             <Input
-              type="text"
+              type="search"
+              aria-label="Search trekkers"
               placeholder="Search by username..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -54,19 +58,21 @@ export default function UsersPage() {
           <>
             {/* Loading */}
             {!users && (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-              </div>
+              <LoadingState className="py-12" />
             )}
 
             {/* No results */}
             {users && users.length === 0 && (
-              <div className="text-center py-12">
-                <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  No users found matching "{searchTerm}"
-                </p>
-              </div>
+              <EmptyState
+                icon={User}
+                title={`No trekkers match "${searchTerm}"`}
+                description="Usernames are matched from the start. Try fewer letters."
+                action={
+                  <Button variant="outline" onClick={() => setSearchTerm("")}>
+                    Clear search
+                  </Button>
+                }
+              />
             )}
 
             {/* User list */}
@@ -91,15 +97,15 @@ export default function UsersPage() {
                           />
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0">
-                            <User className="h-6 w-6 text-green-600 dark:text-green-400" />
+                            <User className="h-6 w-6 text-primary dark:text-green-400" />
                           </div>
                         )}
 
                         {/* User info */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                          <h2 className="font-semibold text-gray-900 dark:text-white truncate">
                             {user.username}
-                          </h3>
+                          </h2>
                           {user.bio && (
                             <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                               {user.bio}
@@ -129,7 +135,7 @@ export default function UsersPage() {
         {/* Initial state */}
         {searchTerm.length < 2 && (
           <div className="text-center py-12">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <Search className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">
               Start typing to search for trekkers
             </p>

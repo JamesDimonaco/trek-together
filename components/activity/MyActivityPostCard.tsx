@@ -33,7 +33,7 @@ export default function MyActivityPostCard({ post }: MyActivityPostCardProps) {
       onClick={() => analytics.activityCardClicked("post", post._id, post.cityId)}
     >
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
-        <CardContent className="px-4 py-3">
+        <CardContent>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             {post.city && (
               <Badge variant="outline" className="text-xs gap-1">
@@ -49,14 +49,14 @@ export default function MyActivityPostCard({ post }: MyActivityPostCardProps) {
             </Badge>
           </div>
 
-          <h3 className="font-semibold text-sm line-clamp-1 mb-1">
+          <h2 className="text-lg font-semibold leading-snug line-clamp-2 mb-1">
             {post.title}
-          </h3>
+          </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-2">
             {preview}
           </p>
 
-          <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="flex items-center justify-between text-xs text-gray-500">
             <span>{timeAgo(post._creationTime)}</span>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">

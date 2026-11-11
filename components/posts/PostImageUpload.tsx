@@ -146,7 +146,7 @@ export default function PostImageUpload({
             className="gap-1.5"
           >
             <ImagePlus className="h-4 w-4" />
-            {isUploading ? "Uploading..." : `Add Images (${images.length}/${maxImages})`}
+            {isUploading ? "Uploading..." : `Add images (${images.length}/${maxImages})`}
           </Button>
         </div>
       )}

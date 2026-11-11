@@ -1,5 +1,6 @@
+import { format } from "date-fns";
 export const typeLabels = {
-  trail_report: "Trail Report",
+  trail_report: "Trail report",
   recommendation: "Recommendation",
   general: "General",
 } as const;
@@ -18,11 +19,7 @@ export const difficultyColors = {
 } as const;
 
 export function formatPostDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return format(timestamp, "d MMM yyyy");
 }
 
 export function isHtmlContent(content: string): boolean {

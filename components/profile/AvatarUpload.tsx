@@ -66,7 +66,7 @@ export default function AvatarUpload({
               unoptimized={preview.startsWith('data:')}
             />
           ) : (
-            <Camera className="h-12 w-12 text-gray-400" />
+            <Camera className="h-12 w-12 text-gray-500" />
           )}
         </div>
 
@@ -75,9 +75,10 @@ export default function AvatarUpload({
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg transition"
+            aria-label="Remove photo"
+            className="absolute -top-1 -right-1 flex size-11 items-center justify-center rounded-full bg-red-700 text-white shadow-lg transition hover:bg-red-800 sm:size-8"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         )}
       </div>
@@ -102,11 +103,11 @@ export default function AvatarUpload({
           >
             <span>
               <Upload className="h-4 w-4 mr-2" />
-              {preview ? "Change Photo" : "Upload Photo"}
+              {preview ? "Change photo" : "Upload photo"}
             </span>
           </Button>
         </label>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           JPG, PNG or GIF (max 5MB)
         </p>
       </div>

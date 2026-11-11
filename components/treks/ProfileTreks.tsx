@@ -1,5 +1,6 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { Mountain } from "lucide-react";
@@ -24,28 +25,32 @@ export default function ProfileTreks({ profileUserId, isOwnProfile }: ProfileTre
 
   return (
     <Card className="mb-4 sm:mb-6">
-      <CardHeader className="px-4 sm:px-6">
-        <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-          <Mountain className="h-5 w-5 text-green-600" />
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Mountain className="h-5 w-5 text-primary" />
           <span>Treks</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 px-4 sm:px-6">
+      <CardContent className="space-y-3">
         {treks.length === 0 ? (
-          <div className="text-center">
-            <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
-              You have not logged a trek yet.
-            </p>
-            <Button asChild className="bg-green-600 hover:bg-green-700">
-              <Link href="/my-treks/new">Log a trek</Link>
-            </Button>
-          </div>
+          <EmptyState
+            icon={Mountain}
+            title="No treks logged yet"
+            as="h3"
+            className="py-2"
+            action={
+              <Button asChild>
+                <Link href="/my-treks/new">Log a trek</Link>
+              </Button>
+            }
+          />
         ) : (
           treks.map((trek) => (
             <TrekCard
               key={trek._id}
               href={isOwnProfile ? `/my-treks/${trek._id}` : `/treks/${trek._id}`}
               trek={trek}
+              as="h3"
             />
           ))
         )}

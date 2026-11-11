@@ -1,10 +1,11 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
-import { Loader2, MapPin, Plus } from "lucide-react";
+import { MapPin, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -49,9 +50,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
 
   if (trek === undefined) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-green-600" />
-      </div>
+      <LoadingState className="py-12" />
     );
   }
 
@@ -59,8 +58,8 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
     return (
       <p className="py-12 text-center text-gray-500">
         This trek does not exist, or it is not yours.{" "}
-        <Link href="/my-treks" className="text-green-600 hover:underline">
-          Back to My Treks
+        <Link href="/my-treks" className="text-primary hover:underline">
+          Back to my treks
         </Link>
       </p>
     );
@@ -87,7 +86,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
   return (
     <div className="space-y-4">
       <Card>
-        <CardContent className="space-y-4 p-4">
+        <CardContent className="space-y-4">
           {draft ? (
             <div className="space-y-3">
               <div className="space-y-1">
@@ -109,7 +108,6 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  className="bg-green-600 hover:bg-green-700"
                   disabled={busy}
                   onClick={() =>
                     run(async () => {
@@ -156,7 +154,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
               <Label htmlFor="trek-visibility" className="font-medium">
                 {isPublic ? "Public" : "Private"}
               </Label>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {isPublic
                   ? "Anyone can see this trek, including the exact pin."
                   : "Only you can see this trek."}
@@ -185,7 +183,7 @@ export default function TrekManager({ userId, trekId }: TrekManagerProps) {
 
           <div className="flex items-center justify-between">
             {isPublic ? (
-              <Link href={`/treks/${trekId}`} className="text-sm text-green-600 hover:underline">
+              <Link href={`/treks/${trekId}`} className="text-sm text-primary hover:underline">
                 View public page
               </Link>
             ) : (

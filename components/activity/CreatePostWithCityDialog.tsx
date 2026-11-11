@@ -116,9 +116,9 @@ export default function CreatePostWithCityDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5">
+        <Button size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" />
-          New Post
+          New post
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -144,7 +144,7 @@ export default function CreatePostWithCityDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="general">General</SelectItem>
-                <SelectItem value="trail_report">Trail Report</SelectItem>
+                <SelectItem value="trail_report">Trail report</SelectItem>
                 <SelectItem value="recommendation">Recommendation</SelectItem>
               </SelectContent>
             </Select>
@@ -229,9 +229,9 @@ export default function CreatePostWithCityDialog({
               !title.trim() ||
               !stripHtml(content).length
             }
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full"
           >
-            {isSubmitting ? "Creating..." : "Create Post"}
+            {isSubmitting ? "Creating..." : "Create post"}
           </Button>
         </form>
       </DialogContent>

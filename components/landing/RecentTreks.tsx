@@ -14,8 +14,8 @@ export default function RecentTreks() {
   return (
     <section className="mt-16">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent public treks</h2>
-        <Link href="/treks" className="text-sm text-green-600 hover:underline dark:text-green-400">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent public treks</h2>
+        <Link href="/treks" className="text-sm text-primary hover:underline dark:text-green-400">
           See all
         </Link>
       </div>
@@ -26,6 +26,7 @@ export default function RecentTreks() {
             href={`/treks/${trek._id}`}
             trek={trek}
             ownerUsername={trek.owner?.username}
+            as="h3"
           />
         ))}
       </div>

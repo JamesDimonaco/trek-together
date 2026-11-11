@@ -15,16 +15,18 @@ interface TrekCardProps {
     likeCount: number;
   };
   ownerUsername?: string;
+  // h3 when the list sits under a section heading.
+  as?: "h2" | "h3";
 }
 
-export default function TrekCard({ href, trek, ownerUsername }: TrekCardProps) {
+export default function TrekCard({ href, trek, ownerUsername, as: Heading = "h2" }: TrekCardProps) {
   const stats = summarizeStats(trek.totals);
   return (
     <Link href={href} className="block">
       <Card className="transition hover:bg-gray-50 dark:hover:bg-gray-800">
-        <CardContent className="space-y-1 px-4 py-3">
+        <CardContent className="space-y-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-medium text-gray-900 dark:text-white">{trek.name}</h3>
+            <Heading className="text-lg font-semibold leading-snug text-gray-900 dark:text-white">{trek.name}</Heading>
             {trek.visibility === "private" && (
               <span className="flex flex-shrink-0 items-center gap-1 text-xs text-gray-500">
                 <Lock className="h-3 w-3" /> Private
@@ -43,7 +45,7 @@ export default function TrekCard({ href, trek, ownerUsername }: TrekCardProps) {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {ownerUsername && `${ownerUsername} · `}
             {formatTrekDate(trek.startDate)}
-            {trek.dayCount > 1 && ` · ${trek.dayCount} days`}
+            {trek.dayCount > 1 && ` · ${trek.dayCount}\u00a0days`}
             {stats.length > 0 && ` · ${stats.join(" · ")}`}
           </p>
         </CardContent>

@@ -30,8 +30,8 @@ export default function UsernamePrompt({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
-        <User className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
-        <CardTitle className="text-2xl">How should we call you?</CardTitle>
+        <User className="h-12 w-12 text-primary dark:text-green-400 mx-auto mb-4" />
+        <CardTitle>How should we call you?</CardTitle>
         <CardDescription>
           Choose a display name for the {locationData.city} chat
         </CardDescription>
@@ -50,7 +50,6 @@ export default function UsernamePrompt({
           className="w-full"
           maxLength={30}
         />
-        
         {error && (
           <div className="space-y-2">
             <p className="text-sm text-red-500">{error}</p>
@@ -71,11 +70,10 @@ export default function UsernamePrompt({
             )}
           </div>
         )}
-        
         <Button
           onClick={onSubmit}
           disabled={!username.trim() || isLoading}
-          className="w-full bg-green-600 hover:bg-green-700"
+          className="w-full"
         >
           {isLoading ? (
             <>
@@ -83,10 +81,9 @@ export default function UsernamePrompt({
               Joining chat...
             </>
           ) : (
-            "Join Chat"
+            "Join chat"
           )}
         </Button>
-        
         <Button
           variant="ghost"
           onClick={onStayAnonymous}
@@ -100,7 +97,6 @@ export default function UsernamePrompt({
             </span>
           )}
         </Button>
-        
         <p className="text-xs text-center text-muted-foreground">
           You can always change this later in your profile
         </p>

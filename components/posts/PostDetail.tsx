@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -117,9 +118,7 @@ export default function PostDetail({
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent>
           <DialogTitle className="sr-only">Loading post</DialogTitle>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-          </div>
+          <LoadingState className="py-8" />
         </DialogContent>
       </Dialog>
     );
@@ -153,12 +152,12 @@ export default function PostDetail({
                 {typeLabels[post.type]}
               </Badge>
               {post.difficulty && (
-                <Badge variant="secondary" className={difficultyColors[post.difficulty]}>
+                <Badge variant="secondary" className={`capitalize ${difficultyColors[post.difficulty]}`}>
                   {post.difficulty}
                 </Badge>
               )}
               {post.rating && (
-                <span className="flex items-center gap-0.5 text-sm text-yellow-500">
+                <span className="flex items-center gap-0.5 text-sm text-amber-700 dark:text-amber-400">
                   <Star className="h-4 w-4 fill-yellow-400" />
                   {post.rating}/5
                 </span>
@@ -168,7 +167,7 @@ export default function PostDetail({
             <Link
               href={`/chat/${cityId}/posts/${postId}`}
               onClick={onClose}
-              className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
+              className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-hover dark:hover:text-green-400 w-fit"
             >
               <ArrowUpRight className="h-3 w-3" />
               Open full page
@@ -177,12 +176,12 @@ export default function PostDetail({
               {post.author?._id ? (
                 <Link
                   href={`/profile/${post.author._id}`}
-                  className="hover:text-green-600 dark:hover:text-green-400 font-medium"
+                  className="hover:text-primary-hover dark:hover:text-green-400 font-medium"
                 >
                   {post.author.username}
                 </Link>
               ) : (
-                <span className="hover:text-green-600 dark:hover:text-green-400 font-medium">
+                <span className="hover:text-primary-hover dark:hover:text-green-400 font-medium">
                   Unknown
                 </span>
               )}
@@ -194,7 +193,7 @@ export default function PostDetail({
                     size="sm"
                     onClick={() => setShowEditDialog(true)}
                     aria-label="Edit post"
-                    className="text-gray-500 hover:text-green-600 h-7 px-2"
+                    className="text-gray-500 hover:text-primary-hover px-2"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
@@ -204,7 +203,7 @@ export default function PostDetail({
                         variant="ghost"
                         size="sm"
                         aria-label="Delete post"
-                        className="text-red-500 hover:text-red-600 h-7 px-2"
+                        className="text-red-700 hover:text-red-800 px-2"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

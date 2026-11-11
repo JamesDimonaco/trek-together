@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Mountain, Heart, Users } from "lucide-react";
 import Link from "next/link";
 
@@ -12,16 +13,16 @@ export default function AboutPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-3xl flex items-center gap-3">
-            <Mountain className="h-8 w-8 text-green-600" />
+          <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-white">
+            <Mountain className="h-8 w-8 text-primary" aria-hidden="true" />
             About TrekTogether
-          </CardTitle>
+          </h1>
         </CardHeader>
-        <CardContent className="prose prose-sm sm:prose dark:prose-invert max-w-none">
+        <CardContent className="prose prose-sm sm:prose dark:prose-invert max-w-none prose-h2:mt-0 prose-h2:mb-3 prose-h2:text-lg prose-h2:font-semibold">
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Heart className="h-6 w-6 text-green-600" />
-              The Story
+            <h2 className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-primary" aria-hidden="true" />
+              The story
             </h2>
             <p className="text-base leading-relaxed mb-4">
               Hey! I&apos;m James, a developer currently traveling around South America with my girlfriend.
@@ -42,9 +43,9 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Users className="h-6 w-6 text-green-600" />
-              The Solution
+            <h2 className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" aria-hidden="true" />
+              The solution
             </h2>
             <p className="text-base leading-relaxed mb-4">
               So I started building a little trekking chat app. That&apos;s why TrekTogether is here today.
@@ -61,7 +62,7 @@ export default function AboutPage() {
           </section>
 
           <section className="mb-6">
-            <h2 className="text-2xl font-semibold mb-4">Built by One Person</h2>
+            <h2>Built by one person</h2>
             <p className="text-base leading-relaxed mb-4">
               TrekTogether is a solo project—just me, my laptop, and countless hours in hostels and
               cafes across South America. It&apos;s built with modern web technologies and designed to
@@ -69,25 +70,26 @@ export default function AboutPage() {
             </p>
             <p className="text-base leading-relaxed">
               If you have feedback, find bugs, or just want to say hi, please reach out at{" "}
-              <a href="mailto:dimonaco.james@gmail.com" className="text-green-600 hover:underline">
+              <a href="mailto:dimonaco.james@gmail.com" className="text-primary hover:underline">
                 dimonaco.james@gmail.com
               </a>
               . I&apos;d love to hear from you!
             </p>
           </section>
 
-          <section className="bg-green-50 dark:bg-green-950 p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-3">Ready to Trek?</h3>
+          <section className="bg-green-50 dark:bg-green-950 p-4 rounded-lg [&>p]:mt-0">
+            <h2>Ready to trek?</h2>
             <p className="mb-4">
               Find your city, join the chat, and start connecting with fellow trekkers today.
             </p>
-            <Link
-              href="/cities"
-              className="inline-flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors"
-            >
-              <Mountain className="h-5 w-5 mr-2" />
-              Find Your City
-            </Link>
+            <div className="not-prose">
+              <Button asChild size="lg">
+                <Link href="/cities">
+                  <Mountain className="h-5 w-5" aria-hidden="true" />
+                  Find your city
+                </Link>
+              </Button>
+            </div>
           </section>
         </CardContent>
       </Card>

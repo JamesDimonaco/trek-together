@@ -1,8 +1,8 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { use, useEffect } from "react";
 import { notFound, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import TrekManager from "@/components/treks/TrekManager";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
@@ -18,9 +18,7 @@ export default function MyTrekPage({ params }: { params: Promise<{ trekId: strin
 
   if (isLoading || !userId) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
+      <LoadingState className="min-h-[60vh]" />
     );
   }
 

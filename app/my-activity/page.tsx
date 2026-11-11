@@ -1,13 +1,16 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, HandHelping, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileText, HandHelping } from "lucide-react";
 import Link from "next/link";
 import MyActivityPostCard from "@/components/activity/MyActivityPostCard";
 import MyActivityRequestCard from "@/components/activity/MyActivityRequestCard";
@@ -69,9 +72,7 @@ export default function MyActivityPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>
+      <LoadingState className="min-h-[60vh]" />
     );
   }
 
@@ -79,9 +80,9 @@ export default function MyActivityPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          My Activity
+          My activity
         </h1>
         <div className="flex items-center gap-2">
           <CreatePostWithCityDialog userId={convexUserId} />
@@ -92,7 +93,7 @@ export default function MyActivityPage() {
       <Tabs value={activeTab} onValueChange={(tab) => {
         setActiveTab(tab);
         analytics.myActivityTabChanged(tab as "all" | "posts" | "requests");
-      }} className="mb-6">
+      }} >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="posts" className="gap-1.5">
@@ -104,45 +105,44 @@ export default function MyActivityPage() {
             Requests
           </TabsTrigger>
         </TabsList>
-      </Tabs>
 
-      {posts === undefined || requests === undefined ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-green-600" />
-        </div>
-      ) : allActivity.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400 mb-2">
-            {activeTab === "posts"
-              ? "You haven't created any posts yet."
-              : activeTab === "requests"
-                ? "You haven't created any requests yet."
-                : "You haven't created any posts or requests yet."}
-          </p>
-          <p className="text-sm text-gray-400 dark:text-gray-500">
-            Join a city and share your trekking experiences!
-          </p>
-          <Link
-            href="/cities"
-            className="inline-block mt-4 text-green-600 hover:underline text-sm"
-          >
-            Browse cities
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {allActivity.map((item) =>
-            item.itemType === "post" ? (
-              <MyActivityPostCard key={`post-${item._id}`} post={item} />
-            ) : (
-              <MyActivityRequestCard
-                key={`req-${item._id}`}
-                request={item}
-              />
-            )
+        {/* One panel whose content follows the active tab, so each tab controls a real panel. */}
+        <TabsContent value={activeTab} className="mt-6">
+          {posts === undefined || requests === undefined ? (
+            <LoadingState className="py-12" />
+          ) : allActivity.length === 0 ? (
+            <EmptyState
+              icon={FileText}
+              title={
+                activeTab === "posts"
+                  ? "No posts yet"
+                  : activeTab === "requests"
+                    ? "No trek requests yet"
+                    : "No posts or trek requests yet"
+              }
+              description="Share a trail report or find trek buddies in any city."
+              action={
+                <Button asChild>
+                  <Link href="/cities">Browse cities</Link>
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {allActivity.map((item) =>
+                item.itemType === "post" ? (
+                  <MyActivityPostCard key={`post-${item._id}`} post={item} />
+                ) : (
+                  <MyActivityRequestCard
+                    key={`req-${item._id}`}
+                    request={item}
+                  />
+                )
+              )}
+            </div>
           )}
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { timeAgo } from "@/lib/time-utils";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -44,25 +45,13 @@ export default function PostCard({
   isAuthenticated,
   onAuthPrompt,
 }: PostCardProps) {
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffHours < 1) return "just now";
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
-  };
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow"
+      className="cursor-pointer gap-2 hover:shadow-md transition-shadow"
       onClick={onClick}
     >
-      <CardHeader className="pb-2 pt-3 px-4">
+      <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -70,30 +59,30 @@ export default function PostCard({
                 {typeLabels[post.type]}
               </Badge>
               {post.difficulty && (
-                <Badge variant="secondary" className={difficultyColors[post.difficulty]}>
+                <Badge variant="secondary" className={`capitalize ${difficultyColors[post.difficulty]}`}>
                   {post.difficulty}
                 </Badge>
               )}
               {post.rating && (
-                <span className="flex items-center gap-0.5 text-xs text-yellow-500">
+                <span className="flex items-center gap-0.5 text-xs text-amber-700 dark:text-amber-400">
                   <Star className="h-3 w-3 fill-yellow-400" />
                   {post.rating}
                 </span>
               )}
             </div>
-            <h3 className="font-semibold text-sm line-clamp-1">
+            <h2 className="text-lg font-semibold leading-snug line-clamp-2">
               <Link
                 href={`/chat/${cityId}/posts/${post._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-600 dark:hover:text-green-400"
+                className="hover:text-primary-hover dark:hover:text-green-400"
               >
                 {post.title}
               </Link>
-            </h3>
+            </h2>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-3 pt-0">
+      <CardContent>
         <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
           {stripHtml(post.content)}
         </p>
@@ -103,16 +92,16 @@ export default function PostCard({
               <Link
                 href={`/profile/${post.author._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-600 dark:hover:text-green-400"
+                className="hover:text-primary-hover dark:hover:text-green-400"
               >
                 {post.author.username}
               </Link>
             ) : (
-              <span className="hover:text-green-600 dark:hover:text-green-400">
+              <span className="hover:text-primary-hover dark:hover:text-green-400">
                 Unknown
               </span>
             )}
-            <span>{formatTime(post._creationTime)}</span>
+            <span>{timeAgo(post._creationTime)}</span>
           </div>
           <div
             className="flex items-center gap-1"

@@ -1,5 +1,7 @@
 "use client";
 
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -84,9 +86,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
   if (profile === undefined) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-        </div>
+        <LoadingState className="h-64" />
       </div>
     );
   }
@@ -102,10 +102,10 @@ export default function ProfileView({ userId }: ProfileViewProps) {
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
       {/* Header Card */}
       <Card className="mb-4 sm:mb-6">
-        <CardHeader className="px-4 sm:px-6">
+        <CardHeader>
           {/* Mobile: Stack avatar and info vertically */}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 flex-1">
+            <div className="flex min-w-0 flex-col sm:flex-row items-center sm:items-center gap-4 flex-1">
               {/* Avatar */}
               <div className="relative h-24 w-24 sm:h-20 sm:w-20 rounded-full bg-green-100 dark:bg-green-900 flex-shrink-0 overflow-hidden">
                 {profile.avatarUrl ? (
@@ -119,21 +119,21 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">
-                    <User className="h-12 w-12 sm:h-10 sm:w-10 text-green-600 dark:text-green-400" />
+                    <User className="h-12 w-12 sm:h-10 sm:w-10 text-primary dark:text-green-400" />
                   </div>
                 )}
               </div>
 
               {/* Username and Stats */}
-              <div className="flex-1 text-center sm:text-left">
-                <CardTitle className="text-xl sm:text-2xl mb-2">
+              <div className="min-w-0 flex-1 text-center sm:text-left">
+                <h1 className="mb-2 wrap-anywhere text-2xl font-bold text-gray-900 dark:text-white">
                   {profile.username}
                   {isGuest && (
                     <span className="ml-2 text-sm font-normal text-gray-500">
                       (Guest)
                     </span>
                   )}
-                </CardTitle>
+                </h1>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center space-x-1">
                     <Mountain className="h-4 w-4" />
@@ -186,7 +186,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                   <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                     <Link href="/profile/edit">
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
+                      Edit profile
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
@@ -201,11 +201,11 @@ export default function ProfileView({ userId }: ProfileViewProps) {
                 <Button
                   asChild
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                  className="w-full sm:w-auto"
                 >
                   <Link href={`/dm/${userId}`}>
                     <MessageCircle className="h-4 w-4 mr-2" />
-                    Send Message
+                    Send message
                   </Link>
                 </Button>
               )}
@@ -214,7 +214,7 @@ export default function ProfileView({ userId }: ProfileViewProps) {
         </CardHeader>
 
         {(profile.bio || profile.whatsappNumber) && (
-          <CardContent className="pt-0 px-4 sm:px-6">
+          <CardContent>
             {profile.bio && (
               <div className="mb-4">
                 <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base">
@@ -235,51 +235,52 @@ export default function ProfileView({ userId }: ProfileViewProps) {
       <ProfileTreks profileUserId={profile._id} isOwnProfile={isOwnProfile} />
 
       {/* Cities Visited */}
-      {profile.cities && profile.cities.length > 0 && (
-        <Card>
-          <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-              <MapPin className="h-5 w-5 text-green-600" />
-              <span>Cities Visited</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {profile.cities.map((city) => (
-                <Link
-                  key={city._id}
-                  href={`/chat/${city._id}`}
-                  className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition active:bg-gray-100 dark:active:bg-gray-700"
-                >
-                  <Mountain className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-                  <div className="min-w-0">
-                    <div className="font-medium text-gray-900 dark:text-white truncate">
-                      {city.name}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {city.country}
-                    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <MapPin className="h-5 w-5 text-primary" />
+            <span>Cities visited</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!profile.cities || profile.cities.length === 0 ? (
+            <EmptyState
+              icon={MapPin}
+              title="No cities visited yet"
+              as="h3"
+              className="py-2"
+              description={isOwnProfile ? "Join a city chat to add it here." : undefined}
+              action={
+                isOwnProfile ? (
+                  <Button asChild>
+                    <Link href="/cities">Browse cities</Link>
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {profile.cities.map((city) => (
+              <Link
+                key={city._id}
+                href={`/chat/${city._id}`}
+                className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition active:bg-gray-100 dark:active:bg-gray-700"
+              >
+                <Mountain className="h-5 w-5 text-primary dark:text-green-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <div className="font-medium text-gray-900 dark:text-white truncate">
+                    {city.name}
                   </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Empty State */}
-      {(!profile.cities || profile.cities.length === 0) && (
-        <Card>
-          <CardContent className="py-8 sm:py-12 text-center px-4">
-            <Mountain className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-              {isOwnProfile
-                ? "You haven't visited any cities yet. Start exploring!"
-                : "This user hasn't visited any cities yet."}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+                  <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {city.country}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

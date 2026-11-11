@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -66,12 +69,12 @@ export default function CitiesPage() {
   const filteredCitiesCount = filteredGroups?.reduce((sum, g) => sum + g.cities.length, 0) || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Explore Cities
+          <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+            Explore cities
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Find trekkers in cities around the world, grouped by country
@@ -81,9 +84,10 @@ export default function CitiesPage() {
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
             <Input
-              type="text"
+              type="search"
+              aria-label="Search cities"
               placeholder="Search cities or countries..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -98,29 +102,26 @@ export default function CitiesPage() {
 
         {/* Loading state */}
         {!groupedCities && (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-          </div>
+          <LoadingState className="py-12" />
         )}
 
         {/* Empty state */}
         {groupedCities && groupedCities.length === 0 && (
-          <div className="text-center py-12">
-            <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">
-              No cities yet. Be the first to explore!
-            </p>
-          </div>
+          <EmptyState icon={MapPin} title="No cities yet" description="Be the first to start one." />
         )}
 
         {/* No results */}
         {filteredGroups && filteredGroups.length === 0 && groupedCities && groupedCities.length > 0 && (
-          <div className="text-center py-12">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">
-              No cities found matching "{searchTerm}"
-            </p>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={`No cities match "${searchTerm}"`}
+            description="Try the country name, or a shorter search."
+            action={
+              <Button variant="outline" onClick={() => setSearchTerm("")}>
+                Clear search
+              </Button>
+            }
+          />
         )}
 
         {/* Countries with cities */}

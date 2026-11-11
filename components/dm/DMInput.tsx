@@ -95,22 +95,24 @@ export default function DMInput({ onSendMessage, conversationId, currentUserId }
           onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
+          aria-label="Message"
           className="flex-1 min-h-[60px] max-h-[120px] resize-none"
           disabled={isSending}
         />
         <Button
           type="submit"
           disabled={!message.trim() || isSending}
-          className="bg-green-600 hover:bg-green-700 self-end"
+          className="min-w-11 self-end"
+          aria-label="Send message"
         >
           {isSending ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
           ) : (
             <Send className="h-4 w-4" />
           )}
         </Button>
       </form>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
         Press Enter to send, Shift + Enter for new line
       </p>
     </div>

@@ -49,16 +49,16 @@ export default function RequestCard({
 }: RequestCardProps) {
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow"
+      className="cursor-pointer gap-2 hover:shadow-md transition-shadow"
       onClick={onClick}
     >
-      <CardHeader className="pb-2 pt-3 px-4">
+      <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <Badge
                 variant="secondary"
-                className={activityColors[request.activityType] || activityColors.other}
+                className={`capitalize ${activityColors[request.activityType] || activityColors.other}`}
               >
                 {request.activityType}
               </Badge>
@@ -68,24 +68,24 @@ export default function RequestCard({
                 </Badge>
               )}
             </div>
-            <h3 className="font-semibold text-sm line-clamp-1">
+            <h2 className="text-lg font-semibold leading-snug line-clamp-2">
               <Link
                 href={`/chat/${cityId}/requests/${request._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-600 dark:hover:text-green-400"
+                className="hover:text-primary-hover dark:hover:text-green-400"
               >
                 {request.title}
               </Link>
-            </h3>
+            </h2>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-3 pt-0">
+      <CardContent>
         <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
           {request.description}
         </p>
 
-        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
           <Calendar className="h-3.5 w-3.5" />
           <span>{formatDateRange(request.dateFrom, request.dateTo)}</span>
         </div>
@@ -96,12 +96,12 @@ export default function RequestCard({
               <Link
                 href={`/profile/${request.author._id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="hover:text-green-600 dark:hover:text-green-400"
+                className="hover:text-primary-hover dark:hover:text-green-400"
               >
                 {request.author.username}
               </Link>
             ) : (
-              <span className="hover:text-green-600 dark:hover:text-green-400">
+              <span className="hover:text-primary-hover dark:hover:text-green-400">
                 Unknown
               </span>
             )}
@@ -114,15 +114,11 @@ export default function RequestCard({
               <Button
                 variant={request.hasExpressedInterest ? "default" : "outline"}
                 size="sm"
-                className={
-                  request.hasExpressedInterest
-                    ? "bg-green-600 hover:bg-green-700 h-7 text-xs gap-1"
-                    : "h-7 text-xs gap-1"
-                }
+                className="gap-1"
                 onClick={onToggleInterest}
               >
                 <HandHelping className="h-3.5 w-3.5" />
-                {request.hasExpressedInterest ? "Interested" : "I'm In"}
+                {request.hasExpressedInterest ? "Interested" : "I'm in"}
               </Button>
             )}
             <span className="flex items-center gap-1 text-xs text-gray-500">

@@ -4,12 +4,12 @@ import { WifiOff, Mountain } from "lucide-react";
 
 export default function OfflinePage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="text-center max-w-md">
         <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <Mountain className="h-8 w-8 text-green-600 dark:text-green-400" />
+          <Mountain className="h-8 w-8 text-primary dark:text-green-400" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
           You&apos;re Offline
         </h1>
         <div className="flex items-center justify-center gap-2 text-gray-500 mb-4">
@@ -22,9 +22,9 @@ export default function OfflinePage() {
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg transition-colors"
         >
-          Try Again
+          Try again
         </button>
       </div>
     </div>

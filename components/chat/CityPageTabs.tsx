@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
@@ -127,9 +128,7 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
 
   if (!session) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="flex-1" />
     );
   }
 
@@ -141,16 +140,16 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
     >
       {/* Info bar */}
       <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between text-sm">
-          <TabsList className="h-8 bg-transparent p-0 gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
+          <TabsList className="h-auto bg-transparent p-0 gap-1">
             <TabsTrigger
               value="requests"
-              className="h-7 px-2.5 text-xs data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
+              className="h-11 flex-none px-3 text-sm sm:h-8 data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
             >
               <HandHelping className="h-3.5 w-3.5 mr-1" />
               Requests
               {requestCount !== undefined && requestCount > 0 && (
-                <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-[10px] font-medium min-w-[18px] text-center">
+                <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-xs font-medium min-w-[18px] text-center">
                   {requestCount}
                   <span className="sr-only"> open requests</span>
                 </span>
@@ -158,28 +157,30 @@ export default function CityPageTabs({ cityId, cityName }: CityPageTabsProps) {
             </TabsTrigger>
             <TabsTrigger
               value="chat"
-              className="h-7 px-2.5 text-xs data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
+              className="h-11 flex-none px-3 text-sm sm:h-8 data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
             >
               <MessageCircle className="h-3.5 w-3.5 mr-1" />
               Chat
             </TabsTrigger>
             <TabsTrigger
               value="posts"
-              className="h-7 px-2.5 text-xs data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
+              className="h-11 flex-none px-3 text-sm sm:h-8 data-[state=active]:bg-green-100 data-[state=active]:text-green-700 dark:data-[state=active]:bg-green-900/30 dark:data-[state=active]:text-green-400"
             >
               <FileText className="h-3.5 w-3.5 mr-1" />
               Posts
               {postCount !== undefined && postCount > 0 && (
-                <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-[10px] font-medium min-w-[18px] text-center">
+                <span className="ml-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-1.5 text-xs font-medium min-w-[18px] text-center">
                   {postCount}
                   <span className="sr-only"> posts</span>
                 </span>
               )}
             </TabsTrigger>
           </TabsList>
-          <span className="text-gray-600 dark:text-gray-300 text-xs">
-            {session.username || "Anonymous"}
-          </span>
+          {activeTab === "chat" && (
+            <span className="text-gray-600 dark:text-gray-300 text-sm">
+              Chatting as {session.username || "Anonymous"}
+            </span>
+          )}
         </div>
       </div>
 

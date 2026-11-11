@@ -1,5 +1,7 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
+import { formatPostDate } from "@/lib/post-utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
@@ -9,8 +11,8 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Ban, Loader2, Bell, Mail as MailIcon } from "lucide-react";
-import Link from "next/link";
+import BackLink from "@/components/layout/BackLink";
+import { Ban, Loader2, Bell, Mail as MailIcon } from "lucide-react";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -150,53 +152,43 @@ export default function SettingsClient() {
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString([], {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatPostDate(timestamp);
   };
 
   if (!isLoaded || !currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-      </div>
+      <LoadingState className="flex-1" />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b sticky top-0 z-10">
-          <div className="px-4 py-4 flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <h1 className="text-xl font-semibold">Settings</h1>
+          <div className="px-4 py-4">
+            {convexUserId && <BackLink href={`/profile/${convexUserId}`} label="Profile" />}
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
           </div>
         </div>
 
         {/* Content */}
         <div className="p-4 space-y-6">
           {/* Notification Preferences Section */}
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
+          <Card>
+            <div className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              <h2 className="text-lg font-semibold">Notification Preferences</h2>
+              <h2 className="text-lg font-semibold">Notification preferences</h2>
             </div>
 
             <div className="space-y-4">
               {/* Email Notifications */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MailIcon className="h-5 w-5 text-gray-500" />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <MailIcon className="mt-0.5 h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />
                   <div>
                     <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer">
-                      Email Notifications
+                      Email notifications
                     </Label>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Get notified by email when you receive a new DM
@@ -211,12 +203,12 @@ export default function SettingsClient() {
               </div>
 
               {/* Browser Notifications */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Bell className="h-5 w-5 text-gray-500" />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <Bell className="mt-0.5 h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />
                   <div>
                     <Label htmlFor="browser-notifications" className="text-base font-medium cursor-pointer">
-                      Browser Notifications
+                      Browser notifications
                     </Label>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Get browser notifications for new messages
@@ -231,7 +223,7 @@ export default function SettingsClient() {
               </div>
 
               {!currentUser?.email && (
-                <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+                <p className="text-sm text-amber-700 dark:text-amber-400 mt-2">
                   ⚠ No email address on file. Email notifications will not work until you add an email to your account.
                 </p>
               )}
@@ -239,10 +231,10 @@ export default function SettingsClient() {
           </Card>
 
           {/* Blocked Users Section */}
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
+          <Card>
+            <div className="flex items-center gap-2">
               <Ban className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              <h2 className="text-lg font-semibold">Blocked Users</h2>
+              <h2 className="text-lg font-semibold">Blocked users</h2>
             </div>
 
             {!blockedUsers || blockedUsers.length === 0 ? (

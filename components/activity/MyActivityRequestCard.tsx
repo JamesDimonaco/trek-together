@@ -34,7 +34,7 @@ export default function MyActivityRequestCard({
       onClick={() => analytics.activityCardClicked("request", request._id, request.cityId)}
     >
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
-        <CardContent className="px-4 py-3">
+        <CardContent>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             {request.city && (
               <Badge variant="outline" className="text-xs gap-1">
@@ -55,14 +55,14 @@ export default function MyActivityRequestCard({
             )}
           </div>
 
-          <h3 className="font-semibold text-sm line-clamp-1 mb-1">
+          <h2 className="text-lg font-semibold leading-snug line-clamp-2 mb-1">
             {request.title}
-          </h3>
+          </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-2">
             {request.description}
           </p>
 
-          <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="flex items-center justify-between text-xs text-gray-500">
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
               <span>{formatDateRange(request.dateFrom, request.dateTo)}</span>

@@ -1,5 +1,7 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
+import BackLink from "@/components/layout/BackLink";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -8,10 +10,10 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, User } from "lucide-react";
+import { Save, User } from "lucide-react";
 import Link from "next/link";
 import AvatarUpload from "./AvatarUpload";
 import { analytics } from "@/lib/analytics";
@@ -39,6 +41,12 @@ export default function ProfileEditForm() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  // Shown after a save attempt; clears as soon as a name is typed.
+  const [triedSave, setTriedSave] = useState(false);
+  const usernameError = triedSave && !username.trim() ? "Choose a username." : "";
+  const today = new Date().toISOString().split("T")[0];
+  const dateOfBirthError =
+    triedSave && dateOfBirth > today ? "Date of birth can't be in the future." : "";
   const [success, setSuccess] = useState(false);
 
   // Populate form with current user data
@@ -55,6 +63,11 @@ export default function ProfileEditForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
+    setTriedSave(true);
+    if (!username.trim() || dateOfBirth > today) {
+      document.getElementById(!username.trim() ? "username" : "dateOfBirth")?.focus();
+      return;
+    }
 
     setIsLoading(true);
     setError("");
@@ -126,12 +139,12 @@ export default function ProfileEditForm() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Card>
           <CardContent className="py-12 text-center">
-            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <User className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               You need to be signed in to edit your profile
             </p>
             <Button asChild>
-              <Link href="/">Go Home</Link>
+              <Link href="/">Go home</Link>
             </Button>
           </CardContent>
         </Card>
@@ -143,9 +156,7 @@ export default function ProfileEditForm() {
   if (currentUser === undefined) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-        </div>
+        <LoadingState className="h-64" />
       </div>
     );
   }
@@ -153,23 +164,16 @@ export default function ProfileEditForm() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="mb-6">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/profile/${currentUser?._id}`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Profile
-          </Link>
-        </Button>
+        <BackLink href={`/profile/${currentUser?._id}`} label="Profile" />
       </div>
 
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit profile</h1>
+      <p className="mb-6 mt-1 text-gray-600 dark:text-gray-300">
+        Tell other trekkers about yourself.
+      </p>
       <Card>
-        <CardHeader>
-          <CardTitle>Edit Profile</CardTitle>
-          <CardDescription>
-            Update your profile information and let other trekkers know about you
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             {/* Avatar Upload */}
             <AvatarUpload
               currentAvatar={currentUser?.avatarUrl || clerkUser?.imageUrl}
@@ -184,9 +188,15 @@ export default function ProfileEditForm() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
-                required
                 maxLength={50}
+                aria-invalid={usernameError ? true : undefined}
+                aria-describedby={usernameError ? "username-error" : undefined}
               />
+              {usernameError && (
+                <p id="username-error" role="alert" className="text-sm text-red-700 dark:text-red-400">
+                  {usernameError}
+                </p>
+              )}
             </div>
 
             {/* Bio */}
@@ -200,7 +210,7 @@ export default function ProfileEditForm() {
                 rows={4}
                 maxLength={500}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-600">
                 {bio.length}/500 characters
               </p>
             </div>
@@ -209,23 +219,30 @@ export default function ProfileEditForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Date of Birth */}
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth (Optional)</Label>
+                <Label htmlFor="dateOfBirth">Date of birth (optional)</Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
+                  max={today}
                   className="text-base"
+                  aria-invalid={dateOfBirthError ? true : undefined}
+                  aria-describedby={dateOfBirthError ? "dateOfBirth-error" : undefined}
                 />
-                <p className="text-xs text-gray-500">
+                {dateOfBirthError && (
+                  <p id="dateOfBirth-error" role="alert" className="text-sm text-red-700 dark:text-red-400">
+                    {dateOfBirthError}
+                  </p>
+                )}
+                <p className="text-sm text-gray-600">
                   Your age will be calculated automatically
                 </p>
               </div>
 
               {/* Location */}
               <div className="space-y-2">
-                <Label htmlFor="location">From (Optional)</Label>
+                <Label htmlFor="location">From (optional)</Label>
                 <Input
                   id="location"
                   value={location}
@@ -238,7 +255,7 @@ export default function ProfileEditForm() {
 
             {/* WhatsApp */}
             <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp Number (Optional)</Label>
+              <Label htmlFor="whatsapp">WhatsApp number (optional)</Label>
               <Input
                 id="whatsapp"
                 type="tel"
@@ -247,21 +264,21 @@ export default function ProfileEditForm() {
                 placeholder="+1234567890"
                 maxLength={20}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-600">
                 Share your WhatsApp to connect with other trekkers
               </p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+              <div role="alert" className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm">
                 {error}
               </div>
             )}
 
             {/* Success Message */}
             {success && (
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm">
+              <div role="status" className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-primary dark:text-green-400 text-sm">
                 Profile updated successfully! Redirecting...
               </div>
             )}
@@ -278,18 +295,17 @@ export default function ProfileEditForm() {
               </Button>
               <Button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
                     Saving...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Save Profile
+                    Save profile
                   </>
                 )}
               </Button>

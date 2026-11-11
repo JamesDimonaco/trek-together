@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingState from "@/components/shared/LoadingState";
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -163,9 +164,7 @@ export default function RequestDetail({
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent>
           <DialogTitle className="sr-only">Loading request</DialogTitle>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-          </div>
+          <LoadingState className="py-8" />
         </DialogContent>
       </Dialog>
     );
@@ -196,7 +195,7 @@ export default function RequestDetail({
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <Badge
               variant="secondary"
-              className={activityColors[request.activityType] || activityColors.other}
+              className={`capitalize ${activityColors[request.activityType] || activityColors.other}`}
             >
               {request.activityType}
             </Badge>
@@ -210,7 +209,7 @@ export default function RequestDetail({
           <Link
             href={`/chat/${cityId}/requests/${requestId}`}
             onClick={onClose}
-            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 dark:hover:text-green-400 w-fit"
+            className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-hover dark:hover:text-green-400 w-fit"
           >
             <ArrowUpRight className="h-3 w-3" />
             Open full page
@@ -219,12 +218,12 @@ export default function RequestDetail({
             {request.author?._id ? (
               <Link
                 href={`/profile/${request.author._id}`}
-                className="hover:text-green-600 dark:hover:text-green-400 font-medium"
+                className="hover:text-primary-hover dark:hover:text-green-400 font-medium"
               >
                 {request.author.username}
               </Link>
             ) : (
-              <span className="hover:text-green-600 dark:hover:text-green-400 font-medium">
+              <span className="hover:text-primary-hover dark:hover:text-green-400 font-medium">
                 Unknown
               </span>
             )}
@@ -248,15 +247,11 @@ export default function RequestDetail({
             <Button
               variant={request.hasExpressedInterest ? "default" : "outline"}
               size="sm"
-              className={
-                request.hasExpressedInterest
-                  ? "bg-green-600 hover:bg-green-700 gap-1.5"
-                  : "gap-1.5"
-              }
+              className="gap-1.5"
               onClick={() => handleToggleInterest()}
             >
               <HandHelping className="h-4 w-4" />
-              {request.hasExpressedInterest ? "Interested" : "I'm In"}
+              {request.hasExpressedInterest ? "Interested" : "I'm in"}
             </Button>
           )}
 
@@ -272,7 +267,7 @@ export default function RequestDetail({
                   variant="ghost"
                   size="sm"
                   onClick={handleClose}
-                  className="h-7 px-2 text-xs gap-1"
+                  className="px-2 gap-1"
                 >
                   <Lock className="h-3.5 w-3.5" />
                   Close
@@ -282,7 +277,7 @@ export default function RequestDetail({
                   variant="ghost"
                   size="sm"
                   onClick={handleReopen}
-                  className="h-7 px-2 text-xs gap-1"
+                  className="px-2 gap-1"
                 >
                   <Unlock className="h-3.5 w-3.5" />
                   Reopen
@@ -292,7 +287,7 @@ export default function RequestDetail({
                 variant="ghost"
                 size="sm"
                 onClick={handleDelete}
-                className="h-7 px-2 text-xs text-red-500 hover:text-red-600"
+                className="px-2 text-red-700 hover:text-red-800"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
@@ -302,10 +297,10 @@ export default function RequestDetail({
 
         {/* Interested users */}
         {request.interestedUsers.length > 0 && (
-          <div className="space-y-1">
-            <h4 className="text-xs font-medium text-gray-500 uppercase">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Interested
-            </h4>
+            </h2>
             <div className="flex flex-wrap gap-2">
               {request.interestedUsers.map(
                 (user) =>
@@ -313,7 +308,7 @@ export default function RequestDetail({
                     <Link
                       key={user._id}
                       href={`/profile/${user._id}`}
-                      className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hover:text-green-600"
+                      className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hover:text-primary-hover"
                     >
                       {user.username}
                     </Link>

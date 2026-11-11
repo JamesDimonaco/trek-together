@@ -125,7 +125,7 @@ export default function EditPostForm({
       <DialogContent className={expanded ? "sm:max-w-4xl w-[90vw] h-[90vh] flex flex-col" : "max-w-lg max-h-[90vh] overflow-y-auto"}>
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>Edit Post</DialogTitle>
+            <DialogTitle>Edit post</DialogTitle>
             <Button
               type="button"
               variant="ghost"
@@ -148,7 +148,7 @@ export default function EditPostForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="general">General</SelectItem>
-                <SelectItem value="trail_report">Trail Report</SelectItem>
+                <SelectItem value="trail_report">Trail report</SelectItem>
                 <SelectItem value="recommendation">Recommendation</SelectItem>
               </SelectContent>
             </Select>
@@ -230,9 +230,9 @@ export default function EditPostForm({
           <Button
             type="submit"
             disabled={isSubmitting || !title.trim() || !stripHtml(content).length}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full"
           >
-            {isSubmitting ? "Updating..." : "Update Post"}
+            {isSubmitting ? "Updating..." : "Update post"}
           </Button>
         </form>
       </DialogContent>

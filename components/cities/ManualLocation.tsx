@@ -23,7 +23,7 @@ export default function ManualLocation({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Where are you located?</CardTitle>
+        <CardTitle>Where are you located?</CardTitle>
         <CardDescription>
           Enter your city to connect with local trekkers
         </CardDescription>
@@ -41,15 +41,13 @@ export default function ManualLocation({
           }}
           className="w-full"
         />
-        
         {error && (
           <p className="text-sm text-red-500">{error}</p>
         )}
-        
         <Button
           onClick={onSubmit}
           disabled={!value.trim() || isLoading}
-          className="w-full bg-green-600 hover:bg-green-700"
+          className="w-full"
         >
           {isLoading ? (
             <>
@@ -60,7 +58,6 @@ export default function ManualLocation({
             "Continue"
           )}
         </Button>
-        
         <Button
           variant="ghost"
           onClick={onUseCurrentLocation}
